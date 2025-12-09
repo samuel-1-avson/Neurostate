@@ -33,7 +33,6 @@ import { GhostEngineer } from './services/ghostEngineer';
 import { geminiService } from './services/geminiService';
 import { fileManager } from './services/fileManager';
 import { hardwareBridge } from './services/hardwareBridge';
-import { voiceService } from './services/voiceService';
 import { useHistory } from './hooks/useHistory';
 import { usePersistence } from './hooks/usePersistence';
 import { liveService } from './services/liveService';
@@ -45,105 +44,132 @@ import { HAL, HalSnapshot } from './services/hal';
 // --- DOCUMENTATION CONTENT ---
 const DOCS_CONTENT = [
   {
-    id: 'intro',
-    title: '1. Introduction',
+    id: 'overview',
+    title: '1. System Architecture',
     content: `
-      # NeuroState: The Embedded AI IDE
+      # NeuroState System Bible
       
-      NeuroState is a **multimodal bridge** designed to translate human intent (Analog) into rigorous digital logic (FSMs) for embedded systems.
+      NeuroState is a holistic Integrated Development Environment (IDE) designed to bridge the gap between human intent (Analog) and rigorous firmware logic (Digital).
       
-      It solves the "Analog-Digital Gap" by allowing engineers to design, simulate, and validate firmware logic visually before writing a single line of C++ code.
+      ### Core Architecture
+      The application is built on four pillars:
       
-      ### Key Capabilities:
-      - **Visual FSM Design**: Drag-and-drop states, transitions, and hardware blocks.
-      - **AI-Powered Code Gen**: Export to C++, Verilog, Python, or Rust using Gemini 3 Pro.
-      - **Digital Twin Simulation**: Run your logic against a virtual Hardware Abstraction Layer (HAL).
-      - **Ghost Engineer**: Static analysis that finds race conditions and dead ends automatically.
+      1.  **FSM Runtime Engine**: An asynchronous event-driven executor that runs the state machine logic in the browser. It manages the global context (\`ctx\`), handles event dispatching, and synchronizes with the visual graph.
+      
+      2.  **Hardware Abstraction Layer (HAL)**: A singleton service that simulates physical microcontroller peripherals. It allows the FSM to interact with "Virtual Silicon" (GPIO, UART, ADC) without real hardware.
+      
+      3.  **Visual Graph Interface**: Powered by React Flow, this layer handles the rendering of Nodes, Edges, and Animations. It translates user interactions into logical graph mutations.
+      
+      4.  **Gemini Intelligence Core**: Deep integration with Google's Gemini 3 Pro and Live API. It provides code generation, real-time voice assistance (Neo), and static analysis (Ghost Engineer).
     `
   },
   {
-    id: 'interface',
-    title: '2. Interface & Workspaces',
+    id: 'components',
+    title: '2. Node & Graph Components',
     content: `
-      # Workspace Layouts
+      # Graph Primitives
       
-      NeuroState adapts to your role. Use the **View** menu or shortcuts to switch modes.
+      The visual language consists of specialized components that define behavior.
       
-      ### 1. Architect (Alt+2)
-      Focus on high-level design. Large canvas, properties panel, and AI assistant. Best for initial brainstorming.
+      ### Node Types
+      - **Input** (Blue): The dedicated entry point. Initializes system clock and context variables.
+      - **Process** (White): The workhorse of the FSM. Executes logic via \`entryAction\` and \`exitAction\`.
+      - **Output** (Green): Final states or major milestones (e.g., "DEPLOYED").
+      - **Decision** (Amber): Visual branching points. *Note: Actual logic resides in the Edge Guards.*
+      - **Hardware** (Cyan): Nodes explicitly designed for HAL interaction (e.g., toggling pins).
+      - **UART** (Purple): Serial communication blocks (TX/RX handling).
+      - **Listener** (Indigo): Blocking states that wait for external events or interrupts.
+      - **Error** (Red): Fault handling states. Used by the Ghost Engineer to route failures.
       
-      ### 2. Firmware Engineer (Alt+3)
-      The standard dev view. Includes the Simulation Debugger, Logs, and Context Variable inspector.
-      
-      ### 3. Hardware Lab (Alt+4)
-      Focus on I/O. Opens the **Virtual IO Panel** (LEDs/Buttons) and the **Logic Analyzer** timing diagram.
-      
-      ### 4. Hacker (Terminal)
-      Focus on code and resource estimation. Useful for optimizing memory usage (LUTs/RAM).
+      ### Edges & Guards
+      - **Transitions**: Connections between nodes representing state flow.
+      - **Guards**: JavaScript expressions (e.g., \`ctx.voltage > 3.3\`) attached to edges. The FSM Engine evaluates these before traversing.
+      - **Packet Animation**: Visual feedback showing data traversing the edge during execution.
     `
   },
   {
-    id: 'simulation',
-    title: '3. Simulation & HAL',
+    id: 'processing',
+    title: '3. Simulation & Processing',
     content: `
-      # The Simulation Engine
+      # The Simulation Lifecycle
       
-      The core of NeuroState is an async FSM Executor that runs your logic step-by-step.
+      The \`FSMExecutor\` class drives the simulation loop.
       
-      ### How to Run
-      Click the **SIMULATE** button in the toolbar. The active state will glow green.
+      ### The Processing Loop
+      1.  **Node Entry**: The engine enters a node and executes the \`entryAction\` JavaScript code. This code can manipulate \`ctx\` or call \`HAL\` methods.
+      2.  **Idle/Wait**: The engine enters a suspended state, waiting for an **Event**.
+      3.  **Dispatch**: Events are triggered via \`dispatch("EVENT_NAME", delay)\` within node logic or by external UI interactions.
+      4.  **Guard Evaluation**: When an event fires, the engine evaluates the conditions of all outgoing edges.
+      5.  **Transition**: If a guard passes, the engine executes the current node's \`exitAction\`, triggers the edge animation, and moves to the target node.
       
-      ### Self-Driving Logic
-      To make a simulation run automatically, use the \`dispatch(event, delay)\` function in your node's Entry Action:
-      \`\`\`js
-      // Wait 1s then trigger 'TIMEOUT'
-      dispatch("TIMEOUT", 1000);
-      \`\`\`
-      
-      ### Hardware Abstraction Layer (HAL)
-      You can interact with virtual hardware in your JavaScript logic:
-      - \`HAL.writePin(13, true)\`: Turn on LED on Pin 13.
-      - \`HAL.readPin(5)\`: Read button state from Pin 5.
-      - \`HAL.UART_Transmit("Hello")\`: Send serial data.
-      
-      Open the **Hardware Lab** view to see these signals on the Logic Analyzer.
+      ### Shadow Mode (Digital Twin)
+      In Shadow Mode, the simulator disconnects its internal clock. It acts as a passive visualizer, waiting for **Hardware Sync** events from a connected physical device (via WebSerial) to update the current state.
     `
   },
   {
-    id: 'ai',
-    title: '4. AI & Voice Agent',
+    id: 'hal_reference',
+    title: '4. HAL & Virtual I/O',
+    content: `
+      # Hardware Abstraction Layer
+      
+      The \`HAL\` object is globally available in all node scripts.
+      
+      ### API Reference
+      - **GPIO**: 
+        - \`HAL.writePin(pin: number, value: boolean)\`
+        - \`HAL.readPin(pin: number): boolean\`
+      - **ADC**: 
+        - \`HAL.getADC(channel: number)\` (Returns simulated 12-bit value 0-4095)
+      - **PWM**: 
+        - \`HAL.setPWM(channel: number, duty: number)\`
+      - **UART**: 
+        - \`HAL.UART_Transmit(string)\`
+        - \`HAL.UART_Receive(): string | null\`
+      
+      ### Virtual Tools
+      - **I/O Panel**: A UI overlay that automatically generates Switches and LEDs for any \`ctx\` variable named \`btn_*\` or \`led_*\`.
+      - **Logic Analyzer**: A real-time canvas rendering digital waveforms of GPIO and PWM signals history.
+    `
+  },
+  {
+    id: 'ai_engine',
+    title: '5. AI & Neo Companion',
     content: `
       # Gemini 3 Pro Integration
       
-      NeuroState uses Google's Gemini 3 Pro model for "Thinking" tasks.
+      NeuroState uses a multimodal AI pipeline for advanced capabilities.
       
-      ### Voice Companion
-      Click the **Wave Icon** in the toolbar to activate the AI Companion.
-      - **Create**: "Create a traffic light system." (Generates full graph)
-      - **Modify**: "Add an error state connected to the red light." (Updates graph)
-      - **Chat**: "How do I optimize this for low power?" (Consultation)
+      ### Neo (Live Companion)
+      - **Architecture**: Uses the Gemini Multimodal Live API via WebRTC.
+      - **Capabilities**: Real-time voice interaction, context-aware graph manipulation.
+      - **Tools**: Neo has write access to the graph via \`create_design\` and \`modify_design\` function calls.
       
-      ### Smart Logic Generation
-      In the Node Properties panel, describe what you want (e.g., "Read ADC and check threshold"), and click **Generate Script**. The AI will write the JS/HAL code for you.
+      ### Ghost Engineer
+      - **Static Analysis**: Scans the node graph for topological issues (dead ends, race conditions, unreachable nodes).
+      - **Auto-Fix**: Can autonomously modify the graph to resolve detected issues.
+      
+      ### Code Generation
+      - **Transpiler**: Converts the JSON graph into production-ready code for:
+        - **C++** (Arduino/STM32)
+        - **Verilog** (FPGA)
+        - **Python** (Embedded Linux)
+        - **Rust** (Safety-critical)
+        - **GoogleTest** (Unit Testing)
     `
   },
   {
-    id: 'export',
-    title: '5. Export & Flashing',
+    id: 'interface_tools',
+    title: '6. Interface & Tools',
     content: `
-      # Moving to Real Hardware
+      # Workbench Features
       
-      Once your design is validated, export it to production code.
-      
-      ### Supported Languages
-      - **C++ (Arduino/STM32)**: Generates a class-based FSM header.
-      - **Verilog**: Generates a 3-process HDL module for FPGAs.
-      - **Rust**: Generates a safe \`enum\`-based state machine.
-      - **GoogleTest**: Generates a C++ unit test suite covering all transitions.
-      
-      ### Web Serial Flashing
-      Connect a supported board (ESP32, STM32) via USB. Click **Device Manager**, select your MCU, and click **Flash**.
-      *Note: Browser must support WebSerial API.*
+      - **Workspaces**:
+        - *Architect*: Focus on high-level design.
+        - *Firmware Engineer*: Debugger and variable inspection focus.
+        - *Hardware Lab*: I/O and Logic Analyzer focus.
+      - **Device Manager**: Bridges the browser to physical hardware using the Web Serial API for flashing and telemetry.
+      - **Diagnostic Panel**: Low-level view of HAL state (Registers, Buffers).
+      - **Persistence**: Automatic LocalStorage saving with JSON Import/Export capabilities.
     `
   }
 ];
@@ -751,6 +777,7 @@ const initialNodes: Node[] = [
   { id: 'start', type: 'input', position: { x: 250, y: 50 }, data: { label: 'PWR_ON_RESET', type: 'input', entryAction: '// Initialize Core Clock\nctx.sysclk = 16000000;\nctx.wdt_enable = true;\ndispatch("BOOT_OK", 1000);' } },
   { id: 'init', type: 'process', position: { x: 250, y: 200 }, data: { label: 'HAL_INIT', type: 'process', entryAction: 'HAL_Init();\nMX_GPIO_Init();\nctx.status = "OK";\ndispatch("SETUP_DONE", 1000);', exitAction: '' } },
   { id: 'loop', type: 'output', position: { x: 250, y: 350 }, data: { label: 'MAIN_LOOP', type: 'output', entryAction: 'console.log("Blinking...");\nHAL.writePin(13, !HAL.readPin(13));\ndispatch("TICK", 500);' } },
+  { id: 'uart_tx', type: 'uart', position: { x: 50, y: 350 }, data: { label: 'UART_TX', type: 'uart', entryAction: 'HAL.UART_Transmit("Hello from Node!"); dispatch("TX_SENT", 500);' } }
 ];
 const initialEdges: Edge[] = [
   { id: 'e1', source: 'start', target: 'init', label: 'BOOT_OK', type: 'retro', markerEnd: { type: MarkerType.ArrowClosed } },
@@ -920,21 +947,46 @@ function AppContent() {
 
   // --- LIVE SERVICE EFFECT ---
   useEffect(() => {
+    let timeoutId: any;
     if (isCompanionMode) {
-      liveService.connect((state) => setAgentState(state), handleLiveToolCall);
+      // 1. Force kill wake word engine to free the mic
+      if (recognitionRef.current) {
+          recognitionRef.current.onend = null; // Disable auto-restart
+          recognitionRef.current.onerror = null;
+          try { recognitionRef.current.abort(); } catch(e) {}
+          recognitionRef.current = null;
+      }
+
+      // 2. Wait for OS to release mic (Safe Handoff)
+      // Increased delay to 800ms + retry logic in service ensures connection
+      timeoutId = setTimeout(() => {
+          liveService.connect(
+            (state) => setAgentState(state), 
+            handleLiveToolCall,
+            () => { // On Close from Server or Error
+               setIsCompanionMode(false); 
+               setAgentState('IDLE');
+               showToast("Neo Disconnected", "warning");
+            }
+          );
+      }, 800); 
     } else {
       liveService.disconnect();
       setAgentState('IDLE');
     }
-    return () => liveService.disconnect();
-  }, [isCompanionMode, handleLiveToolCall]);
+    return () => {
+        if(timeoutId) clearTimeout(timeoutId);
+        liveService.disconnect();
+    };
+  }, [isCompanionMode, handleLiveToolCall, showToast]);
 
   // --- WAKE WORD DETECTION (STANDBY MODE) ---
   useEffect(() => {
      // Only listen if Standby is ON and Companion is OFF
      if (!isStandbyMode || isCompanionMode) {
         if (recognitionRef.current) {
-           recognitionRef.current.stop();
+           try { recognitionRef.current.abort(); } catch(e) {}
+           recognitionRef.current = null;
         }
         return;
      }
@@ -960,13 +1012,18 @@ function AppContent() {
         };
 
         recognition.onerror = (e: any) => {
-           console.log("Wake Word Error (ignoring):", e.error);
+           if (e.error !== 'no-speech' && e.error !== 'aborted') {
+              console.log("Wake Word Error:", e.error);
+           }
         };
         
         recognition.onend = () => {
-           // Auto-restart if still in standby
+           // Auto-restart ONLY if still in standby AND NOT in companion mode
+           // This prevents the loop if we switched modes during the session
            if (isStandbyMode && !isCompanionMode) {
-               try { recognition.start(); } catch(e) {}
+               setTimeout(() => {
+                   try { recognition.start(); } catch(e) {}
+               }, 1000); 
            }
         };
 
@@ -979,7 +1036,11 @@ function AppContent() {
      }
 
      return () => {
-        if (recognitionRef.current) recognitionRef.current.stop();
+        if (recognitionRef.current) {
+            recognitionRef.current.onend = null; // Important: disable restart logic on cleanup
+            try { recognitionRef.current.abort(); } catch(e) {}
+            recognitionRef.current = null;
+        }
      };
   }, [isStandbyMode, isCompanionMode, showToast]);
 

@@ -121,48 +121,85 @@ export const liveService = {
   nextStartTime: 0,
   sources: new Set<AudioBufferSourceNode>(),
   
-  // State Callback
+  // Callbacks
   onStateChange: null as ((state: AgentState) => void) | null,
-  
-  // Tool Callback
   onToolCall: null as ((name: string, args: any) => Promise<any>) | null,
+  onClose: null as (() => void) | null,
+
+  // Helper: Get Media Stream with Retry Logic
+  async getStreamWithRetry(constraints: MediaStreamConstraints, retries = 3): Promise<MediaStream> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (e: any) {
+        if (i === retries - 1) throw e; // Last attempt failed, throw
+        
+        // If permission denied, don't retry, fail immediately
+        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') throw e;
+        
+        // For NotFound or NotReadable (busy), wait and retry
+        console.warn(`LiveService: Mic busy/not found (Attempt ${i+1}/${retries}), retrying in 500ms...`, e.name);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    throw new Error("Failed to acquire microphone after retries");
+  },
 
   async connect(
     onStateChange: (state: AgentState) => void,
-    onToolCall: (name: string, args: any) => Promise<any>
+    onToolCall: (name: string, args: any) => Promise<any>,
+    onClose?: () => void
   ) {
     if (this.isConnected) return;
     
     this.onStateChange = onStateChange;
     this.onToolCall = onToolCall;
+    this.onClose = onClose || null;
 
     const apiKey = process.env.API_KEY || '';
     if (!apiKey) {
         console.error("LiveService: API Key missing");
+        this.onClose?.();
         return;
     }
-
-    const ai = new GoogleGenAI({ apiKey });
-    
-    // Initialize Audio Contexts
-    this.inputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-    this.outputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    
-    // CRITICAL: Ensure contexts are resumed (browser autoplay policy)
-    if (this.inputContext.state === 'suspended') await this.inputContext.resume();
-    if (this.outputContext.state === 'suspended') await this.outputContext.resume();
-
-    this.outputNode = this.outputContext.createGain();
-    this.outputNode.connect(this.outputContext.destination);
-    
-    // Sync timing
-    this.nextStartTime = this.outputContext.currentTime + 0.1;
 
     try {
       this.onStateChange('LISTENING');
       
-      // Request Mic Access
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Request Mic Access with Retry Strategy
+      try {
+        // Try advanced constraints first
+        this.mediaStream = await this.getStreamWithRetry({ 
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            autoGainControl: true,
+            noiseSuppression: true,
+          } 
+        });
+      } catch (e) {
+        console.warn("LiveService: Advanced audio constraints failed. Falling back to basic.", e);
+        try {
+            // Fallback to basic if advanced failed
+            this.mediaStream = await this.getStreamWithRetry({ audio: true });
+        } catch (e2: any) {
+            console.error("LiveService: Basic audio failed:", e2);
+            throw new Error(`Microphone unavailable: ${e2.name || e2.message}`);
+        }
+      }
+
+      // Initialize Audio Contexts after stream is ready to avoid context limits
+      this.inputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+      this.outputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      
+      if (this.inputContext.state === 'suspended') await this.inputContext.resume();
+      if (this.outputContext.state === 'suspended') await this.outputContext.resume();
+
+      this.outputNode = this.outputContext.createGain();
+      this.outputNode.connect(this.outputContext.destination);
+      this.nextStartTime = this.outputContext.currentTime + 0.1;
+
+      const ai = new GoogleGenAI({ apiKey });
       
       // Connect to Gemini Live
       const sessionPromise = ai.live.connect({
@@ -182,32 +219,25 @@ export const liveService = {
             this.startInputStream(sessionPromise);
           },
           onmessage: async (message: LiveServerMessage) => {
-            // 1. Handle Tool Calls (Function Calling)
+            // 1. Handle Tool Calls
             if (message.toolCall) {
-               this.onStateChange?.('MODIFYING'); // Visual feedback
+               this.onStateChange?.('MODIFYING');
                for (const fc of message.toolCall.functionCalls) {
-                  console.log("Neo Tool Call:", fc.name, fc.args);
-                  
                   try {
-                    // Execute the tool logic in App.tsx
                     let result = "Done";
                     if (this.onToolCall) {
                        result = await this.onToolCall(fc.name, fc.args);
                     }
-
-                    // Send response back to Gemini
                     sessionPromise.then((session) => {
                        session.sendToolResponse({
                           functionResponses: {
                              id: fc.id,
                              name: fc.name,
-                             response: { result: result } // Simple confirmation
+                             response: { result: result }
                           }
                        });
                     });
                   } catch (e) {
-                     console.error("Tool Execution Failed", e);
-                     // Send error back
                      sessionPromise.then((session) => {
                         session.sendToolResponse({
                            functionResponses: {
@@ -219,15 +249,12 @@ export const liveService = {
                      });
                   }
                }
-               // Resume listening state after tool handling
                this.onStateChange?.('LISTENING');
             }
 
             // 2. Handle Audio Output
-            // Use optional chaining carefully and handle potential empty/text-only parts
             const parts = message.serverContent?.modelTurn?.parts || [];
             let hasAudio = false;
-            
             for (const part of parts) {
                 const base64Audio = part.inlineData?.data;
                 if (base64Audio) {
@@ -236,9 +263,7 @@ export const liveService = {
                     await this.playAudioChunk(base64Audio);
                 }
             }
-
             if (hasAudio) {
-               // Simple debounce to return to listening state after speaking
                setTimeout(() => {
                    if(this.isConnected && this.sources.size === 0 && this.activeSession) this.onStateChange?.('LISTENING');
                }, 2000); 
@@ -251,7 +276,7 @@ export const liveService = {
             }
           },
           onclose: () => {
-            console.log("LiveService: Closed");
+            console.log("LiveService: Closed by Server");
             this.disconnect();
           },
           onerror: (err) => {
@@ -263,9 +288,14 @@ export const liveService = {
       
       this.activeSession = sessionPromise;
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("LiveService Connection Failed:", err);
       this.disconnect();
+      // Ensure specific errors bubble up/are logged
+      if (this.onClose) { 
+          // We can't pass args to onClose easily, but disconnect handles the state reset
+          console.log("LiveService: Notifying UI of failure via close callback");
+      }
     }
   },
 
@@ -273,16 +303,27 @@ export const liveService = {
     if (!this.inputContext || !this.mediaStream) return;
     
     this.source = this.inputContext.createMediaStreamSource(this.mediaStream);
-    this.processor = this.inputContext.createScriptProcessor(4096, 1, 1);
+    this.processor = this.inputContext.createScriptProcessor(2048, 1, 1);
     
     this.processor.onaudioprocess = (e) => {
       if (!this.isConnected) return;
-      const inputData = e.inputBuffer.getChannelData(0);
-      const pcmBlob = createBlob(inputData);
       
-      sessionPromise.then((session) => {
-        session.sendRealtimeInput({ media: pcmBlob });
-      });
+      try {
+          const inputData = e.inputBuffer.getChannelData(0);
+          const pcmBlob = createBlob(inputData);
+          
+          sessionPromise.then((session) => {
+            if(this.isConnected) {
+                session.sendRealtimeInput({ media: pcmBlob });
+            }
+          }).catch(err => {
+              console.error("Stream send failed (Session likely closed):", err);
+              // If we can't send, we should probably disconnect to avoid freezing UI
+              this.disconnect();
+          });
+      } catch (err) {
+          console.error("Audio processing error:", err);
+      }
     };
     
     this.source.connect(this.processor);
@@ -291,62 +332,53 @@ export const liveService = {
 
   async playAudioChunk(base64Audio: string) {
     if (!this.outputContext || !this.outputNode) return;
-    
-    // Safety check if audio context got suspended
-    if (this.outputContext.state === 'suspended') {
-        await this.outputContext.resume();
-    }
+    if (this.outputContext.state === 'suspended') await this.outputContext.resume();
 
-    // Ensure schedule is valid
     const now = this.outputContext.currentTime;
-    if (this.nextStartTime < now) {
-        this.nextStartTime = now + 0.05; // Buffer slightly if late
-    }
+    if (this.nextStartTime < now) this.nextStartTime = now + 0.05;
 
-    const audioBuffer = await decodeAudioData(
-       decode(base64Audio), 
-       this.outputContext,
-       24000,
-       1
-    );
-
-    const source = this.outputContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(this.outputNode);
-    
-    source.addEventListener('ended', () => {
-       this.sources.delete(source);
-       if(this.sources.size === 0) this.onStateChange?.('LISTENING');
-    });
-
-    source.start(this.nextStartTime);
-    this.nextStartTime += audioBuffer.duration;
-    this.sources.add(source);
+    try {
+      const audioBuffer = await decodeAudioData(decode(base64Audio), this.outputContext, 24000, 1);
+      const source = this.outputContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(this.outputNode);
+      source.addEventListener('ended', () => {
+         this.sources.delete(source);
+         if(this.sources.size === 0) this.onStateChange?.('LISTENING');
+      });
+      source.start(this.nextStartTime);
+      this.nextStartTime += audioBuffer.duration;
+      this.sources.add(source);
+    } catch (e) { console.error("Audio Decode Error", e); }
   },
 
   stopAudioPlayback() {
-     this.sources.forEach(s => s.stop());
+     this.sources.forEach(s => { try { s.stop(); } catch(e) {} });
      this.sources.clear();
-     this.nextStartTime = 0;
+     if (this.outputContext) this.nextStartTime = this.outputContext.currentTime;
+     else this.nextStartTime = 0;
   },
 
   disconnect() {
     this.isConnected = false;
     this.onStateChange?.('IDLE');
     
-    // Cleanup Input
     if (this.mediaStream) {
         this.mediaStream.getTracks().forEach(track => track.stop());
         this.mediaStream = null;
     }
-    if (this.processor) { this.processor.disconnect(); this.processor = null; }
+    if (this.processor) { 
+        this.processor.disconnect(); 
+        this.processor.onaudioprocess = null;
+        this.processor = null; 
+    }
     if (this.source) { this.source.disconnect(); this.source = null; }
     if (this.inputContext) { this.inputContext.close(); this.inputContext = null; }
 
-    // Cleanup Output
     this.stopAudioPlayback();
     if (this.outputContext) { this.outputContext.close(); this.outputContext = null; }
     
     this.activeSession = null;
+    if (this.onClose) { this.onClose(); this.onClose = null; }
   }
 };
