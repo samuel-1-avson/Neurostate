@@ -23,7 +23,7 @@ import ReactFlow, {
   EdgeProps,
   NodeToolbar
 } from 'reactflow';
-import { Play, Square, Wand2, AlertTriangle, Save, Upload, Undo, Redo, Mic, Cpu, MessageSquare, GitBranch, Zap, FileJson, FileCode, Bot, Menu, ChevronDown, CheckCircle, Terminal, Layers, Plus, X, Variable, Activity, MousePointerClick, Copy, Info, Sparkles, Send, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, LayoutTemplate, Bug, Microscope, FlaskConical, BarChart3, Gauge, Trash2, Edit3, Target, ZoomIn, ZoomOut, Maximize, Move, Box, GripVertical, Sidebar, CircuitBoard, Layout, Monitor, Grid, Search, FilePlus, Settings2, Clock, FastForward, Pause, ArrowRightLeft, Ear, Hash, ToggleLeft, Disc, Battery, Shield, Split, Database, Cable, HardDrive, LayoutDashboard, FolderOpen, BookOpen, Download, Command, ChevronRight, LogOut, TableProperties, Wrench, Hourglass, Loader2, Group, Code2, TestTube, Waves, Volume2, MicOff, Book } from 'lucide-react';
+import { Play, Square, Wand2, AlertTriangle, Save, Upload, Undo, Redo, Mic, Cpu, MessageSquare, GitBranch, Zap, FileJson, FileCode, Bot, Menu, ChevronDown, CheckCircle, Terminal, Layers, Plus, X, Variable, Activity, MousePointerClick, Copy, Info, Sparkles, Send, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, LayoutTemplate, Bug, Microscope, FlaskConical, BarChart3, Gauge, Trash2, Edit3, Target, ZoomIn, ZoomOut, Maximize, Move, Box, GripVertical, Sidebar, CircuitBoard, Layout, Monitor, Grid, Search, FilePlus, Settings2, Clock, FastForward, Pause, ArrowRightLeft, Ear, Hash, ToggleLeft, Disc, Battery, Shield, Split, Database, Cable, HardDrive, LayoutDashboard, FolderOpen, BookOpen, Download, Command, ChevronRight, LogOut, TableProperties, Wrench, Hourglass, Loader2, Group, Code2, TestTube, Waves, Volume2, MicOff, Book, AlignJustify } from 'lucide-react';
 import { clsx } from 'clsx';
 
 import { Button, Panel, Input, Label, Toast, ToastMessage, VirtualLED, VirtualSwitch, VirtualDisplay, ProgressBar, MetricCard, LogicAnalyzer } from './components/RetroUI';
@@ -1618,6 +1618,7 @@ function AppContent() {
       { label: 'Firmware Eng.', checked: activeLayout === 'ENGINEER', action: () => applyLayout('ENGINEER'), shortcut: 'Alt+3' },
       { label: 'Hardware Lab', checked: activeLayout === 'HARDWARE_LAB', action: () => applyLayout('HARDWARE_LAB'), shortcut: 'Alt+4' },
       { separator: true },
+      { label: 'Toggle Bottom Panel', checked: showBottomPanel, icon: AlignJustify, action: () => setShowBottomPanel(!showBottomPanel) },
       { label: 'Toggle Diagnostics', checked: showDiagnostics, action: () => setShowDiagnostics(!showDiagnostics) },
       { label: 'Toggle IO Panel', checked: showIOPanel, action: () => setShowIOPanel(!showIOPanel) },
     ],
@@ -1648,7 +1649,7 @@ function AppContent() {
   // ... (Menu Items definition omitted for brevity, same as previous) ...
 
   return (
-    <div className="flex flex-col h-screen bg-neuro-bg text-neuro-primary font-mono text-xs overflow-hidden min-h-0">
+    <div className="flex flex-col h-[100dvh] bg-neuro-bg text-neuro-primary font-mono text-xs overflow-hidden min-h-0">
       <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={onFileLoad} />
       <input type="file" ref={cppInputRef} className="hidden" accept=".cpp,.h,.c" onChange={onCppLoad} />
       
@@ -1709,6 +1710,7 @@ function AppContent() {
            <Button onClick={() => redo(nodes, edges)} disabled={!canRedo} tooltip="Redo (Ctrl+Y)"><Redo size={14}/></Button>
            <div className="w-px h-6 bg-gray-200 mx-1"></div>
            <Button onClick={() => setShowLayoutMenu(!showLayoutMenu)} tooltip="Layouts"><LayoutTemplate size={14}/></Button>
+           <Button onClick={() => setShowBottomPanel(!showBottomPanel)} variant={showBottomPanel ? 'primary' : 'ghost'} tooltip="Toggle Bottom Panel (Logs, Validation)"><PanelBottomOpen size={14}/></Button>
            <Button onClick={() => setShowDiagnostics(!showDiagnostics)} variant={showDiagnostics ? 'primary' : 'ghost'} tooltip="Toggle Diagnostics"><Monitor size={14}/></Button>
            <Button onClick={() => setShowIOPanel(!showIOPanel)} variant={showIOPanel ? 'primary' : 'ghost'} tooltip="Toggle IO Panel"><ToggleLeft size={14}/></Button>
         </div>
@@ -2225,13 +2227,16 @@ function AppContent() {
             <span className={clsx("flex items-center gap-1 font-bold", simStatus === SimulationStatus.RUNNING ? "text-green-400" : "text-gray-500")}>
                <Activity size={10}/> {isShadowMode ? "SHADOW" : simStatus}
             </span>
-            <span className={clsx("font-bold", agentState !== 'IDLE' ? "text-neuro-accent animate-pulse" : "text-gray-500")}>{agentState}</span>
+            <span className={clsx("font-bold flex items-center gap-1", agentState !== 'IDLE' ? "text-neuro-accent animate-pulse" : "text-gray-500")}>
+               {agentState !== 'IDLE' && <div className="w-1.5 h-1.5 bg-neuro-accent rounded-full animate-ping"></div>}
+               {agentState}
+            </span>
             <span>{activeLayout.replace('_', ' ')}</span>
          </div>
       </div>
 
-      {/* TOAST NOTIFICATIONS */}
-      <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end pointer-events-none">
+      {/* TOAST NOTIFICATIONS (Moved to Top-Right to avoid Orb overlap) */}
+      <div className="fixed top-12 right-4 z-[100] flex flex-col items-end pointer-events-none">
          {toasts.map(t => (
             <div key={t.id} className="pointer-events-auto">
                <Toast {...t} onClose={closeToast} />

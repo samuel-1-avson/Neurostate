@@ -29,7 +29,9 @@ function createBlob(data: Float32Array): { data: string, mimeType: string } {
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
     // Convert Float32 (-1.0 to 1.0) to Int16
-    int16[i] = Math.max(-1, Math.min(1, data[i])) * 32768;
+    // Clamp to prevent wrapping: 1.0 * 32768 = 32768 (overflows to -32768) -> use 32767
+    const val = data[i];
+    int16[i] = val < 0 ? val * 32768 : val * 32767;
   }
   return {
     data: encode(new Uint8Array(int16.buffer)),
@@ -44,7 +46,15 @@ async function decodeAudioData(
   sampleRate: number = 24000,
   numChannels: number = 1,
 ): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
+  // Ensure even byte length for Int16Array
+  let safeData = data;
+  if (data.byteLength % 2 !== 0) {
+      const newBytes = new Uint8Array(data.byteLength + 1);
+      newBytes.set(data);
+      safeData = newBytes;
+  }
+
+  const dataInt16 = new Int16Array(safeData.buffer);
   const frameCount = dataInt16.length / numChannels;
   const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
 
@@ -137,9 +147,16 @@ export const liveService = {
     // Initialize Audio Contexts
     this.inputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
     this.outputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    
+    // CRITICAL: Ensure contexts are resumed (browser autoplay policy)
+    if (this.inputContext.state === 'suspended') await this.inputContext.resume();
+    if (this.outputContext.state === 'suspended') await this.outputContext.resume();
+
     this.outputNode = this.outputContext.createGain();
     this.outputNode.connect(this.outputContext.destination);
-    this.nextStartTime = 0;
+    
+    // Sync timing
+    this.nextStartTime = this.outputContext.currentTime + 0.1;
 
     try {
       this.onStateChange('LISTENING');
@@ -207,12 +224,21 @@ export const liveService = {
             }
 
             // 2. Handle Audio Output
-            const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            if (base64Audio) {
-               this.onStateChange?.('SPEAKING');
-               await this.playAudioChunk(base64Audio);
+            // Use optional chaining carefully and handle potential empty/text-only parts
+            const parts = message.serverContent?.modelTurn?.parts || [];
+            let hasAudio = false;
+            
+            for (const part of parts) {
+                const base64Audio = part.inlineData?.data;
+                if (base64Audio) {
+                    hasAudio = true;
+                    this.onStateChange?.('SPEAKING');
+                    await this.playAudioChunk(base64Audio);
+                }
+            }
+
+            if (hasAudio) {
                // Simple debounce to return to listening state after speaking
-               // In a real app we might track playback time more precisely
                setTimeout(() => {
                    if(this.isConnected && this.sources.size === 0 && this.activeSession) this.onStateChange?.('LISTENING');
                }, 2000); 
@@ -266,8 +292,16 @@ export const liveService = {
   async playAudioChunk(base64Audio: string) {
     if (!this.outputContext || !this.outputNode) return;
     
+    // Safety check if audio context got suspended
+    if (this.outputContext.state === 'suspended') {
+        await this.outputContext.resume();
+    }
+
     // Ensure schedule is valid
-    this.nextStartTime = Math.max(this.nextStartTime, this.outputContext.currentTime);
+    const now = this.outputContext.currentTime;
+    if (this.nextStartTime < now) {
+        this.nextStartTime = now + 0.05; // Buffer slightly if late
+    }
 
     const audioBuffer = await decodeAudioData(
        decode(base64Audio), 
@@ -301,7 +335,10 @@ export const liveService = {
     this.onStateChange?.('IDLE');
     
     // Cleanup Input
-    if (this.mediaStream) this.mediaStream.getTracks().forEach(track => track.stop());
+    if (this.mediaStream) {
+        this.mediaStream.getTracks().forEach(track => track.stop());
+        this.mediaStream = null;
+    }
     if (this.processor) { this.processor.disconnect(); this.processor = null; }
     if (this.source) { this.source.disconnect(); this.source = null; }
     if (this.inputContext) { this.inputContext.close(); this.inputContext = null; }
@@ -311,6 +348,5 @@ export const liveService = {
     if (this.outputContext) { this.outputContext.close(); this.outputContext = null; }
     
     this.activeSession = null;
-    this.mediaStream = null;
   }
 };
