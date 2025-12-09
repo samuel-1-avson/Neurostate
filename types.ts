@@ -3,10 +3,11 @@ import { Node, Edge } from 'reactflow';
 
 export interface FSMNodeData {
   label: string;
-  type?: 'input' | 'process' | 'output' | 'error' | 'listener' | 'decision' | 'hardware' | 'uart' | 'interrupt' | 'timer' | 'peripheral';
+  type?: 'input' | 'process' | 'output' | 'error' | 'listener' | 'decision' | 'hardware' | 'uart' | 'interrupt' | 'timer' | 'peripheral' | 'queue' | 'mutex' | 'critical' | 'math' | 'wireless' | 'storage' | 'logger' | 'display' | 'network' | 'sensor';
   entryAction?: string; // JavaScript code string
   exitAction?: string; // JavaScript code string
   description?: string;
+  aiReasoning?: string; // Explanation of the generated logic
   tags?: string[];
   isBreakpoint?: boolean;
   active?: boolean;

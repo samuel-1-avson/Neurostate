@@ -106,6 +106,7 @@ const tools: { functionDeclarations: FunctionDeclaration[] }[] = [
 export const liveService = {
   activeSession: null as any,
   isConnected: false,
+  currentSessionId: null as string | null, // Track unique session ID to prevent race conditions
   
   // Audio Contexts
   inputContext: null as AudioContext | null,
@@ -152,6 +153,10 @@ export const liveService = {
   ) {
     if (this.isConnected) return;
     
+    // Generate a new Session ID
+    const sessionId = Math.random().toString(36).substring(7);
+    this.currentSessionId = sessionId;
+
     this.onStateChange = onStateChange;
     this.onToolCall = onToolCall;
     this.onClose = onClose || null;
@@ -188,6 +193,12 @@ export const liveService = {
         }
       }
 
+      // Check for stale session before continuing
+      if (this.currentSessionId !== sessionId) {
+          console.log("LiveService: Connection aborted (stale)");
+          return; 
+      }
+
       // Initialize Audio Contexts after stream is ready to avoid context limits
       this.inputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       this.outputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
@@ -214,11 +225,14 @@ export const liveService = {
         },
         callbacks: {
           onopen: () => {
+            if (this.currentSessionId !== sessionId) return;
             console.log("LiveService: Connected");
             this.isConnected = true;
             this.startInputStream(sessionPromise);
           },
           onmessage: async (message: LiveServerMessage) => {
+            if (this.currentSessionId !== sessionId) return;
+
             // 1. Handle Tool Calls
             if (message.toolCall) {
                this.onStateChange?.('MODIFYING');
@@ -276,12 +290,27 @@ export const liveService = {
             }
           },
           onclose: () => {
+            if (this.currentSessionId !== sessionId) {
+                console.log("LiveService: Ignoring close from stale session");
+                return;
+            }
             console.log("LiveService: Closed by Server");
-            this.disconnect();
+            // If the socket closes unexpectedly, we want to notify via onClose if it exists.
+            // If we initiated the disconnect, this.onClose would have been nulled.
+            if (this.onClose) {
+                this.onClose();
+                this.onClose = null; 
+            }
+            this.internalCleanup();
           },
           onerror: (err) => {
+            if (this.currentSessionId !== sessionId) return;
             console.error("LiveService: Error", err);
-            this.disconnect();
+            if (this.onClose) {
+                this.onClose();
+                this.onClose = null;
+            }
+            this.internalCleanup();
           }
         }
       });
@@ -289,12 +318,12 @@ export const liveService = {
       this.activeSession = sessionPromise;
 
     } catch (err: any) {
+      if (this.currentSessionId !== sessionId) return;
       console.error("LiveService Connection Failed:", err);
-      this.disconnect();
-      // Ensure specific errors bubble up/are logged
+      this.internalCleanup();
       if (this.onClose) { 
-          // We can't pass args to onClose easily, but disconnect handles the state reset
-          console.log("LiveService: Notifying UI of failure via close callback");
+          this.onClose();
+          this.onClose = null;
       }
     }
   },
@@ -317,9 +346,9 @@ export const liveService = {
                 session.sendRealtimeInput({ media: pcmBlob });
             }
           }).catch(err => {
-              console.error("Stream send failed (Session likely closed):", err);
-              // If we can't send, we should probably disconnect to avoid freezing UI
-              this.disconnect();
+              // Only disconnect if this error belongs to the active session
+              // (Hard to track session ID here easily without closing over it, but isConnected check helps)
+              console.error("Stream send failed:", err);
           });
       } catch (err) {
           console.error("Audio processing error:", err);
@@ -359,8 +388,16 @@ export const liveService = {
      else this.nextStartTime = 0;
   },
 
+  // Manual Disconnect (Client-side initiated)
   disconnect() {
+    this.onClose = null; // Clear the callback so we don't trigger "Disconnected" toast
+    this.currentSessionId = null; // Invalidate current session
+    this.internalCleanup();
+  },
+
+  internalCleanup() {
     this.isConnected = false;
+    this.currentSessionId = null;
     this.onStateChange?.('IDLE');
     
     if (this.mediaStream) {
@@ -379,6 +416,5 @@ export const liveService = {
     if (this.outputContext) { this.outputContext.close(); this.outputContext = null; }
     
     this.activeSession = null;
-    if (this.onClose) { this.onClose(); this.onClose = null; }
   }
 };

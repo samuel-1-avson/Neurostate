@@ -1,4 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
+
+import { GoogleGenAI, Type } from "@google/genai";
 import { Node, Edge } from "reactflow";
 import { GhostIssue, ChatEntry, ValidationReport, ResourceMetrics } from "../types";
 
@@ -87,7 +88,7 @@ export const geminiService = {
 
     switch (language) {
         case 'verilog':
-            systemInstruction = "You are an expert FPGA Engineer specializing in Verilog HDL. You meticulously plan state encoding and reset logic before writing code.";
+            systemInstruction = "You are an expert FPGA Engineer specializing in Verilog HDL. You prioritize robust state encoding and synchronous resets.";
             prompt = `
                 Generate a robust, syntactically correct Verilog module for the following Finite State Machine (FSM).
                 
@@ -239,8 +240,8 @@ export const geminiService = {
 
   // --- SMART NODE LOGIC GENERATION ---
 
-  async generateNodeScript(nodeLabel: string, nodeType: string, userDescription: string, existingContextKeys: string[]): Promise<string> {
-    if (!ai) return "// AI Offline";
+  async generateNodeScript(nodeLabel: string, nodeType: string, userDescription: string, existingContextKeys: string[]): Promise<{ code: string, reasoning: string }> {
+    if (!ai) return { code: "// AI Offline", reasoning: "Could not connect to AI service." };
 
     const prompt = `
       Act as an Embedded Javascript Generator for the NeuroState FSM Engine.
@@ -260,29 +261,41 @@ export const geminiService = {
         - HAL.setPWM(channel: number, duty: number)
         - HAL.UART_Transmit(str: string)
         - HAL.UART_Receive(): string | null
-        - HAL.enterSleepMode(mode: 'WFI'|'STOP')
       - "dispatch(eventName, delayMs)" to trigger transitions.
       
       Task:
-      Write the JAVASCRIPT code for the 'entryAction' of this node.
+      1. Write the JAVASCRIPT code for the 'entryAction' of this node.
+      2. Provide a brief explanation of the logic and intent (reasoning).
       
       Rules:
-      1. Return ONLY raw Javascript code. No markdown.
-      2. Keep it concise (1-5 lines).
-      3. Prefer using existing context variables if they match the intent.
-      4. Add a short comment explaining the logic.
+      1. Keep code concise (1-5 lines).
+      2. Prefer using existing context variables if they match the intent.
     `;
 
     try {
-      // Use standard flash for quick logic generation
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: prompt
+        contents: prompt,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    code: { type: Type.STRING, description: "The raw JavaScript code for the node." },
+                    reasoning: { type: Type.STRING, description: "Explanation of why this code was generated and how it works." }
+                },
+                required: ["code", "reasoning"]
+            }
+        }
       });
-      let text = response.text || "";
-      return text.replace(/^```(javascript|js)?\n/, '').replace(/\n```$/, '').trim();
+      
+      const json = JSON.parse(response.text || "{}");
+      return {
+          code: json.code || "// No code generated",
+          reasoning: json.reasoning || "No reasoning provided."
+      };
     } catch (e) {
-      return "// Failed to generate logic.";
+      return { code: `// Error generating logic: ${(e as Error).message}`, reasoning: "Error" };
     }
   },
 
@@ -380,17 +393,60 @@ export const geminiService = {
       } catch (e) { return "Analysis failed."; }
   },
 
+  // --- VEO VIDEO GENERATION ---
+
+  async generateVeoVideo(prompt: string, imageBase64: string, mimeType: string, aspectRatio: '16:9' | '9:16'): Promise<string> {
+    const freshApiKey = process.env.API_KEY;
+    if (!freshApiKey) throw new Error("API Key missing");
+    
+    // Create new instance to ensure we use the selected key for Veo
+    const videoAi = new GoogleGenAI({ apiKey: freshApiKey });
+
+    try {
+      let operation = await videoAi.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
+        prompt: prompt,
+        image: {
+          imageBytes: imageBase64,
+          mimeType: mimeType,
+        },
+        config: {
+          numberOfVideos: 1,
+          resolution: '720p',
+          aspectRatio: aspectRatio
+        }
+      });
+
+      // Poll for completion
+      while (!operation.done) {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        operation = await videoAi.operations.getVideosOperation({ operation: operation });
+      }
+
+      const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+      if (!downloadLink) throw new Error("Video generation failed: No download link");
+
+      // Fetch the actual video bytes
+      const response = await fetch(`${downloadLink}&key=${freshApiKey}`);
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+
+    } catch (error) {
+      console.error("Veo Generation Error:", error);
+      throw error;
+    }
+  },
+
   // --- INTERACTIVE GRAPH MODIFICATION ---
 
   async classifyIntent(text: string): Promise<'CREATE' | 'MODIFY' | 'CHAT'> {
     if (!ai) return 'CHAT';
     
-    // Fast classification uses Flash model (low latency)
     const prompt = `
       Classify the user's intent based on this command: "${text}"
       
       Categories:
-      1. CREATE: User wants to build a NEW system from scratch (e.g., "Design a traffic light", "Create a USB stack", "Make an FSM for...").
+      1. CREATE: User wants to build a NEW system from scratch (e.g., "Design a traffic light", "Create a USB stack", "Make an FSM for...", "Build this flowchart").
       2. MODIFY: User wants to CHANGE the current graph or FIX errors (e.g., "Add a node", "Connect A to B", "Fix the dead end", "Fix errors", "Delete the start node", "Add an LED node", "Add an interrupt").
       3. CHAT: General question or request for explanation (e.g., "How does I2C work?", "Explain this state", "Optimize for power", "What is the thinking budget?").
       
@@ -415,7 +471,8 @@ export const geminiService = {
     nodes: Node[], 
     edges: Edge[], 
     issues: GhostIssue[],
-    newMessage: string
+    newMessage: string,
+    attachment?: { base64: string, mimeType: string }
   ): Promise<string> {
     if (!ai) return "I am offline. Please configure the API Key.";
 
@@ -429,19 +486,22 @@ export const geminiService = {
     `;
 
     try {
-      // Use Pro model for deep chat responses regarding technical engineering
+      const contents: any[] = [
+        { text: `Context: ${graphContext}\nPrevious Conversation:\n${(history || []).slice(-6).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}\nUser Query: ${newMessage}` }
+      ];
+
+      // Add attachment if present
+      if (attachment) {
+          contents.push({ inlineData: { mimeType: attachment.mimeType, data: attachment.base64 } });
+      }
+
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         config: {
-          systemInstruction: 'You are the "NeuroState" Embedded AI Assistant. Help the user design FSMs for firmware. Be technical (C/C++, Registers, ISRs). You can analyze the graph structure. Think deeply about potential race conditions or hardware constraints before answering.',
+          systemInstruction: 'You are the "NeuroState" Embedded AI Assistant. Help the user design FSMs for firmware. Be technical (C/C++, Registers, ISRs). You can analyze the graph structure. Think deeply about potential race conditions or hardware constraints before answering. If an image is provided, analyze it in the context of embedded systems.',
           thinkingConfig: { thinkingBudget: 16000 }
         },
-        contents: `
-        Context: ${graphContext}
-        Previous Conversation:
-        ${(history || []).slice(-6).map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}
-        User Query: ${newMessage}
-        `
+        contents: contents
       });
       return response.text || "No response.";
     } catch (error) {
@@ -449,13 +509,14 @@ export const geminiService = {
     }
   },
 
-  async createGraphFromPrompt(prompt: string): Promise<{ nodes: Node[], edges: Edge[] } | null> {
+  async createGraphFromPrompt(prompt: string, attachment?: { base64: string, mimeType: string }): Promise<{ nodes: Node[], edges: Edge[] } | null> {
     if (!ai) throw new Error("API Key missing");
 
     const systemInstruction = `
       You are the NeuroState FSM Generator for Embedded Systems.
       You will think through the requirements, identify the necessary states, hardware interactions, and transitions, and then output the JSON.
       CREATE a new Finite State Machine based on the user's firmware requirement.
+      If an image is provided (e.g. a flowchart, diagram, or whiteboard sketch), analyze it thoroughly and translate it into the FSM graph.
       
       Rules:
       1. Return JSON with 'nodes' and 'edges'.
@@ -467,6 +528,11 @@ export const geminiService = {
       Response Format: JSON only. No markdown.
     `;
 
+    const contents: any[] = [{ text: `Create an FSM for: "${prompt}"` }];
+    if (attachment) {
+        contents.push({ inlineData: { mimeType: attachment.mimeType, data: attachment.base64 } });
+    }
+
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
@@ -475,7 +541,7 @@ export const geminiService = {
             responseMimeType: 'application/json',
             thinkingConfig: { thinkingBudget: 32768 } // Max budget for creation
         },
-        contents: `Create an FSM for: "${prompt}"`
+        contents: contents
       });
 
       const text = response.text || "";

@@ -212,7 +212,7 @@ export const LogicAnalyzer: React.FC<{
     ctx.fillStyle = '#111827'; // Dark BG
     ctx.fillRect(0, 0, rect.width, rect.height);
     
-    // Grid Lines
+    // Grid Lines (Time)
     ctx.strokeStyle = '#374151';
     ctx.lineWidth = 0.5;
     ctx.beginPath();
@@ -229,14 +229,46 @@ export const LogicAnalyzer: React.FC<{
     channels.forEach((ch, idx) => {
       const yBase = 10 + (idx * channelHeight) + (channelHeight * 0.8);
       const yHigh = yBase - (channelHeight * 0.6);
+      const yRange = yBase - yHigh;
       
+      // Determine if Analog or Digital
+      // Heuristic: check last 20 samples. If any value is != 0 and != 1 and != true/false, it's analog.
+      let isAnalog = false;
+      let minVal = Infinity;
+      let maxVal = -Infinity;
+
+      for (let i = Math.max(0, history.length - 50); i < history.length; i++) {
+         const v = Number(history[i].signals[ch]);
+         if (v !== 0 && v !== 1) isAnalog = true;
+         if (v < minVal) minVal = v;
+         if (v > maxVal) maxVal = v;
+      }
+      
+      // Defaults for digital
+      if (!isAnalog) {
+         minVal = 0; maxVal = 1;
+      } else {
+         // Add padding to range
+         const range = maxVal - minVal;
+         if (range === 0) { maxVal = minVal + 1; } // Prevent div by zero
+      }
+
       // Draw Label
-      ctx.fillStyle = '#9ca3af';
+      ctx.fillStyle = isAnalog ? '#fbbf24' : '#9ca3af'; // Gold for analog, Gray for digital
       ctx.font = '10px monospace';
-      ctx.fillText(ch, 5, yBase - (channelHeight * 0.3));
+      ctx.textAlign = 'left';
+      ctx.fillText(ch, 5, yBase - (channelHeight * 0.5));
+      
+      if (isAnalog) {
+         ctx.textAlign = 'right';
+         ctx.font = '9px monospace';
+         ctx.fillStyle = '#4b5563';
+         ctx.fillText(maxVal.toFixed(0), rect.width - 5, yHigh);
+         ctx.fillText(minVal.toFixed(0), rect.width - 5, yBase);
+      }
 
       // Draw Waveform
-      ctx.strokeStyle = '#22c55e'; // Green
+      ctx.strokeStyle = isAnalog ? '#fbbf24' : '#22c55e'; // Gold or Green
       ctx.lineWidth = 1.5;
       ctx.beginPath();
 
@@ -246,27 +278,45 @@ export const LogicAnalyzer: React.FC<{
         if (sample.timestamp < startTime) return;
         
         const x = ((sample.timestamp - startTime) / timeWindow) * rect.width;
-        const val = sample.signals[ch];
-        const y = val ? yHigh : yBase;
+        let val = Number(sample.signals[ch]);
+        if (isNaN(val)) val = 0;
+
+        let y;
+        if (isAnalog) {
+           // Normalize to 0-1 based on detected range
+           const norm = (val - minVal) / (maxVal - minVal);
+           y = yBase - (norm * yRange);
+        } else {
+           y = val ? yHigh : yBase;
+        }
 
         if (!started) {
           ctx.moveTo(x, y);
           started = true;
         } else {
-          // Digital square wave logic
-          const prevSample = history[i - 1];
-          const prevVal = prevSample?.signals[ch];
-          const prevY = prevVal ? yHigh : yBase;
-          
-          ctx.lineTo(x, prevY); // Hold previous value
-          ctx.lineTo(x, y);     // Vertical transition
+          if (isAnalog) {
+             ctx.lineTo(x, y); // Continuous line
+          } else {
+             // Digital square wave
+             const prevSample = history[i - 1];
+             const prevVal = Number(prevSample?.signals[ch]);
+             const prevY = prevVal ? yHigh : yBase;
+             ctx.lineTo(x, prevY); // Hold
+             ctx.lineTo(x, y);     // Step
+          }
         }
       });
       
       // Continue to end of screen
       if (history.length > 0) {
-         const lastVal = history[history.length - 1].signals[ch];
-         const lastY = lastVal ? yHigh : yBase;
+         const lastVal = Number(history[history.length - 1].signals[ch]);
+         let lastY;
+         if (isAnalog) {
+            const norm = (lastVal - minVal) / (maxVal - minVal);
+            lastY = yBase - (norm * yRange);
+         } else {
+            lastY = lastVal ? yHigh : yBase;
+         }
          ctx.lineTo(rect.width, lastY);
       }
 
@@ -276,8 +326,8 @@ export const LogicAnalyzer: React.FC<{
   }, [history, channels]);
 
   return (
-    <div className="w-full h-full relative">
-      <div className="absolute top-2 right-2 text-[9px] text-green-500 font-bold flex items-center gap-1 bg-black/50 px-2 rounded">
+    <div className="w-full h-full relative group">
+      <div className="absolute top-2 right-2 text-[9px] text-green-500 font-bold flex items-center gap-1 bg-black/50 px-2 rounded backdrop-blur-sm border border-white/10">
          <Activity size={10} className="animate-pulse"/> LIVE CAPTURE
       </div>
       <canvas ref={canvasRef} className="w-full h-full block" style={{ height: `${height}px` }} />
