@@ -1,0 +1,7 @@
+{
+  "name": "NeuroState",
+  "description": "A retro-futurist multimodal bridge translating analog intent into digital logic via Gemini 3 Pro and Finite State Machines.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

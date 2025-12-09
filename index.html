@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroState // Interface</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              neuro: {
+                bg: '#f9fafb',      // Gray 50 (Lighter background)
+                surface: '#ffffff',  // White
+                primary: '#111827',  // Gray 900 (Text/Borders)
+                secondary: '#6b7280', // Gray 500
+                accent: '#000000',   // Black for minimal accent
+                dim: '#e5e7eb',      // Gray 200
+              }
+            },
+            fontFamily: {
+              mono: ['"Space Mono"', 'monospace'],
+              sans: ['system-ui', 'sans-serif'],
+            },
+            boxShadow: {
+              'hard': '2px 2px 0px 0px rgba(0,0,0,0.05)',
+              'hard-sm': '1px 1px 0px 0px rgba(0,0,0,0.05)',
+            },
+            animation: {
+              'slide-in': 'slideIn 0.2s ease-out forwards',
+              'fade-out': 'fadeOut 0.2s ease-in forwards',
+            },
+            keyframes: {
+              slideIn: {
+                '0%': { transform: 'translateX(100%)', opacity: '0' },
+                '100%': { transform: 'translateX(0)', opacity: '1' },
+              },
+              fadeOut: {
+                '0%': { opacity: '1' },
+                '100%': { opacity: '0' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Fonts: Space Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- ReactFlow CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow/dist/style.css" />
+
+    <style>
+      html, body, #root {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        overflow: hidden;
+        background-color: #f9fafb;
+        color: #111827;
+        font-family: 'Space Mono', monospace;
+      }
+      
+      /* Scrollbar Styling - Clean Minimal */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e5e7eb; 
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #d1d5db; 
+      }
+
+      /* ReactFlow Overrides for Minimal Theme */
+      .react-flow__node {
+        border: none;
+        background: transparent;
+        padding: 0;
+        box-shadow: none;
+      }
+
+      /* Handles */
+      .react-flow__handle {
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%; /* Rounded for minimal look */
+        transition: all 0.2s;
+      }
+      .react-flow__handle:hover {
+        background: #111827;
+        border-color: #111827;
+        transform: scale(1.2);
+      }
+      
+      .react-flow__edge-path {
+        stroke: #d1d5db;
+        stroke-width: 1.5;
+      }
+      .react-flow__edge.selected .react-flow__edge-path {
+        stroke: #111827;
+        stroke-width: 2;
+      }
+      
+      /* Edge Animation */
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -20;
+        }
+      }
+      .react-flow__edge-path.animated {
+        stroke-dasharray: 5;
+        animation: dash 0.5s linear infinite;
+      }
+
+      .react-flow__attribution {
+        display: none;
+      }
+      
+      /* Toast Animations */
+      @keyframes toast-in {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      /* Standard Controls Styling - Retro Minimal */
+      .react-flow__controls {
+        border: 1px solid #e5e7eb;
+        box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.05);
+        border-radius: 0px;
+        padding: 0;
+        overflow: hidden;
+      }
+      .react-flow__controls-button {
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid #e5e7eb;
+        background: white;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .react-flow__controls-button:last-child {
+        border-bottom: none;
+      }
+      .react-flow__controls-button:hover {
+        background-color: #f9fafb;
+      }
+      .react-flow__controls-button svg {
+        fill: #374151;
+        max-width: 14px;
+        max-height: 14px;
+      }
+
+      /* MiniMap Styling */
+      .react-flow__minimap {
+        border: 1px solid #e5e7eb !important;
+        box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.05) !important;
+        border-radius: 0px !important;
+        background-color: #ffffff !important;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "reactflow": "https://aistudiocdn.com/reactflow@^11.11.4",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
+    "clsx": "https://aistudiocdn.com/clsx@^2.1.1",
+    "tailwind-merge": "https://aistudiocdn.com/tailwind-merge@^3.4.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
