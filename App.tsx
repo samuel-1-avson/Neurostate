@@ -23,7 +23,7 @@ import ReactFlow, {
   EdgeProps,
   NodeToolbar
 } from 'reactflow';
-import { Play, Square, Wand2, AlertTriangle, Save, Upload, Undo, Redo, Mic, Cpu, MessageSquare, GitBranch, Zap, FileJson, FileCode, Bot, Menu, ChevronDown, CheckCircle, Terminal, Layers, Plus, X, Variable, Activity, MousePointerClick, Copy, Info, Sparkles, Send, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, LayoutTemplate, Bug, Microscope, FlaskConical, BarChart3, Gauge, Trash2, Edit3, Target, ZoomIn, ZoomOut, Maximize, Move, Box, GripVertical, Sidebar, CircuitBoard, Layout, Monitor, Grid, Search, FilePlus, Settings2, Clock, FastForward, Pause, ArrowRightLeft, Ear, Hash, ToggleLeft, Disc, Battery, Shield, Split, Database, Cable, HardDrive, LayoutDashboard, FolderOpen, BookOpen, Download, Command, ChevronRight, LogOut, TableProperties, Wrench, Hourglass, Loader2, Group, Code2, TestTube, Waves } from 'lucide-react';
+import { Play, Square, Wand2, AlertTriangle, Save, Upload, Undo, Redo, Mic, Cpu, MessageSquare, GitBranch, Zap, FileJson, FileCode, Bot, Menu, ChevronDown, CheckCircle, Terminal, Layers, Plus, X, Variable, Activity, MousePointerClick, Copy, Info, Sparkles, Send, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, LayoutTemplate, Bug, Microscope, FlaskConical, BarChart3, Gauge, Trash2, Edit3, Target, ZoomIn, ZoomOut, Maximize, Move, Box, GripVertical, Sidebar, CircuitBoard, Layout, Monitor, Grid, Search, FilePlus, Settings2, Clock, FastForward, Pause, ArrowRightLeft, Ear, Hash, ToggleLeft, Disc, Battery, Shield, Split, Database, Cable, HardDrive, LayoutDashboard, FolderOpen, BookOpen, Download, Command, ChevronRight, LogOut, TableProperties, Wrench, Hourglass, Loader2, Group, Code2, TestTube, Waves, Volume2, MicOff, Book } from 'lucide-react';
 import { clsx } from 'clsx';
 
 import { Button, Panel, Input, Label, Toast, ToastMessage, VirtualLED, VirtualSwitch, VirtualDisplay, ProgressBar, MetricCard, LogicAnalyzer } from './components/RetroUI';
@@ -36,12 +36,117 @@ import { hardwareBridge } from './services/hardwareBridge';
 import { voiceService } from './services/voiceService';
 import { useHistory } from './hooks/useHistory';
 import { usePersistence } from './hooks/usePersistence';
-// Import LiveService relatively
 import { liveService } from './services/liveService';
 import { GhostIssue, LogEntry, SimulationStatus, FSMProject, ChatEntry, ValidationReport, ResourceMetrics, WorkspaceTemplate, FSMNodeData, SimTelemetry, McuDefinition, AgentState } from './types';
 import { TEMPLATES, FSMTemplate } from './services/templates';
 import { MCU_REGISTRY } from './services/deviceRegistry';
 import { HAL, HalSnapshot } from './services/hal';
+
+// --- DOCUMENTATION CONTENT ---
+const DOCS_CONTENT = [
+  {
+    id: 'intro',
+    title: '1. Introduction',
+    content: `
+      # NeuroState: The Embedded AI IDE
+      
+      NeuroState is a **multimodal bridge** designed to translate human intent (Analog) into rigorous digital logic (FSMs) for embedded systems.
+      
+      It solves the "Analog-Digital Gap" by allowing engineers to design, simulate, and validate firmware logic visually before writing a single line of C++ code.
+      
+      ### Key Capabilities:
+      - **Visual FSM Design**: Drag-and-drop states, transitions, and hardware blocks.
+      - **AI-Powered Code Gen**: Export to C++, Verilog, Python, or Rust using Gemini 3 Pro.
+      - **Digital Twin Simulation**: Run your logic against a virtual Hardware Abstraction Layer (HAL).
+      - **Ghost Engineer**: Static analysis that finds race conditions and dead ends automatically.
+    `
+  },
+  {
+    id: 'interface',
+    title: '2. Interface & Workspaces',
+    content: `
+      # Workspace Layouts
+      
+      NeuroState adapts to your role. Use the **View** menu or shortcuts to switch modes.
+      
+      ### 1. Architect (Alt+2)
+      Focus on high-level design. Large canvas, properties panel, and AI assistant. Best for initial brainstorming.
+      
+      ### 2. Firmware Engineer (Alt+3)
+      The standard dev view. Includes the Simulation Debugger, Logs, and Context Variable inspector.
+      
+      ### 3. Hardware Lab (Alt+4)
+      Focus on I/O. Opens the **Virtual IO Panel** (LEDs/Buttons) and the **Logic Analyzer** timing diagram.
+      
+      ### 4. Hacker (Terminal)
+      Focus on code and resource estimation. Useful for optimizing memory usage (LUTs/RAM).
+    `
+  },
+  {
+    id: 'simulation',
+    title: '3. Simulation & HAL',
+    content: `
+      # The Simulation Engine
+      
+      The core of NeuroState is an async FSM Executor that runs your logic step-by-step.
+      
+      ### How to Run
+      Click the **SIMULATE** button in the toolbar. The active state will glow green.
+      
+      ### Self-Driving Logic
+      To make a simulation run automatically, use the \`dispatch(event, delay)\` function in your node's Entry Action:
+      \`\`\`js
+      // Wait 1s then trigger 'TIMEOUT'
+      dispatch("TIMEOUT", 1000);
+      \`\`\`
+      
+      ### Hardware Abstraction Layer (HAL)
+      You can interact with virtual hardware in your JavaScript logic:
+      - \`HAL.writePin(13, true)\`: Turn on LED on Pin 13.
+      - \`HAL.readPin(5)\`: Read button state from Pin 5.
+      - \`HAL.UART_Transmit("Hello")\`: Send serial data.
+      
+      Open the **Hardware Lab** view to see these signals on the Logic Analyzer.
+    `
+  },
+  {
+    id: 'ai',
+    title: '4. AI & Voice Agent',
+    content: `
+      # Gemini 3 Pro Integration
+      
+      NeuroState uses Google's Gemini 3 Pro model for "Thinking" tasks.
+      
+      ### Voice Companion
+      Click the **Wave Icon** in the toolbar to activate the AI Companion.
+      - **Create**: "Create a traffic light system." (Generates full graph)
+      - **Modify**: "Add an error state connected to the red light." (Updates graph)
+      - **Chat**: "How do I optimize this for low power?" (Consultation)
+      
+      ### Smart Logic Generation
+      In the Node Properties panel, describe what you want (e.g., "Read ADC and check threshold"), and click **Generate Script**. The AI will write the JS/HAL code for you.
+    `
+  },
+  {
+    id: 'export',
+    title: '5. Export & Flashing',
+    content: `
+      # Moving to Real Hardware
+      
+      Once your design is validated, export it to production code.
+      
+      ### Supported Languages
+      - **C++ (Arduino/STM32)**: Generates a class-based FSM header.
+      - **Verilog**: Generates a 3-process HDL module for FPGAs.
+      - **Rust**: Generates a safe \`enum\`-based state machine.
+      - **GoogleTest**: Generates a C++ unit test suite covering all transitions.
+      
+      ### Web Serial Flashing
+      Connect a supported board (ESP32, STM32) via USB. Click **Device Manager**, select your MCU, and click **Flash**.
+      *Note: Browser must support WebSerial API.*
+    `
+  }
+];
 
 // --- CUSTOM NODE COMPONENT (ADVANCED VISUALS) ---
 const RetroNode = ({ data, id, selected }: { data: FSMNodeData, id: string, selected: boolean }) => {
@@ -406,6 +511,49 @@ const DeviceManagerModal: React.FC<{ onClose: () => void; onConnect: (target: Mc
    );
 };
 
+// --- NEW DOCUMENTATION MODAL ---
+const DocumentationModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+   const [activeSection, setActiveSection] = useState(DOCS_CONTENT[0].id);
+   const activeContent = DOCS_CONTENT.find(c => c.id === activeSection) || DOCS_CONTENT[0];
+
+   return (
+      <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
+         <div className="bg-white border border-neuro-primary shadow-hard w-full max-w-4xl h-[80vh] flex flex-col animate-in zoom-in-95 duration-150">
+            <div className="bg-neuro-primary text-white p-3 flex justify-between items-center shrink-0">
+               <div className="font-bold tracking-widest flex items-center gap-2"><Book size={16}/> NEUROSTATE MANUAL</div>
+               <button onClick={onClose} className="hover:text-red-300"><X size={18}/></button>
+            </div>
+            <div className="flex-1 flex overflow-hidden">
+               {/* Sidebar */}
+               <div className="w-1/4 border-r border-neuro-dim bg-gray-50 p-2 overflow-y-auto">
+                  {DOCS_CONTENT.map(section => (
+                     <button
+                        key={section.id}
+                        onClick={() => setActiveSection(section.id)}
+                        className={clsx("w-full text-left px-3 py-2 text-xs font-bold rounded-sm mb-1 transition-colors", activeSection === section.id ? "bg-neuro-primary text-white" : "text-gray-600 hover:bg-gray-200")}
+                     >
+                        {section.title}
+                     </button>
+                  ))}
+               </div>
+               {/* Content */}
+               <div className="flex-1 p-6 overflow-y-auto bg-white custom-scrollbar prose prose-sm max-w-none">
+                  {/* Simple Markdown Renderer for Docs */}
+                  {activeContent.content.split('\n').map((line, i) => {
+                     const trimmed = line.trim();
+                     if (trimmed.startsWith('# ')) return <h1 key={i} className="text-2xl font-bold mb-4 border-b pb-2">{trimmed.slice(2)}</h1>;
+                     if (trimmed.startsWith('### ')) return <h3 key={i} className="text-lg font-bold mt-6 mb-2 text-neuro-primary">{trimmed.slice(4)}</h3>;
+                     if (trimmed.startsWith('- ')) return <li key={i} className="ml-4 list-disc text-gray-700 mb-1">{trimmed.slice(2)}</li>;
+                     if (trimmed.startsWith('```')) return null; // Skip code fences for now, handle blocks below
+                     return <p key={i} className="mb-2 text-gray-600 leading-relaxed">{trimmed}</p>;
+                  })}
+               </div>
+            </div>
+         </div>
+      </div>
+   );
+};
+
 const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
    return (
       <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
@@ -512,7 +660,7 @@ const SerialMonitor = ({ state }: { state: HalSnapshot }) => {
    };
 
    // Merge and sort mock history for display (simplified for demo)
-   // In a real app we'd timestamp everything. Here we just show current buffer state.
+   // In a real app we might track playback time more precisely
    return (
       <div className="flex flex-col h-full bg-[#1e1e1e] font-mono text-xs">
          <div className="flex-1 overflow-y-auto p-2 space-y-1" ref={scrollRef}>
@@ -533,6 +681,68 @@ const SerialMonitor = ({ state }: { state: HalSnapshot }) => {
             />
             <Button type="submit" className="h-6 text-[10px] px-3 bg-neuro-primary text-white border-none hover:bg-gray-700">SEND</Button>
          </form>
+      </div>
+   );
+};
+
+// --- AI COMPANION ORB (UPDATED FOR LIVE MODE) ---
+const CompanionOrb: React.FC<{ 
+   state: AgentState; 
+   onMute: () => void;
+   muted: boolean 
+}> = ({ state, onMute, muted }) => {
+   return (
+      <div className="fixed bottom-8 right-8 z-[60] flex flex-col items-center gap-2">
+         {/* Status Bubble */}
+         {state !== 'IDLE' && (
+            <div className={clsx("text-white text-[10px] px-3 py-1 rounded-full shadow-lg animate-in slide-in-from-bottom-2 uppercase font-bold tracking-wider",
+               state === 'SPEAKING' ? "bg-green-500" : 
+               state === 'MODIFYING' ? "bg-amber-500" : "bg-neuro-primary"
+            )}>
+               {state === 'SPEAKING' ? 'SPEAKING' : state === 'MODIFYING' ? 'BUILDING...' : 'LISTENING'}
+            </div>
+         )}
+         
+         <div className="relative group">
+            {/* Animated Rings */}
+            {state === 'LISTENING' && (
+               <div className="absolute inset-0 rounded-full border-2 border-red-500 animate-ping opacity-75"></div>
+            )}
+            {state === 'THINKING' && (
+               <div className="absolute inset-0 rounded-full border-t-2 border-blue-500 animate-spin"></div>
+            )}
+            {state === 'MODIFYING' && (
+               <div className="absolute inset-0 rounded-full border-4 border-amber-400 animate-spin"></div>
+            )}
+            {state === 'SPEAKING' && (
+               <div className="absolute inset-0 rounded-full border-4 border-green-500 animate-pulse"></div>
+            )}
+
+            {/* Main Button */}
+            <button 
+               onClick={onMute}
+               className={clsx(
+                  "w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform active:scale-95 border-2",
+                  state === 'IDLE' ? "bg-white border-neuro-dim hover:border-neuro-primary" :
+                  state === 'LISTENING' ? "bg-red-500 border-red-600 text-white scale-110" :
+                  state === 'THINKING' ? "bg-blue-600 border-blue-400 text-white scale-105" :
+                  state === 'MODIFYING' ? "bg-amber-500 border-amber-400 text-white scale-110" :
+                  state === 'SPEAKING' ? "bg-green-500 border-green-400 text-white scale-110" :
+                  "bg-green-500 border-green-400 text-white"
+               )}
+            >
+               {state === 'IDLE' ? <Mic size={20} className="text-gray-600 group-hover:text-neuro-primary"/> :
+                state === 'LISTENING' ? <Waves size={24} className="animate-pulse"/> :
+                state === 'THINKING' ? <Loader2 size={24} className="animate-spin"/> :
+                state === 'MODIFYING' ? <Wand2 size={24} className="animate-bounce"/> :
+                state === 'SPEAKING' ? <Volume2 size={24} className="animate-bounce"/> :
+                <Sparkles size={24} className="animate-bounce"/>}
+            </button>
+         </div>
+         
+         <div className="text-[9px] font-bold text-gray-400 bg-white/80 px-2 py-0.5 rounded backdrop-blur-sm border border-gray-100 shadow-sm">
+            LIVE AGENT
+         </div>
       </div>
    );
 };
@@ -562,6 +772,7 @@ function AppContent() {
   const [showTemplateBrowser, setShowTemplateBrowser] = useState(false);
   const [showDatasheetModal, setShowDatasheetModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showDocsModal, setShowDocsModal] = useState(false);
   const [datasheetInput, setDatasheetInput] = useState('');
   
   const [showDeviceManager, setShowDeviceManager] = useState(false);
@@ -581,6 +792,12 @@ function AppContent() {
 
   // Shadow Mode State (HIL)
   const [isShadowMode, setIsShadowMode] = useState(false);
+  
+  // Companion Mode (NEW) - LIVE API
+  const [isCompanionMode, setIsCompanionMode] = useState(false);
+  const [isCompanionMuted, setIsCompanionMuted] = useState(false);
+  const [isStandbyMode, setIsStandbyMode] = useState(true); // Standby for Wake Word
+  const recognitionRef = useRef<any>(null); // For SpeechRecognition
 
   // Menu State
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -591,9 +808,11 @@ function AppContent() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [contextMenu, setContextMenu] = useState<{ top: number; left: number } | null>(null);
 
+  // RIGHT PANEL TABS
+  const [rightPanelTab, setRightPanelTab] = useState<'DEBUG' | 'PROPS' | 'CHAT'>('CHAT');
+
   const { projects, setProjects, activeProjectId, setActiveProjectId, isLoaded } = usePersistence([createDefaultProject()], DEFAULT_PROJECT_ID);
   
-  // Defined to provide access to the current project data for UI and effects
   const activeProject = useMemo(() => (projects.find(p => p.id === activeProjectId) || projects[0]) as FSMProject, [projects, activeProjectId]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -619,26 +838,18 @@ function AppContent() {
   
   const [agentState, setAgentState] = useState<AgentState>('IDLE');
   
-  const [isListening, setIsListening] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isEstimating, setIsEstimating] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiQuery, setAiQuery] = useState('');
   
   const { takeSnapshot, undo, redo, clear: clearHistory, canUndo, canRedo } = useHistory(initialNodes, initialEdges);
   const reactFlowInstance = useReactFlow();
   const executorRef = useRef<FSMExecutor | null>(null);
   const autoSimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [aiQuery, setAiQuery] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  const nodeTypes = useMemo(() => ({ 
-     input: RetroNode, process: RetroNode, output: RetroNode, error: RetroNode, 
-     listener: RetroNode, decision: RetroNode, hardware: RetroNode, uart: RetroNode, 
-     interrupt: RetroNode, timer: RetroNode, peripheral: RetroNode, 
-     group: GroupNode, default: RetroNode 
-  }), []);
-  const edgeTypes = useMemo(() => ({ retro: RetroEdge, default: RetroEdge, smoothstep: RetroEdge }), []);
-
+  // --- UTILITY FUNCTIONS (MOVED UP to avoid ReferenceError) ---
   const showToast = useCallback((message: string, type: ToastMessage['type'] = 'info') => {
     setToasts(prev => [...prev, { id: Math.random().toString(36), message, type }]);
   }, []);
@@ -654,159 +865,133 @@ function AppContent() {
       }, ...prev].slice(0, 100));
   }, []);
 
-  const applyLayout = useCallback((template: WorkspaceTemplate) => {
-      setActiveLayout(template);
-      if (template === 'ZEN') { setShowLeftPanel(false); setShowRightPanel(false); setShowBottomPanel(false); setShowIOPanel(false); }
-      else if (template === 'FULL_SUITE') { setShowLeftPanel(true); setShowRightPanel(true); setShowBottomPanel(true); setShowIOPanel(true); }
-      else if (template === 'ARCHITECT') { setShowLeftPanel(true); setShowRightPanel(true); setShowBottomPanel(false); setShowIOPanel(false); }
-      else if (template === 'ENGINEER') { setShowLeftPanel(false); setShowRightPanel(true); setShowBottomPanel(true); setShowIOPanel(false); }
-      else if (template === 'HARDWARE_LAB') { setShowLeftPanel(false); setShowRightPanel(false); setShowBottomPanel(true); setShowIOPanel(true); }
-      else { setShowLeftPanel(true); setShowRightPanel(true); setShowBottomPanel(false); }
-  }, []);
-
-  const switchProject = (id: string) => {
-      if(id === activeProjectId) return;
-      const target = projects.find(p => p.id === id);
-      if(target) {
-          setActiveProjectId(id);
-          setNodes(target.nodes);
-          setEdges(target.edges);
-      }
-  };
-
-  const closeProject = (e: React.MouseEvent, id: string) => {
-      e.stopPropagation();
-      if(projects.length <= 1) return;
-      const newProjects = projects.filter(p => p.id !== id);
-      setProjects(newProjects);
-      if(activeProjectId === id) {
-          const next = newProjects[newProjects.length - 1];
-          setActiveProjectId(next.id);
-          setNodes(next.nodes);
-          setEdges(next.edges);
-          clearHistory();
-      }
-  };
-
-  const onDragStart = (event: React.DragEvent, nodeType: string) => {
-    event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
-  };
-
-  const onDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const onDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-      const type = event.dataTransfer.getData('application/reactflow');
-      if (typeof type === 'undefined' || !type) return;
-
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-      const newNode: Node = {
-        id: `node_${Date.now()}`,
-        type,
-        position,
-        data: { label: type.toUpperCase(), type }
-      };
-
-      setNodes((nds) => {
-          const next = nds.concat(newNode);
-          takeSnapshot(next, edges);
-          return next;
-      });
-    },
-    [reactFlowInstance, edges, setNodes, takeSnapshot]
-  );
-
-  const onNodesChangeWithHistory = useCallback((changes: any) => {
-      onNodesChange(changes);
-  }, [onNodesChange]);
-
-  const onEdgesChangeWithHistory = useCallback((changes: any) => {
-      onEdgesChange(changes);
-  }, [onEdgesChange]);
-
-  // --- HOT RELOAD DETECTOR ---
+  // --- AUTOMATIC TAB SWITCHING LOGIC ---
   useEffect(() => {
-      if (simStatus === SimulationStatus.RUNNING && executorRef.current) {
-          // If simulation is running, update the executor with new graph state
-          // Debounce slightly to avoid thrashing
-          const timer = setTimeout(() => {
-              if (executorRef.current) {
-                  executorRef.current.updateGraph(nodes, edges);
+     if (simStatus === SimulationStatus.RUNNING) {
+        setRightPanelTab('DEBUG');
+        setShowRightPanel(true);
+     }
+  }, [simStatus]);
+
+  useEffect(() => {
+     if (selectedNodeId) {
+        setRightPanelTab('PROPS');
+        setShowRightPanel(true);
+     }
+  }, [selectedNodeId]);
+
+  useEffect(() => {
+     if (isCompanionMode) {
+        setRightPanelTab('CHAT');
+        setShowRightPanel(true);
+     }
+  }, [isCompanionMode]);
+
+  // --- TOOL EXECUTION HANDLER (FROM LIVE API) ---
+  const handleLiveToolCall = useCallback(async (name: string, args: any) => {
+     if (name === 'create_design' && args.description) {
+         try {
+             const newGraph = await geminiService.createGraphFromPrompt(args.description);
+             if (newGraph) {
+                takeSnapshot(nodes, edges);
+                setNodes(newGraph.nodes);
+                setEdges(newGraph.edges);
+                return "Design created successfully on the canvas.";
+             }
+         } catch (e) {
+             throw new Error("Failed to create design: " + (e as Error).message);
+         }
+     }
+     if (name === 'modify_design' && args.instruction) {
+         try {
+             const newGraph = await geminiService.modifyGraph(nodes, edges, args.instruction, ghostIssues);
+             if (newGraph) {
+                takeSnapshot(nodes, edges);
+                setNodes(newGraph.nodes);
+                setEdges(newGraph.edges);
+                return "Modifications applied successfully.";
+             }
+         } catch (e) {
+             throw new Error("Failed to modify design: " + (e as Error).message);
+         }
+     }
+     return "Unknown tool";
+  }, [nodes, edges, ghostIssues, takeSnapshot, setNodes, setEdges]);
+
+  // --- LIVE SERVICE EFFECT ---
+  useEffect(() => {
+    if (isCompanionMode) {
+      liveService.connect((state) => setAgentState(state), handleLiveToolCall);
+    } else {
+      liveService.disconnect();
+      setAgentState('IDLE');
+    }
+    return () => liveService.disconnect();
+  }, [isCompanionMode, handleLiveToolCall]);
+
+  // --- WAKE WORD DETECTION (STANDBY MODE) ---
+  useEffect(() => {
+     // Only listen if Standby is ON and Companion is OFF
+     if (!isStandbyMode || isCompanionMode) {
+        if (recognitionRef.current) {
+           recognitionRef.current.stop();
+        }
+        return;
+     }
+
+     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event: any) => {
+           const lastResult = event.results[event.results.length - 1];
+           if (lastResult.isFinal) {
+              const transcript = lastResult[0].transcript.trim().toLowerCase();
+              console.log("Standby Heard:", transcript);
+              if (transcript.includes("neo")) {
+                 showToast("Neo Activated!", "success");
+                 setIsCompanionMode(true);
+                 setRightPanelTab('CHAT');
               }
-          }, 500);
-          return () => clearTimeout(timer);
-      }
-  }, [nodes, edges, simStatus]);
+           }
+        };
 
-  const onConnect = useCallback((connection: Connection) => {
-      const newEdge = { ...connection, id: `e_${Date.now()}`, type: 'retro', markerEnd: { type: MarkerType.ArrowClosed } };
-      setEdges((eds) => addEdge(newEdge, eds));
-      takeSnapshot(nodes, [...edges, newEdge as Edge]);
-  }, [nodes, edges, setEdges, takeSnapshot]);
+        recognition.onerror = (e: any) => {
+           console.log("Wake Word Error (ignoring):", e.error);
+        };
+        
+        recognition.onend = () => {
+           // Auto-restart if still in standby
+           if (isStandbyMode && !isCompanionMode) {
+               try { recognition.start(); } catch(e) {}
+           }
+        };
 
-  const onSelectionChange = useCallback(({ nodes: selectedNodes, edges: selectedEdges }: { nodes: Node[], edges: Edge[] }) => {
-      setSelectedNodeId(selectedNodes.length === 1 ? selectedNodes[0].id : null);
-      setSelectedNodeIds(selectedNodes.map(n => n.id));
-      setSelectedEdgeId(selectedEdges.length === 1 ? selectedEdges[0].id : null);
-      if(selectedNodes.length === 1 || selectedEdges.length === 1) setShowRightPanel(true);
-  }, []);
+        try {
+           recognition.start();
+           recognitionRef.current = recognition;
+        } catch (e) {
+           console.error("SpeechRecognition Start Failed", e);
+        }
+     }
 
-  const onPaneContextMenu = useCallback((event: React.MouseEvent) => {
-      event.preventDefault();
-      setContextMenu({ top: event.clientY, left: event.clientX });
-  }, []);
+     return () => {
+        if (recognitionRef.current) recognitionRef.current.stop();
+     };
+  }, [isStandbyMode, isCompanionMode, showToast]);
 
-  const onPaneClick = useCallback(() => {
-      setContextMenu(null);
-      setActiveMenu(null);
-  }, []);
+  const nodeTypes = useMemo(() => ({ 
+     input: RetroNode, process: RetroNode, output: RetroNode, error: RetroNode, 
+     listener: RetroNode, decision: RetroNode, hardware: RetroNode, uart: RetroNode, 
+     interrupt: RetroNode, timer: RetroNode, peripheral: RetroNode, 
+     group: GroupNode, default: RetroNode 
+  }), []);
+  const edgeTypes = useMemo(() => ({ retro: RetroEdge, default: RetroEdge, smoothstep: RetroEdge }), []);
 
-  const handleAddNode = useCallback((type: string, x: number, y: number) => {
-      const position = reactFlowInstance.screenToFlowPosition({ x, y });
-      const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label: type.toUpperCase(), type } };
-      setNodes((nds) => {
-         const next = nds.concat(newNode);
-         takeSnapshot(next, edges);
-         return next;
-      });
-      setContextMenu(null);
-  }, [reactFlowInstance, edges, setNodes, takeSnapshot]);
-
-  const handleAddNodeFromContext = useCallback((type: string, x: number, y: number) => handleAddNode(type, x, y), [handleAddNode]);
-
-  const handleRunValidation = async () => {
-      setIsValidating(true);
-      try {
-          const report = await geminiService.generateValidationReport(nodes, edges);
-          setValidationReport(report);
-          setGhostIssues(report.critique.map((c, i) => ({ id: `val-${i}`, severity: 'WARNING', title: 'AI Critique', description: c })));
-          showToast('Validation Complete', 'success');
-      } catch(e) { showToast('Validation Failed', 'error'); }
-      finally { setIsValidating(false); }
-  };
-  
-  const handleRunValidationWrapper = useCallback(() => handleRunValidation(), [handleRunValidation]);
-
-  const handleEstimateResources = async () => {
-      setIsEstimating(true);
-      try {
-          const metrics = await geminiService.estimateResources(nodes, edges);
-          setResourceMetrics(metrics);
-          showToast('Estimation Complete', 'success');
-      } catch(e) { showToast('Estimation Failed', 'error'); }
-      finally { setIsEstimating(false); }
-  };
-  
-  const handleEstimateResourcesWrapper = useCallback(() => handleEstimateResources(), [handleEstimateResources]);
-
+  // --- HELPER FUNCTIONS ---
   const syncCurrentProject = useCallback(() => {
       if (!activeProjectId) return;
       setProjects(prev => prev.map(p => p.id === activeProjectId ? { 
@@ -817,72 +1002,68 @@ function AppContent() {
       } : p));
   }, [activeProjectId, nodes, edges, setProjects]);
 
+  const handleVisualEvent = useCallback(async (event: VisualEventType, id: string, data?: any) => {
+      if (event === 'node_entry') {
+         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'entry', executionLog: data?.code ? data.code.split('\n')[0] : 'Executing...' } } : n));
+      } else if (event === 'node_exit') {
+         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'exit', executionLog: data?.code ? data.code.split('\n')[0] : 'Exiting...' } } : n));
+      } else if (event === 'node_idle') {
+         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'idle', executionLog: undefined } } : n));
+      } else if (event === 'edge_traverse') {
+         setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, isTraversing: true } } : e));
+         setTimeout(() => {
+            setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, isTraversing: false } } : e));
+         }, 800); 
+      } else if (event === 'guard_check') {
+         setEdges(eds => eds.map(e => e.id === id ? { ...e, animated: true } : e));
+      } else if (event === 'guard_result') {
+         setEdges(eds => eds.map(e => e.id === id ? { ...e, animated: false, data: { ...e.data, guardResult: data?.passed ? 'pass' : 'fail' } } : e));
+         setTimeout(() => {
+            setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, guardResult: null } } : e));
+         }, 1500);
+      }
+  }, [setNodes, setEdges]);
+
   const stopSimulation = useCallback(() => {
-    if (executorRef.current) {
-        executorRef.current.stop();
-        // executorRef.current = null; // Don't null it, just stop. Or maybe null it? FSMExecutor checks isRunning.
+    if (executorRef.current) executorRef.current.stop();
+    setSimStatus(SimulationStatus.IDLE); setActiveStateId(null); setSimHistory([]); setSimTelemetry(null);
+    setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, executionState: undefined, executionLog: undefined, active: false } })));
+    setEdges(eds => eds.map(e => ({ ...e, animated: false, data: { ...e.data, isTraversing: false, guardResult: null } })));
+    if (autoSimTimerRef.current) clearInterval(autoSimTimerRef.current);
+    setAutoSimMode(false);
+    showToast('Simulation Stopped', 'info');
+  }, [setNodes, setEdges, showToast]);
+
+  const startSimulation = async () => {
+    if (simStatus !== SimulationStatus.IDLE) return;
+    
+    syncCurrentProject(); // Save before run
+
+    const executor = new FSMExecutor(
+      nodes,
+      edges,
+      (msg, type) => addLog(msg, type),
+      (nodeId, history) => {
+          setActiveStateId(nodeId);
+          setSimHistory(history);
+      },
+      (ctx) => setSimContext(ctx),
+      (telemetry) => setSimTelemetry(telemetry),
+      handleVisualEvent
+    );
+
+    executor.setSpeed(simSpeed);
+    executor.setShadowMode(isShadowMode);
+    executorRef.current = executor;
+
+    try {
+        await executor.start();
+        setSimStatus(SimulationStatus.RUNNING);
+    } catch (e) {
+        addLog(`Start Failed: ${(e as Error).message}`, 'error');
+        setSimStatus(SimulationStatus.ERROR);
     }
-    setSimStatus(SimulationStatus.IDLE);
-    setSimContext({});
-    setActiveStateId(null);
-    setSimTelemetry(null);
-    setSimHistory([]);
-    
-    // Reset visual states for nodes and edges
-    setNodes(nds => nds.map(n => ({
-        ...n, 
-        data: { 
-            ...n.data, 
-            active: false, 
-            executionState: 'idle', 
-            executionLog: undefined 
-        }
-    })));
-    
-    setEdges(eds => eds.map(e => ({
-        ...e, 
-        animated: false,
-        style: { ...e.style, stroke: undefined, strokeWidth: undefined },
-        data: { ...e.data, isTraversing: false, guardResult: null }
-    })));
-    
-    addLog('Simulation stopped.', 'warning');
-  }, [setNodes, setEdges, addLog]);
-
-  const handleCreateProjectFromTemplate = useCallback((template: FSMTemplate) => {
-    if (simStatus !== SimulationStatus.IDLE) stopSimulation();
-    syncCurrentProject();
-
-    const newId = `proj_tpl_${Date.now()}`;
-    // Deep clone to ensure new references
-    const newNodes = JSON.parse(JSON.stringify(template.nodes));
-    const newEdges = JSON.parse(JSON.stringify(template.edges));
-
-    const newProject: FSMProject = { 
-        id: newId, 
-        name: template.name, 
-        description: template.description, 
-        version: '0.1.0', 
-        nodes: newNodes, 
-        edges: newEdges, 
-        chatHistory: [], 
-        updatedAt: Date.now() 
-    };
-    
-    setProjects(prev => [...prev, newProject]);
-    setNodes(newNodes);
-    setEdges(newEdges);
-    setActiveProjectId(newId);
-    
-    setSelectedNodeId(null); 
-    setSelectedEdgeId(null); 
-    clearHistory(); 
-    setValidationReport(null); 
-    setResourceMetrics(null);
-    setShowTemplateBrowser(false);
-    
-    showToast(`Created project from ${template.name}`, 'success');
-  }, [simStatus, stopSimulation, syncCurrentProject, setProjects, setNodes, setEdges, setActiveProjectId, clearHistory, showToast]);
+  };
 
   const createBlankProject = () => {
     if (simStatus !== SimulationStatus.IDLE) stopSimulation();
@@ -905,7 +1086,17 @@ function AppContent() {
     setSelectedNodeId(null); setSelectedEdgeId(null); clearHistory(); setValidationReport(null); setResourceMetrics(null);
     showToast('New Blank Project Created', 'success');
   };
-  
+
+  const handleCreateProjectFromTemplate = (template: FSMTemplate) => {
+    if (simStatus !== SimulationStatus.IDLE) stopSimulation();
+    syncCurrentProject();
+    const newId = `proj_${Date.now()}`;
+    const newProject: FSMProject = { id: newId, name: template.name, description: template.description, version: '0.1.0', nodes: template.nodes, edges: template.edges, chatHistory: [], updatedAt: Date.now() };
+    setProjects(prev => [...prev, newProject]); setNodes(newProject.nodes); setEdges(newProject.edges); setActiveProjectId(newId);
+    setSelectedNodeId(null); setSelectedEdgeId(null); clearHistory(); setValidationReport(null); setResourceMetrics(null);
+    setShowTemplateBrowser(false); showToast('Template Instantiated', 'success');
+  };
+
   const handleImportProject = () => {
     fileInputRef.current?.click();
   };
@@ -917,18 +1108,13 @@ function AppContent() {
   const onCppLoad = async (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0];
      if (!file) return;
-     
-     setAgentState('THINKING');
      showToast("Reverse Engineering C++...", "info");
-     
      try {
         const text = await file.text();
         const graph = await geminiService.reverseEngineerCode(text);
-        
         if (graph) {
            if (simStatus !== SimulationStatus.IDLE) stopSimulation();
            syncCurrentProject();
-           
            const newId = `proj_rev_${Date.now()}`;
            const newProject: FSMProject = { 
               id: newId, 
@@ -940,7 +1126,6 @@ function AppContent() {
               chatHistory: [], 
               updatedAt: Date.now() 
            };
-           
            setProjects(prev => [...prev, newProject]);
            setNodes(newProject.nodes); 
            setEdges(newProject.edges); 
@@ -950,9 +1135,7 @@ function AppContent() {
         }
      } catch (err) {
         showToast("Reverse Engineering Failed", "error");
-        console.error(err);
      } finally {
-        setAgentState('IDLE');
         if (cppInputRef.current) cppInputRef.current.value = '';
      }
   };
@@ -964,7 +1147,6 @@ function AppContent() {
         const projData = await fileManager.loadProject(file);
         if (simStatus !== SimulationStatus.IDLE) stopSimulation();
         syncCurrentProject();
-        
         const newId = `proj_imp_${Date.now()}`;
         const newProject: FSMProject = { 
             id: newId, 
@@ -976,7 +1158,6 @@ function AppContent() {
             chatHistory: projData.chatHistory || [], 
             updatedAt: Date.now() 
         };
-        
         setProjects(prev => [...prev, newProject]);
         setNodes(newProject.nodes); 
         setEdges(newProject.edges); 
@@ -1015,6 +1196,7 @@ function AppContent() {
     showToast('Analyzing Power...', 'info');
     const result = await geminiService.optimizeForLowPower(nodes, edges);
     appendChatMessage('assistant', result);
+    setRightPanelTab('CHAT');
     setShowRightPanel(true);
     showToast('Report in Chat', 'success');
   };
@@ -1023,17 +1205,14 @@ function AppContent() {
      if (!selectedNodeId || !smartPrompt) return;
      const node = nodes.find(n => n.id === selectedNodeId);
      if (!node) return;
-
      setIsAiLoading(true);
      try {
-       // Gather context from other nodes for variable suggestions
        const logic = await geminiService.generateNodeScript(
          node.data.label,
          node.data.type || 'process',
          smartPrompt,
          Object.keys(simContext)
        );
-       
        takeSnapshot(nodes, edges);
        setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, entryAction: logic } } : n));
        setSmartPrompt('');
@@ -1052,7 +1231,7 @@ function AppContent() {
         setIsDeviceConnected(connected);
         if (connected) showToast(`Connected to ${mcu.name}`, 'success');
      } else {
-        setIsDeviceConnected(true); // Virtual connection for drag-and-drop workflow
+        setIsDeviceConnected(true); 
         showToast(`Target Set: ${mcu.name}`, 'info');
      }
      setShowDeviceManager(false);
@@ -1063,12 +1242,10 @@ function AppContent() {
        setShowDeviceManager(true);
        return;
     }
-    
     setIsFlashing(true);
     setFlashProgress(0);
     setFlashStatus('Initializing...');
     showToast('Starting Flash Sequence...', 'info');
-
     try {
       const msg = await hardwareBridge.flashDevice(targetMcu, (pct, status) => {
          setFlashProgress(pct);
@@ -1098,74 +1275,70 @@ function AppContent() {
      }
   };
 
-  const handleVoiceCommand = async () => {
-    if (isListening || agentState !== 'IDLE') return;
-    
-    setAgentState('LISTENING');
-    setIsListening(true);
-    
-    try {
-      const text = await voiceService.listen();
-      setIsListening(false);
-      setAgentState('THINKING');
-      
-      appendChatMessage('user', `🎤 ${text}`);
-      
-      const intent = await geminiService.classifyIntent(text);
-      
-      if (intent === 'CREATE') {
-         setAgentState('CREATING');
-         showToast('Generating new design...', 'info');
-         const graph = await geminiService.createGraphFromPrompt(text);
-         if (graph) {
-            if (simStatus !== SimulationStatus.IDLE) stopSimulation();
-            syncCurrentProject();
-            
-            const newId = `proj_voice_${Date.now()}`;
-            const newProject: FSMProject = { 
-               id: newId, 
-               name: `Voice: ${text.substring(0, 15)}...`, 
-               description: `Generated from prompt: "${text}"`,
-               version: '0.1.0', 
-               nodes: graph.nodes, 
-               edges: graph.edges, 
-               chatHistory: [], 
-               updatedAt: Date.now() 
-            };
-            
-            setProjects(prev => [...prev, newProject]);
-            setNodes(newProject.nodes); 
-            setEdges(newProject.edges); 
-            setActiveProjectId(newId);
-            clearHistory();
-            showToast('Design Generated', 'success');
-            appendChatMessage('assistant', 'I have created a new FSM based on your description.');
-         }
-      } else if (intent === 'MODIFY') {
-         setAgentState('MODIFYING');
-         showToast('Modifying design...', 'info');
-         const newGraph = await geminiService.modifyGraph(nodes, edges, text, ghostIssues);
-         if (newGraph) {
-            takeSnapshot(nodes, edges);
-            setNodes(newGraph.nodes);
-            setEdges(newGraph.edges);
-            showToast('Canvas Updated', 'success');
-            appendChatMessage('assistant', 'Done. I have updated the graph.');
-         }
-      } else {
-         setIsAiLoading(true);
-         const response = await geminiService.chatWithAssistant(activeProject.chatHistory, nodes, edges, ghostIssues, text);
-         appendChatMessage('assistant', response);
-         setIsAiLoading(false);
-      }
+  const appendChatMessage = (role: 'user' | 'assistant', content: string) => {
+     setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, chatHistory: [...p.chatHistory, { id: Date.now().toString(), role, content, timestamp: Date.now() }] } : p));
+  };
 
-    } catch (e) {
-      showToast((e as Error).message, 'error');
-      appendChatMessage('assistant', 'Sorry, I had trouble processing that command.');
-    } finally {
-      setIsListening(false);
-      setAgentState('IDLE');
+  const renderMessageContent = (content: string) => {
+    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push({ type: 'text', content: content.substring(lastIndex, match.index) });
+        }
+        parts.push({ type: 'code', lang: match[1] || 'text', content: match[2] });
+        lastIndex = codeBlockRegex.lastIndex;
     }
+    if (lastIndex < content.length) {
+        parts.push({ type: 'text', content: content.substring(lastIndex) });
+    }
+
+    return parts.map((part, i) => {
+        if (part.type === 'code') {
+            return (
+                <div key={i} className="my-3 bg-[#1e1e1e] text-gray-200 p-3 rounded-md border border-gray-700 font-mono text-[11px] overflow-x-auto shadow-inner relative group">
+                    {part.lang && <div className="text-[9px] text-gray-500 uppercase mb-1 font-bold select-none border-b border-gray-700 pb-1 flex justify-between">
+                       <span>{part.lang}</span>
+                       <span className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-white" onClick={() => { navigator.clipboard.writeText(part.content); showToast("Copied code", "info"); }}>COPY</span>
+                    </div>}
+                    <pre className="whitespace-pre">{part.content}</pre>
+                </div>
+            );
+        } else {
+            const lines = part.content.split('\n');
+            return (
+                <div key={i} className="whitespace-pre-wrap leading-relaxed text-gray-700">
+                    {lines.map((line, j) => {
+                        if (line.startsWith('### ')) {
+                            return <h4 key={j} className="font-bold text-neuro-primary mt-2 mb-1 uppercase text-[11px]">{line.replace('### ', '')}</h4>;
+                        }
+                        if (line.trim().startsWith('- ')) {
+                            return <div key={j} className="flex gap-2 ml-2"><span className="text-gray-400">•</span> <span>{formatInline(line.replace('- ', ''))}</span></div>;
+                        }
+                        if (/^\d+\.\s/.test(line.trim())) {
+                            return <div key={j} className="flex gap-2 ml-2"><span className="text-gray-400 font-mono text-[10px]">{line.trim().split('.')[0]}.</span> <span>{formatInline(line.replace(/^\d+\.\s/, ''))}</span></div>;
+                        }
+                        return <div key={j} className="min-h-[4px]">{formatInline(line)}</div>;
+                    })}
+                </div>
+            );
+        }
+    });
+  };
+
+  const formatInline = (text: string) => {
+      return text.split(/(\*\*.*?\*\*|`[^`]+`)/g).map((subPart, j) => {
+          if (subPart.startsWith('**') && subPart.endsWith('**')) {
+              return <strong key={j} className="font-bold text-neuro-primary">{subPart.slice(2, -2)}</strong>;
+          }
+          if (subPart.startsWith('`') && subPart.endsWith('`')) {
+              return <code key={j} className="bg-gray-100 text-purple-700 px-1 py-0.5 rounded text-[90%] font-mono border border-gray-200 mx-0.5">{subPart.slice(1, -1)}</code>;
+          }
+          return subPart;
+      });
   };
 
   const handleAutoFix = async () => {
@@ -1173,8 +1346,6 @@ function AppContent() {
         showToast("No issues to fix!", "success");
         return;
      }
-     
-     setAgentState('MODIFYING');
      showToast("Auto-fixing issues...", "info");
      try {
         const newGraph = await geminiService.modifyGraph(nodes, edges, "Fix all detected issues in the graph.", ghostIssues);
@@ -1186,8 +1357,6 @@ function AppContent() {
         }
      } catch (e) {
         showToast("Auto-fix failed", "error");
-     } finally {
-        setAgentState('IDLE');
      }
   };
 
@@ -1205,110 +1374,155 @@ function AppContent() {
       }
   };
 
-  // Visual Event Handler for Engine Animation
-  const handleVisualEvent = useCallback(async (event: VisualEventType, id: string, data?: any) => {
-      // 1. Update ReactFlow State based on event type
-      if (event === 'node_entry') {
-         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'entry', executionLog: data?.code ? data.code.split('\n')[0] : 'Executing...' } } : n));
-      } else if (event === 'node_exit') {
-         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'exit', executionLog: data?.code ? data.code.split('\n')[0] : 'Exiting...' } } : n));
-      } else if (event === 'node_idle') {
-         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'idle', executionLog: undefined } } : n));
-      } else if (event === 'edge_traverse') {
-         setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, isTraversing: true } } : e));
-         // Auto-clear edge traversal after 1s (UI only)
-         setTimeout(() => {
-            setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, isTraversing: false } } : e));
-         }, 800); 
-      } else if (event === 'guard_check') {
-         setEdges(eds => eds.map(e => e.id === id ? { ...e, animated: true } : e));
-      } else if (event === 'guard_result') {
-         setEdges(eds => eds.map(e => e.id === id ? { ...e, animated: false, data: { ...e.data, guardResult: data?.passed ? 'pass' : 'fail' } } : e));
-         setTimeout(() => {
-            setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, guardResult: null } } : e));
-         }, 1500);
-      }
-  }, [setNodes, setEdges]);
-
-  // Use Effect to record history for Logic Analyzer
-  useEffect(() => {
-     if (simStatus === SimulationStatus.RUNNING || isShadowMode) {
-        // Sample HAL every 50ms
-        const interval = setInterval(() => {
-           const snap = HAL.getSnapshot();
-           setHalSnapshot(snap);
-           setHalHistory(prev => {
-              const now = Date.now();
-              const signals: Record<string, number | boolean> = {};
-              
-              // Flatten signals for analyzer
-              if(snap.gpio) Object.entries(snap.gpio).forEach(([k,v]) => signals[`GPIO_${k}`] = v);
-              if(snap.pwm) Object.entries(snap.pwm).forEach(([k,v]) => signals[`PWM_${k}`] = v);
-              
-              return [...prev.slice(-999), { timestamp: now, signals }];
-           });
-        }, 50);
-        return () => clearInterval(interval);
-     }
-  }, [simStatus, isShadowMode]);
-
-  const startSimulation = async () => {
-    if (simStatus !== SimulationStatus.IDLE) return;
-    
-    syncCurrentProject(); // Save before run
-
-    const executor = new FSMExecutor(
-      nodes,
-      edges,
-      (msg, type) => addLog(msg, type),
-      (nodeId, history) => {
-          setActiveStateId(nodeId);
-          setSimHistory(history);
-      },
-      (ctx) => setSimContext(ctx),
-      (telemetry) => setSimTelemetry(telemetry),
-      handleVisualEvent
-    );
-
-    executor.setSpeed(simSpeed);
-    executor.setShadowMode(isShadowMode);
-    executorRef.current = executor;
-
-    try {
-        await executor.start();
-        setSimStatus(SimulationStatus.RUNNING);
-    } catch (e) {
-        addLog(`Start Failed: ${(e as Error).message}`, 'error');
-        setSimStatus(SimulationStatus.ERROR);
-    }
-  };
-
-  const appendChatMessage = (role: 'user' | 'assistant', content: string) => {
-     setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, chatHistory: [...p.chatHistory, { id: Date.now().toString(), role, content, timestamp: Date.now() }] } : p));
-  };
+  const onNodesChangeWithHistory = useCallback((changes: any) => {
+    onNodesChange(changes);
+  }, [onNodesChange]);
   
-  // --- AUTO SIMULATION TIMER ---
-  useEffect(() => {
-    if (simStatus === SimulationStatus.RUNNING && autoSimMode) {
-      if (autoSimTimerRef.current) clearInterval(autoSimTimerRef.current);
-      autoSimTimerRef.current = setInterval(() => {
-        if (executorRef.current) {
-             executorRef.current.triggerEvent('TICK'); 
-        }
-      }, simSpeed);
-    } else {
-      if (autoSimTimerRef.current) clearInterval(autoSimTimerRef.current);
+  const onEdgesChangeWithHistory = useCallback((changes: any) => {
+    onEdgesChange(changes);
+  }, [onEdgesChange]);
+
+  const onConnect = useCallback((params: Connection) => {
+    takeSnapshot(nodes, edges);
+    setEdges((eds) => addEdge({ ...params, type: 'retro', animated: false }, eds));
+  }, [nodes, edges, takeSnapshot, setEdges]);
+
+  const onSelectionChange = useCallback(({ nodes: selectedNodes, edges: selectedEdges }: { nodes: Node[], edges: Edge[] }) => {
+    setSelectedNodeIds(selectedNodes.map(n => n.id));
+    setSelectedNodeId(selectedNodes.length === 1 ? selectedNodes[0].id : null);
+    setSelectedEdgeId(selectedEdges.length === 1 ? selectedEdges[0].id : null);
+    // Auto-switch to Props if a single node is selected
+    if (selectedNodes.length === 1) {
+        setRightPanelTab('PROPS');
+        setShowRightPanel(true);
     }
-    return () => { if (autoSimTimerRef.current) clearInterval(autoSimTimerRef.current); };
-  }, [simStatus, autoSimMode, simSpeed]);
+  }, []);
+
+  const onPaneContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenu({ top: event.clientY, left: event.clientX });
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setContextMenu(null);
+    setShowLayoutMenu(false);
+    setActiveMenu(null);
+  }, []);
+
+  const onDragStart = useCallback((event: React.DragEvent, nodeType: string) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    const type = event.dataTransfer.getData('application/reactflow');
+    if (!type) return;
+
+    const position = reactFlowInstance.screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+    
+    const newNode: Node = {
+      id: `node_${Date.now()}`,
+      type,
+      position,
+      data: { 
+        label: `${type.toUpperCase()}_${Math.floor(Math.random()*100)}`, 
+        type: type as any,
+        entryAction: '',
+        exitAction: ''
+      },
+    };
+    
+    takeSnapshot(nodes, edges);
+    setNodes((nds) => nds.concat(newNode));
+  }, [reactFlowInstance, nodes, edges, takeSnapshot, setNodes]);
+
+  const handleAddNodeFromContext = useCallback((type: string, x: number, y: number) => {
+    const position = reactFlowInstance.screenToFlowPosition({ x, y });
+    const newNode: Node = {
+      id: `node_${Date.now()}`,
+      type,
+      position,
+      data: { 
+        label: `${type.toUpperCase()}_${Math.floor(Math.random()*100)}`, 
+        type: type as any 
+      },
+    };
+    takeSnapshot(nodes, edges);
+    setNodes((nds) => nds.concat(newNode));
+    setContextMenu(null);
+  }, [reactFlowInstance, nodes, edges, takeSnapshot, setNodes]);
+
+  const switchProject = useCallback((id: string) => {
+    if (simStatus !== SimulationStatus.IDLE) stopSimulation();
+    syncCurrentProject();
+    setActiveProjectId(id);
+    clearHistory();
+    setValidationReport(null);
+    setResourceMetrics(null);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+  }, [simStatus, stopSimulation, syncCurrentProject, setActiveProjectId, clearHistory]);
+
+  const closeProject = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (projects.length <= 1) {
+       showToast("Cannot close the last project.", "warning");
+       return;
+    }
+    const newProjects = projects.filter(p => p.id !== id);
+    setProjects(newProjects);
+    if (activeProjectId === id && newProjects.length > 0) {
+        setActiveProjectId(newProjects[0].id);
+        clearHistory();
+    }
+  }, [projects, activeProjectId, setProjects, setActiveProjectId, clearHistory, showToast]);
+
+  const applyLayout = useCallback((template: WorkspaceTemplate) => {
+    setActiveLayout(template);
+    setShowLayoutMenu(false);
+    
+    // Default Hidden
+    setShowLeftPanel(false);
+    setShowRightPanel(false);
+    setShowBottomPanel(false);
+    setShowIOPanel(false);
+    setShowDiagnostics(false);
+
+    if (template === 'ARCHITECT') {
+        setShowLeftPanel(true); setShowRightPanel(true); setRightPanelTab('PROPS');
+    } else if (template === 'ENGINEER') {
+        setShowLeftPanel(true); setShowRightPanel(true); setShowBottomPanel(true); setActiveBottomTab('SERIAL'); setRightPanelTab('DEBUG');
+    } else if (template === 'HARDWARE_LAB') {
+        setShowRightPanel(true); setShowBottomPanel(true); setShowIOPanel(true); setShowDiagnostics(true); setActiveBottomTab('LOGIC'); setRightPanelTab('DEBUG');
+    } else if (template === 'DEBUG_FOCUS') {
+        setShowRightPanel(true); setShowBottomPanel(true); setActiveBottomTab('OUTPUT'); setRightPanelTab('DEBUG');
+    } else if (template === 'HACKER') {
+        setShowBottomPanel(true); setActiveBottomTab('OUTPUT');
+    } else if (template === 'FULL_SUITE') {
+        setShowLeftPanel(true); setShowRightPanel(true); setShowBottomPanel(true);
+    } else if (template === 'AI_PAIR') {
+        setShowRightPanel(true); setIsCompanionMode(true); setRightPanelTab('CHAT');
+    }
+    
+    if (template !== 'AI_PAIR') setIsCompanionMode(false);
+    
+    showToast(`Layout: ${template.replace('_', ' ')}`, 'info');
+  }, [showToast]);
 
   const handleGroupSelection = useCallback(() => {
      if (selectedNodeIds.length < 2) {
         showToast("Select at least 2 nodes to group", "warning");
         return;
      }
-     
-     // Calculate bounding box
      const selectedNodes = nodes.filter(n => selectedNodeIds.includes(n.id));
      const minX = Math.min(...selectedNodes.map(n => n.position.x));
      const minY = Math.min(...selectedNodes.map(n => n.position.y));
@@ -1344,64 +1558,107 @@ function AppContent() {
     }
   }, [selectedNodeIds, selectedEdgeId, setNodes, setEdges, showToast]);
 
-  // -- MENU CONFIGURATION (UPDATED) --
+  const handleRunValidationWrapper = useCallback(async () => {
+    if (nodes.length === 0) return;
+    setIsValidating(true);
+    showToast('Running AI Validation...', 'info');
+    try {
+      const report = await geminiService.generateValidationReport(nodes, edges);
+      setValidationReport(report);
+      showToast('Validation Report Ready', 'success');
+      setActiveBottomTab('VALIDATION');
+      setShowBottomPanel(true);
+    } catch (e) {
+      showToast('Validation Failed: ' + (e as Error).message, 'error');
+    } finally {
+      setIsValidating(false);
+    }
+  }, [nodes, edges, showToast]);
+
+  const handleEstimateResourcesWrapper = useCallback(async () => {
+    if (nodes.length === 0) return;
+    setIsEstimating(true);
+    showToast('Estimating Resources...', 'info');
+    try {
+      const metrics = await geminiService.estimateResources(nodes, edges);
+      setResourceMetrics(metrics);
+      showToast('Estimation Complete', 'success');
+      setActiveBottomTab('RESOURCES');
+      setShowBottomPanel(true);
+    } catch (e) {
+      showToast('Estimation Failed: ' + (e as Error).message, 'error');
+    } finally {
+      setIsEstimating(false);
+    }
+  }, [nodes, edges, showToast]);
+
   const MENU_ITEMS = {
-      File: [
-         { label: 'New Blank Project', icon: FilePlus, action: createBlankProject },
-         { label: 'New from Template...', icon: Grid, action: () => setShowTemplateBrowser(true) },
-         { label: 'Open Project (JSON)...', icon: FolderOpen, action: handleImportProject },
-         { label: 'Import Source (C++)...', icon: Code2, action: handleImportCpp },
-         { label: 'Save Project', icon: Save, action: () => fileManager.saveProject(activeProject), shortcut: 'Ctrl+S' },
-         { separator: true },
-         { label: 'Export to C++', icon: FileCode, action: () => handleExportCode('cpp') },
-         { label: 'Export to Verilog', icon: Cpu, action: () => handleExportCode('verilog') },
-         { label: 'Export to Python', icon: FileJson, action: () => handleExportCode('python') },
-         { label: 'Export Unit Tests', icon: TestTube, action: handleExportUnitTests },
-      ],
-      Edit: [
-         { label: 'Undo', icon: Undo, action: () => undo(nodes, edges), disabled: !canUndo, shortcut: 'Ctrl+Z' },
-         { label: 'Redo', icon: Redo, action: () => redo(nodes, edges), disabled: !canRedo, shortcut: 'Ctrl+Y' },
-         { separator: true },
-         { label: 'Group Selected', icon: Group, action: handleGroupSelection, disabled: selectedNodeIds.length < 2, shortcut: 'Ctrl+G' },
-         { label: 'Delete Selected', icon: Trash2, action: handleDeleteSelected, disabled: selectedNodeIds.length === 0 && !selectedEdgeId, shortcut: 'Del' },
-      ],
-      View: [
-         { label: 'Full Suite', icon: LayoutDashboard, action: () => applyLayout('FULL_SUITE'), shortcut: 'Alt+1' },
-         { label: 'Architect View', icon: Box, action: () => applyLayout('ARCHITECT'), shortcut: 'Alt+2' },
-         { label: 'Firmware Engineer', icon: Cpu, action: () => applyLayout('ENGINEER'), shortcut: 'Alt+3' },
-         { label: 'Hardware Lab', icon: Wrench, action: () => applyLayout('HARDWARE_LAB'), shortcut: 'Alt+4' },
-         { label: 'Zen Mode', icon: Maximize, action: () => applyLayout('ZEN'), shortcut: 'Alt+5' },
-         { separator: true },
-         { label: 'Toggle Diagnostics', icon: Monitor, action: () => setShowDiagnostics(!showDiagnostics), checked: showDiagnostics },
-         { label: 'Toggle IO Panel', icon: ToggleLeft, action: () => setShowIOPanel(!showIOPanel), checked: showIOPanel },
-         { label: 'Toggle Left Panel', icon: Sidebar, action: () => setShowLeftPanel(!showLeftPanel), checked: showLeftPanel },
-         { label: 'Toggle Right Panel', icon: Sidebar, action: () => setShowRightPanel(!showRightPanel), checked: showRightPanel },
-      ],
-      Tools: [
-         { label: 'Datasheet Analysis...', icon: Microscope, action: () => setShowDatasheetModal(true) },
-         { label: 'Generate Register Map', icon: TableProperties, action: handleGenerateRegisterMap },
-         { label: 'Power Analysis', icon: Battery, action: handlePowerAnalysis },
-         { separator: true },
-         { label: 'Device Manager', icon: CircuitBoard, action: () => setShowDeviceManager(true) },
-      ],
-      Help: [
-         { label: 'Documentation', icon: BookOpen, action: () => window.open('https://github.com/google/neurostate', '_blank') },
-         { label: 'About NeuroState', icon: Info, action: () => setShowAboutModal(true) }
-      ]
+    File: [
+      { label: 'New Project', icon: FilePlus, action: createBlankProject, shortcut: 'Ctrl+N' },
+      { label: 'Open Project...', icon: FolderOpen, action: handleImportProject, shortcut: 'Ctrl+O' },
+      { separator: true },
+      { label: 'Save Project', icon: Save, action: () => fileManager.saveProject(activeProject), shortcut: 'Ctrl+S' },
+      { label: 'Export C++', icon: Code2, action: () => handleExportCode('cpp') },
+      { label: 'Export Verilog', icon: Cpu, action: () => handleExportCode('verilog') },
+      { label: 'Export Python', icon: Terminal, action: () => handleExportCode('python') },
+      { label: 'Export Rust', icon: Shield, action: () => handleExportCode('rust') },
+      { separator: true },
+      { label: 'Generate Unit Tests', icon: TestTube, action: handleExportUnitTests },
+    ],
+    Edit: [
+      { label: 'Undo', icon: Undo, action: () => undo(nodes, edges), shortcut: 'Ctrl+Z', disabled: !canUndo },
+      { label: 'Redo', icon: Redo, action: () => redo(nodes, edges), shortcut: 'Ctrl+Y', disabled: !canRedo },
+      { separator: true },
+      { label: 'Delete Selected', icon: Trash2, action: handleDeleteSelected, shortcut: 'Del', disabled: !selectedNodeId && !selectedEdgeId },
+      { label: 'Group Nodes', icon: Group, action: handleGroupSelection, shortcut: 'Ctrl+G', disabled: selectedNodeIds.length < 2 },
+    ],
+    View: [
+      { label: 'Mission Control', checked: activeLayout === 'FULL_SUITE', action: () => applyLayout('FULL_SUITE'), shortcut: 'Alt+1' },
+      { label: 'Architect', checked: activeLayout === 'ARCHITECT', action: () => applyLayout('ARCHITECT'), shortcut: 'Alt+2' },
+      { label: 'Firmware Eng.', checked: activeLayout === 'ENGINEER', action: () => applyLayout('ENGINEER'), shortcut: 'Alt+3' },
+      { label: 'Hardware Lab', checked: activeLayout === 'HARDWARE_LAB', action: () => applyLayout('HARDWARE_LAB'), shortcut: 'Alt+4' },
+      { separator: true },
+      { label: 'Toggle Diagnostics', checked: showDiagnostics, action: () => setShowDiagnostics(!showDiagnostics) },
+      { label: 'Toggle IO Panel', checked: showIOPanel, action: () => setShowIOPanel(!showIOPanel) },
+    ],
+    Tools: [
+      { label: 'Reverse Engineer C++', icon: Microscope, action: handleImportCpp },
+      { label: 'Datasheet Analysis', icon: FileJson, action: () => setShowDatasheetModal(true) },
+      { label: 'Power Estimation', icon: Gauge, action: handleEstimateResourcesWrapper },
+      { label: 'Design Validation', icon: Shield, action: handleRunValidationWrapper },
+      { separator: true },
+      { label: 'Flash Firmware', icon: Zap, action: handleFlashBoard },
+    ],
+    Help: [
+      { label: 'Documentation', icon: Book, action: () => setShowDocsModal(true) },
+      { label: 'About NeuroState', icon: Info, action: () => setShowAboutModal(true) },
+    ]
   };
+
+  useShortcuts([
+    { key: '1', alt: true, action: () => applyLayout('FULL_SUITE') },
+    { key: '2', alt: true, action: () => applyLayout('ARCHITECT') },
+    { key: '3', alt: true, action: () => applyLayout('ENGINEER') },
+    { key: '4', alt: true, action: () => applyLayout('HARDWARE_LAB') },
+    { key: '5', alt: true, action: () => applyLayout('ZEN') },
+    { key: 'g', ctrl: true, action: () => handleGroupSelection() },
+  ]);
+
+  // -- MENU CONFIGURATION --
+  // ... (Menu Items definition omitted for brevity, same as previous) ...
 
   return (
     <div className="flex flex-col h-screen bg-neuro-bg text-neuro-primary font-mono text-xs overflow-hidden min-h-0">
       <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={onFileLoad} />
       <input type="file" ref={cppInputRef} className="hidden" accept=".cpp,.h,.c" onChange={onCppLoad} />
       
-      {/* GLOBAL CLICK HANDLER TO CLOSE MENUS */}
       {activeMenu && <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)}></div>}
 
-      {/* MENU BAR */}
+      {/* MENU BAR (Same as previous) */}
       <div className="bg-gray-100 border-b border-neuro-dim px-2 flex items-center h-8 select-none shrink-0 relative z-50">
          <div className="flex items-center gap-1">
             <span className="font-bold mr-4 text-sm tracking-tight text-neuro-primary flex items-center gap-2"><CircuitBoard size={16}/> NeuroState</span>
+            {/* ... Menu Buttons ... */}
             {Object.keys(MENU_ITEMS).map(m => (
                <div key={m} className="relative">
                   <button 
@@ -1469,10 +1726,14 @@ function AppContent() {
         </div>
 
         <div className="flex items-center gap-2">
-           <Button onClick={handleVoiceCommand} variant={agentState === 'LISTENING' ? 'danger' : 'ghost'} tooltip="Voice Agent (Create/Modify)">
-              {agentState === 'LISTENING' ? <Mic size={14} className="animate-pulse"/> : 
-               agentState === 'THINKING' ? <Loader2 size={14} className="animate-spin"/> :
-               <Mic size={14}/>}
+           {/* Wake Word Indicator */}
+           {!isCompanionMode && isStandbyMode && (
+              <div className="flex items-center gap-1 text-[9px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded border border-gray-200 animate-pulse" title="Listening for 'Neo'">
+                 <Ear size={10}/> STANDBY
+              </div>
+           )}
+           <Button onClick={() => { setIsCompanionMode(!isCompanionMode); setRightPanelTab('CHAT'); setShowRightPanel(true); }} variant={isCompanionMode ? 'primary' : 'ghost'} tooltip="Neo AI Companion (Live Voice)">
+              <Waves size={14} className={isCompanionMode ? "text-purple-500 animate-pulse" : ""}/>
            </Button>
            <div className="flex items-center bg-gray-100 rounded-md px-1 border border-gray-200" title="Shadow Mode (Hardware-in-Loop)">
               <button 
@@ -1494,11 +1755,12 @@ function AppContent() {
       </div>
 
       <div className="flex flex-1 overflow-hidden relative min-h-0">
-        {/* LEFT PANEL: TOOLBOX */}
+        {/* LEFT PANEL */}
         {showLeftPanel && (
           <div className="w-16 border-r border-neuro-dim bg-white flex flex-col items-center py-4 gap-4 z-10 shadow-sm shrink-0 overflow-y-auto custom-scrollbar">
              {['input', 'process', 'decision', 'output', 'error', 'hardware', 'uart', 'listener', 'interrupt', 'timer', 'peripheral'].map(type => (
                <div key={type} draggable onDragStart={(e) => onDragStart(e, type)} className="w-10 h-10 border border-neuro-dim bg-white hover:border-neuro-primary hover:shadow-md hover:scale-110 transition-all flex items-center justify-center cursor-grab active:cursor-grabbing rounded-sm group relative shrink-0">
+                  {/* Icon Rendering Logic - same as before */}
                   {type==='input'?<Play size={18} fill="currentColor" className="text-neuro-primary"/> :
                    type==='output'?<CheckCircle size={18} className="text-neuro-accent"/> :
                    type==='error'?<AlertTriangle size={18} className="text-red-500"/> :
@@ -1540,14 +1802,17 @@ function AppContent() {
             <MiniMap className="!bg-white !border-neuro-dim !shadow-sm !rounded-sm !m-4" nodeColor={() => '#e5e7eb'} maskColor="rgba(240, 240, 240, 0.6)" />
           </ReactFlow>
 
-          {/* DIAGNOSTIC OVERLAY */}
-          {showDiagnostics && (
-             <div className="absolute bottom-4 left-4 z-40 animate-in slide-in-from-bottom-5 duration-300">
-                <DiagnosticPanel state={halSnapshot} />
-             </div>
+          {/* AI COMPANION ORB */}
+          {isCompanionMode && (
+             <CompanionOrb 
+                state={agentState} 
+                onMute={() => setIsCompanionMuted(!isCompanionMuted)}
+                muted={isCompanionMuted}
+             />
           )}
 
-          {/* VIRTUAL IO PANEL OVERLAY */}
+          {/* Overlays */}
+          {showDiagnostics && <div className="absolute bottom-4 left-4 z-40 animate-in slide-in-from-bottom-5 duration-300"><DiagnosticPanel state={halSnapshot} /></div>}
           {showIOPanel && (
              <div className="absolute top-4 right-4 z-40 animate-in slide-in-from-right-5 duration-300 bg-neuro-surface border border-neuro-primary shadow-hard p-0 flex flex-col w-[200px]">
                 <div className="bg-gray-100 p-2 text-[10px] font-bold border-b border-neuro-dim flex justify-between">
@@ -1575,175 +1840,240 @@ function AppContent() {
                 </div>
              </div>
           )}
-
-          {/* LAYOUT MENU */}
           {showLayoutMenu && <LayoutMenu active={activeLayout} onClose={() => setShowLayoutMenu(false)} onSelect={applyLayout} />}
-
-          {/* CONTEXT MENU */}
           {contextMenu && <ContextMenu top={contextMenu.top} left={contextMenu.left} onClose={() => setContextMenu(null)} onAddNode={handleAddNodeFromContext} onGroupSelected={handleGroupSelection} />}
         </div>
 
-        {/* RIGHT PANEL: PROPERTIES / SIMULATION */}
+        {/* RIGHT PANEL - TABBED SYSTEM */}
         {showRightPanel && (
           <div className="w-80 border-l border-neuro-dim bg-white flex flex-col z-20 shadow-xl shrink-0">
-             {simStatus === SimulationStatus.RUNNING ? (
-                <Panel title="SIMULATION DEBUGGER" className="h-full border-0">
-                   <div className="p-4 space-y-6">
-                      <div className={clsx("p-3 border rounded-sm", isShadowMode ? "bg-purple-50 border-purple-200" : "bg-green-50 border-green-200")}>
-                         <div className={clsx("text-[10px] font-bold mb-1", isShadowMode ? "text-purple-800" : "text-green-800")}>
-                            {isShadowMode ? "DIGITAL TWIN (HIL)" : "CURRENT STATE"}
-                         </div>
-                         <div className={clsx("text-xl font-bold font-mono", isShadowMode ? "text-purple-700" : "text-green-700")}>
-                            {nodes.find(n=>n.id===activeStateId)?.data.label || 'Unknown'}
-                         </div>
-                         <div className={clsx("text-[10px] mt-1 flex gap-2", isShadowMode ? "text-purple-600" : "text-green-600")}>
-                            <span>Transitions: {simHistory.length}</span>
-                            <span>Time: {((Date.now() - (executorRef.current as any)?.startTime)/1000).toFixed(1)}s</span>
-                         </div>
-                      </div>
+             
+             {/* PANEL TABS */}
+             <div className="flex border-b border-neuro-dim bg-gray-50">
+               <button 
+                  onClick={() => setRightPanelTab('PROPS')} 
+                  className={clsx("flex-1 py-2 text-[10px] font-bold border-r border-neuro-dim hover:bg-white transition-colors flex justify-center items-center gap-2", rightPanelTab === 'PROPS' ? "bg-white border-b-2 border-b-neuro-primary text-neuro-primary" : "text-gray-400")}
+                  title="Properties"
+               >
+                  <Edit3 size={12}/> PROPS
+               </button>
+               <button 
+                  onClick={() => setRightPanelTab('DEBUG')} 
+                  className={clsx("flex-1 py-2 text-[10px] font-bold border-r border-neuro-dim hover:bg-white transition-colors flex justify-center items-center gap-2", rightPanelTab === 'DEBUG' ? "bg-white border-b-2 border-b-neuro-primary text-neuro-primary" : "text-gray-400")}
+                  title="Debugger"
+               >
+                  <Cpu size={12}/> DEBUG
+               </button>
+               <button 
+                  onClick={() => setRightPanelTab('CHAT')} 
+                  className={clsx("flex-1 py-2 text-[10px] font-bold hover:bg-white transition-colors flex justify-center items-center gap-2", rightPanelTab === 'CHAT' ? "bg-white border-b-2 border-b-neuro-primary text-neuro-primary" : "text-gray-400", isCompanionMode && "animate-pulse text-purple-600")}
+                  title="Neo AI Chat"
+               >
+                  <Waves size={12}/> NEO AI
+               </button>
+             </div>
 
-                      {simTelemetry && (
-                        <div className="grid grid-cols-2 gap-2">
-                           <MetricCard label="CPU Load" value={Math.round(simTelemetry.cpuLoad)} unit="%" />
-                           <MetricCard label="Power" value={Math.round(simTelemetry.powerDrawMW)} unit="mW" />
-                           <div className="col-span-2">
-                             <ProgressBar value={simTelemetry.ramUsageBytes} max={8192} label="RAM Usage (8KB)" color="bg-purple-500"/>
+             {/* PANEL CONTENT */}
+             <div className="flex-1 overflow-hidden relative">
+               
+               {/* DEBUGGER PANEL */}
+               {rightPanelTab === 'DEBUG' && (
+                  <Panel title="SIMULATION DEBUGGER" className="h-full border-0">
+                     <div className="p-4 space-y-6">
+                        {simStatus === SimulationStatus.IDLE && (
+                           <div className="text-center text-gray-400 p-4 border border-dashed rounded-sm">
+                              <Play size={24} className="mx-auto mb-2 opacity-50"/>
+                              <div className="text-xs">Simulation Idle</div>
+                              <Button onClick={startSimulation} className="mt-2 w-full text-[10px]">START SIM</Button>
+                           </div>
+                        )}
+                        {simStatus !== SimulationStatus.IDLE && (
+                           <>
+                              <div className={clsx("p-3 border rounded-sm", isShadowMode ? "bg-purple-50 border-purple-200" : "bg-green-50 border-green-200")}>
+                                 <div className={clsx("text-[10px] font-bold mb-1", isShadowMode ? "text-purple-800" : "text-green-800")}>
+                                    {isShadowMode ? "DIGITAL TWIN (HIL)" : "CURRENT STATE"}
+                                 </div>
+                                 <div className={clsx("text-xl font-bold font-mono", isShadowMode ? "text-purple-700" : "text-green-700")}>
+                                    {nodes.find(n=>n.id===activeStateId)?.data.label || 'Unknown'}
+                                 </div>
+                                 <div className={clsx("text-[10px] mt-1 flex gap-2", isShadowMode ? "text-purple-600" : "text-green-600")}>
+                                    <span>Transitions: {simHistory.length}</span>
+                                    <span>Time: {((Date.now() - (executorRef.current as any)?.startTime)/1000).toFixed(1)}s</span>
+                                 </div>
+                              </div>
+                              
+                              {simTelemetry && (
+                                 <div className="grid grid-cols-2 gap-2">
+                                    <MetricCard label="CPU Load" value={Math.round(simTelemetry.cpuLoad)} unit="%" />
+                                    <MetricCard label="Power" value={Math.round(simTelemetry.powerDrawMW)} unit="mW" />
+                                    <div className="col-span-2">
+                                       <ProgressBar value={simTelemetry.ramUsageBytes} max={8192} label="RAM Usage (8KB)" color="bg-purple-500"/>
+                                    </div>
+                                 </div>
+                              )}
+                              
+                              {/* Context Table & Controls */}
+                              <div>
+                                 <Label>Active Variables (Context)</Label>
+                                 <div className="border border-neuro-dim rounded-sm overflow-hidden text-xs">
+                                    <table className="w-full">
+                                       <tbody className="bg-gray-50">
+                                          {Object.entries(simContext || {}).length === 0 && <tr><td className="p-2 text-gray-400 italic text-center">No variables</td></tr>}
+                                          {Object.entries(simContext || {}).map(([k, v]) => (
+                                             <tr key={k} className="border-b border-neuro-dim last:border-0">
+                                                <td className="p-2 font-bold text-gray-600 border-r border-neuro-dim w-1/3">{k}</td>
+                                                <td className="p-2 font-mono text-neuro-primary bg-white">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</td>
+                                             </tr>
+                                          ))}
+                                       </tbody>
+                                    </table>
+                                 </div>
+                              </div>
+                              <div className="p-3 bg-gray-50 border border-neuro-dim rounded-sm">
+                                 <div className="flex justify-between items-center mb-2">
+                                    <Label>Simulation Control</Label>
+                                    <span className="text-[9px] font-bold text-neuro-accent">{autoSimMode ? 'AUTO' : 'MANUAL'}</span>
+                                 </div>
+                                 <div className="flex gap-2 mb-3">
+                                    <Button className="flex-1" onClick={() => { setAutoSimMode(!autoSimMode); }} variant={autoSimMode ? 'primary' : 'ghost'} tooltip="Toggle Auto-Step">
+                                       {autoSimMode ? <Pause size={12}/> : <FastForward size={12}/>} {autoSimMode ? 'PAUSE' : 'AUTO-RUN'}
+                                    </Button>
+                                    <Button onClick={() => { if(executorRef.current) executorRef.current.triggerEvent('TICK'); }} tooltip="Manual Tick"><Clock size={12}/></Button>
+                                 </div>
+                                 {autoSimMode && (
+                                    <div className="px-1">
+                                       <input type="range" min="100" max="2000" step="100" value={simSpeed} onChange={(e) => setSimSpeed(Number(e.target.value))} className="w-full accent-neuro-primary h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer"/>
+                                       <div className="flex justify-between text-[9px] text-gray-400 mt-1"><span>Fast (100ms)</span><span>Slow (2s)</span></div>
+                                    </div>
+                                 )}
+                              </div>
+                           </>
+                        )}
+                     </div>
+                  </Panel>
+               )}
+
+               {/* PROPERTIES PANEL */}
+               {rightPanelTab === 'PROPS' && (
+                  <Panel title="NODE PROPERTIES" className="h-full border-0">
+                     <div className="p-4 space-y-4">
+                        {!selectedNode && (
+                           <div className="text-center text-gray-400 p-8">
+                              <MousePointerClick size={32} className="mx-auto mb-2 opacity-30"/>
+                              <div>Select a node to edit properties</div>
+                           </div>
+                        )}
+                        {selectedNode && (
+                           <>
+                              <div>
+                                 <Label>Label</Label>
+                                 <Input value={selectedNode.data.label} onChange={(e) => {
+                                    const val = e.target.value;
+                                    setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: val } } : n));
+                                 }} />
+                              </div>
+                              
+                              <div>
+                                 <Label>Type</Label>
+                                 <select className="w-full bg-white border border-neuro-dim text-xs px-2 py-2 outline-none font-mono" value={selectedNode.data.type} onChange={(e) => {
+                                    const val = e.target.value;
+                                    setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, type: val as any, data: { ...n.data, type: val as any } } : n));
+                                 }}>
+                                    {['input', 'process', 'decision', 'output', 'error', 'listener', 'hardware', 'uart', 'interrupt', 'timer', 'peripheral'].map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                                 </select>
+                              </div>
+
+                              <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-sm">
+                                 <div className="flex justify-between items-center mb-2">
+                                 <div className="text-[10px] font-bold text-indigo-800 flex items-center gap-1"><Sparkles size={10}/> SMART LOGIC</div>
+                                 </div>
+                                 <textarea 
+                                    className="w-full h-16 text-xs p-2 border border-indigo-200 rounded-sm outline-none resize-none mb-2 font-mono text-indigo-900 placeholder:text-indigo-300" 
+                                    placeholder="Describe logic (e.g. 'Read ADC on pin 1, check if > 2000')"
+                                    value={smartPrompt}
+                                    onChange={(e) => setSmartPrompt(e.target.value)}
+                                 />
+                                 <Button onClick={handleSmartLogicGenerate} disabled={isAiLoading || !smartPrompt} className="w-full border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50">
+                                    {isAiLoading ? 'GENERATING...' : 'GENERATE SCRIPT'}
+                                 </Button>
+                              </div>
+
+                              <div className="space-y-2">
+                                 <Label>Entry Action (JS)</Label>
+                                 <textarea className="w-full h-24 bg-gray-50 border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y" 
+                                    value={selectedNode.data.entryAction || ''}
+                                    onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, entryAction: e.target.value } } : n))}
+                                    placeholder="// e.g. ctx.count++"
+                                 />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                 <Label>Exit Action (JS)</Label>
+                                 <textarea className="w-full h-24 bg-gray-50 border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y" 
+                                    value={selectedNode.data.exitAction || ''}
+                                    onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, exitAction: e.target.value } } : n))}
+                                    placeholder="// Cleanup code"
+                                 />
+                              </div>
+
+                              <div className="pt-4 border-t border-neuro-dim">
+                                 <Button onClick={handleGenerateRegisterMap} className="w-full mb-2">Generate registers.h</Button>
+                                 <div className="text-[9px] text-gray-400 text-center">AI analyzes 'ctx' variables</div>
+                              </div>
+                           </>
+                        )}
+                     </div>
+                  </Panel>
+               )}
+
+               {/* AI CHAT PANEL */}
+               {rightPanelTab === 'CHAT' && (
+                  <Panel title="AI ASSISTANT (NEO)" className="h-full border-0 flex flex-col">
+                     <div className="flex flex-col h-full relative">
+                        {isCompanionMode && (
+                           <div className="absolute top-0 left-0 right-0 bg-purple-50 text-purple-700 text-[10px] p-2 text-center border-b border-purple-100 flex items-center justify-center gap-2 animate-in slide-in-from-top-2">
+                              <Waves size={12} className="animate-pulse"/> Voice Agent Active. You can also text below.
+                           </div>
+                        )}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar pb-20" ref={chatScrollRef}>
+                           {activeProject.chatHistory.length === 0 && <div className="text-gray-400 text-center italic mt-10">Ask me anything about your firmware design...</div>}
+                           {activeProject.chatHistory.map(msg => (
+                              <div key={msg.id} className={clsx("p-3 rounded-lg text-xs leading-relaxed break-words shadow-sm", msg.role === 'user' ? "bg-neuro-primary text-white ml-8" : "bg-white text-gray-800 mr-8 border border-gray-200")}>
+                                 <div className="font-bold mb-1 opacity-70 text-[9px] uppercase tracking-wider">{msg.role}</div>
+                                 {renderMessageContent(msg.content)}
+                              </div>
+                           ))}
+                           {isAiLoading && (
+                              <div className="flex justify-center p-4">
+                                 <div className="flex items-center gap-2 text-gray-400 text-xs animate-pulse">
+                                    <Loader2 size={14} className="animate-spin"/> Thinking...
+                                 </div>
+                              </div>
+                           )}
+                        </div>
+                        <div className="p-3 border-t border-neuro-dim bg-gray-50 absolute bottom-0 left-0 right-0">
+                           <div className="flex gap-2">
+                              <textarea 
+                                 className="flex-1 min-h-[40px] max-h-[100px] border border-neuro-dim p-2 text-xs outline-none focus:border-neuro-primary rounded-sm resize-none"
+                                 placeholder={isCompanionMode ? "Type to Neo (Voice also active)..." : "Type query or command..."}
+                                 value={aiQuery}
+                                 onChange={e => setAiQuery(e.target.value)}
+                                 onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); if(aiQuery.trim()) { appendChatMessage('user', aiQuery); setAiQuery(''); setIsAiLoading(true); geminiService.chatWithAssistant(activeProject.chatHistory, nodes, edges, ghostIssues, aiQuery).then(res => { appendChatMessage('assistant', res); }).catch(err => { appendChatMessage('assistant', "Error: " + err.message); }).finally(() => setIsAiLoading(false)); } } }}
+                              />
+                              <Button onClick={() => { if(aiQuery.trim()) { appendChatMessage('user', aiQuery); setAiQuery(''); setIsAiLoading(true); geminiService.chatWithAssistant(activeProject.chatHistory, nodes, edges, ghostIssues, aiQuery).then(res => { appendChatMessage('assistant', res); }).catch(err => { appendChatMessage('assistant', "Error: " + err.message); }).finally(() => setIsAiLoading(false)); } }}><Send size={14}/></Button>
+                           </div>
+                           <div className="mt-2 flex justify-between">
+                              <div className="text-[9px] text-gray-400 flex gap-2">
+                                 <button className="hover:text-neuro-primary underline decoration-dotted" onClick={() => setAiQuery("Find dead ends in the graph.")}>Find Issues</button>
+                                 <button className="hover:text-neuro-primary underline decoration-dotted" onClick={() => setAiQuery("Optimize this for low power.")}>Optimize</button>
+                              </div>
+                              <button className="text-[9px] text-neuro-primary font-bold hover:underline" onClick={handlePowerAnalysis}>POWER REPORT</button>
                            </div>
                         </div>
-                      )}
-
-                      <div>
-                         <Label>Active Variables (Context)</Label>
-                         <div className="border border-neuro-dim rounded-sm overflow-hidden text-xs">
-                            <table className="w-full">
-                               <tbody className="bg-gray-50">
-                                  {Object.entries(simContext || {}).length === 0 && <tr><td className="p-2 text-gray-400 italic text-center">No variables</td></tr>}
-                                  {Object.entries(simContext || {}).map(([k, v]) => (
-                                     <tr key={k} className="border-b border-neuro-dim last:border-0">
-                                        <td className="p-2 font-bold text-gray-600 border-r border-neuro-dim w-1/3">{k}</td>
-                                        <td className="p-2 font-mono text-neuro-primary bg-white">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</td>
-                                     </tr>
-                                  ))}
-                               </tbody>
-                            </table>
-                         </div>
-                      </div>
-                      
-                      <div className="p-3 bg-gray-50 border border-neuro-dim rounded-sm">
-                         <div className="flex justify-between items-center mb-2">
-                            <Label>Simulation Control</Label>
-                            <span className="text-[9px] font-bold text-neuro-accent">{autoSimMode ? 'AUTO' : 'MANUAL'}</span>
-                         </div>
-                         <div className="flex gap-2 mb-3">
-                            <Button className="flex-1" onClick={() => { setAutoSimMode(!autoSimMode); }} variant={autoSimMode ? 'primary' : 'ghost'} tooltip="Toggle Auto-Step">
-                               {autoSimMode ? <Pause size={12}/> : <FastForward size={12}/>} {autoSimMode ? 'PAUSE' : 'AUTO-RUN'}
-                            </Button>
-                            <Button onClick={() => { if(executorRef.current) executorRef.current.triggerEvent('TICK'); }} tooltip="Manual Tick"><Clock size={12}/></Button>
-                         </div>
-                         {autoSimMode && (
-                            <div className="px-1">
-                               <input type="range" min="100" max="2000" step="100" value={simSpeed} onChange={(e) => setSimSpeed(Number(e.target.value))} className="w-full accent-neuro-primary h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer"/>
-                               <div className="flex justify-between text-[9px] text-gray-400 mt-1"><span>Fast (100ms)</span><span>Slow (2s)</span></div>
-                            </div>
-                         )}
-                      </div>
-                   </div>
-                </Panel>
-             ) : selectedNode ? (
-                <Panel title="NODE PROPERTIES" className="h-full border-0">
-                   <div className="p-4 space-y-4">
-                      <div>
-                         <Label>Label</Label>
-                         <Input value={selectedNode.data.label} onChange={(e) => {
-                            const val = e.target.value;
-                            setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: val } } : n));
-                         }} />
-                      </div>
-                      
-                      <div>
-                         <Label>Type</Label>
-                         <select className="w-full bg-white border border-neuro-dim text-xs px-2 py-2 outline-none font-mono" value={selectedNode.data.type} onChange={(e) => {
-                            const val = e.target.value;
-                            setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, type: val as any, data: { ...n.data, type: val as any } } : n));
-                         }}>
-                            {['input', 'process', 'decision', 'output', 'error', 'listener', 'hardware', 'uart', 'interrupt', 'timer', 'peripheral'].map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                         </select>
-                      </div>
-
-                      <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-sm">
-                         <div className="flex justify-between items-center mb-2">
-                           <div className="text-[10px] font-bold text-indigo-800 flex items-center gap-1"><Sparkles size={10}/> SMART LOGIC</div>
-                         </div>
-                         <textarea 
-                            className="w-full h-16 text-xs p-2 border border-indigo-200 rounded-sm outline-none resize-none mb-2 font-mono text-indigo-900 placeholder:text-indigo-300" 
-                            placeholder="Describe logic (e.g. 'Read ADC on pin 1, check if > 2000')"
-                            value={smartPrompt}
-                            onChange={(e) => setSmartPrompt(e.target.value)}
-                         />
-                         <Button onClick={handleSmartLogicGenerate} disabled={isAiLoading || !smartPrompt} className="w-full border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50">
-                            {isAiLoading ? 'GENERATING...' : 'GENERATE SCRIPT'}
-                         </Button>
-                      </div>
-
-                      <div className="space-y-2">
-                         <Label>Entry Action (JS)</Label>
-                         <textarea className="w-full h-24 bg-gray-50 border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y" 
-                            value={selectedNode.data.entryAction || ''}
-                            onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, entryAction: e.target.value } } : n))}
-                            placeholder="// e.g. ctx.count++"
-                         />
-                      </div>
-                      
-                      <div className="space-y-2">
-                         <Label>Exit Action (JS)</Label>
-                         <textarea className="w-full h-24 bg-gray-50 border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y" 
-                            value={selectedNode.data.exitAction || ''}
-                            onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, exitAction: e.target.value } } : n))}
-                            placeholder="// Cleanup code"
-                         />
-                      </div>
-
-                      <div className="pt-4 border-t border-neuro-dim">
-                         <Button onClick={handleGenerateRegisterMap} className="w-full mb-2">Generate registers.h</Button>
-                         <div className="text-[9px] text-gray-400 text-center">AI analyzes 'ctx' variables</div>
-                      </div>
-                   </div>
-                </Panel>
-             ) : (
-                <Panel title="AI ASSISTANT" className="h-full border-0">
-                   <div className="flex flex-col h-full">
-                      <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar" ref={chatScrollRef}>
-                         {activeProject.chatHistory.length === 0 && <div className="text-gray-400 text-center italic mt-10">Ask me anything about your firmware design...</div>}
-                         {activeProject.chatHistory.map(msg => (
-                            <div key={msg.id} className={clsx("p-2 rounded text-[11px] leading-relaxed break-words", msg.role === 'user' ? "bg-neuro-primary text-white ml-4" : "bg-gray-100 text-neuro-primary mr-4 border border-gray-200")}>
-                                <div className="font-bold mb-1 opacity-70 text-[9px] uppercase">{msg.role}</div>
-                                <div className="whitespace-pre-wrap">{msg.content}</div>
-                            </div>
-                         ))}
-                         {isAiLoading && <div className="text-center text-gray-400 text-[10px] animate-pulse">Thinking...</div>}
-                      </div>
-                      <div className="p-3 border-t border-neuro-dim bg-gray-50">
-                         <div className="flex gap-2">
-                            <textarea 
-                              className="flex-1 min-h-[40px] max-h-[100px] border border-neuro-dim p-2 text-xs outline-none focus:border-neuro-primary rounded-sm resize-none"
-                              placeholder="Type query or command..."
-                              value={aiQuery}
-                              onChange={e => setAiQuery(e.target.value)}
-                              onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); if(aiQuery.trim()) { appendChatMessage('user', aiQuery); setAiQuery(''); setIsAiLoading(true); geminiService.chatWithAssistant(activeProject.chatHistory, nodes, edges, ghostIssues, aiQuery).then(res => { appendChatMessage('assistant', res); }).catch(err => { appendChatMessage('assistant', "Error: " + err.message); }).finally(() => setIsAiLoading(false)); } } }}
-                            />
-                            <Button onClick={() => { if(aiQuery.trim()) { appendChatMessage('user', aiQuery); setAiQuery(''); setIsAiLoading(true); geminiService.chatWithAssistant(activeProject.chatHistory, nodes, edges, ghostIssues, aiQuery).then(res => { appendChatMessage('assistant', res); }).catch(err => { appendChatMessage('assistant', "Error: " + err.message); }).finally(() => setIsAiLoading(false)); } }}><Send size={14}/></Button>
-                         </div>
-                         <div className="mt-2 flex justify-between">
-                            <div className="text-[9px] text-gray-400 flex gap-2">
-                               <button className="hover:text-neuro-primary underline decoration-dotted" onClick={() => setAiQuery("Find dead ends in the graph.")}>Find Issues</button>
-                               <button className="hover:text-neuro-primary underline decoration-dotted" onClick={() => setAiQuery("Optimize this for low power.")}>Optimize</button>
-                            </div>
-                            <button className="text-[9px] text-neuro-primary font-bold hover:underline" onClick={handlePowerAnalysis}>POWER REPORT</button>
-                         </div>
-                      </div>
-                   </div>
-                </Panel>
-             )}
+                     </div>
+                  </Panel>
+               )}
+             </div>
           </div>
         )}
       </div>
@@ -1751,6 +2081,7 @@ function AppContent() {
       {/* BOTTOM PANEL */}
       {showBottomPanel && (
         <div className="h-48 border-t border-neuro-dim bg-white flex flex-col shrink-0">
+           {/* ... Bottom Panel Content (Same as before) ... */}
            <div className="flex border-b border-neuro-dim">
               {['OUTPUT', 'PROBLEMS', 'VALIDATION', 'RESOURCES', 'SERIAL', 'LOGIC'].map(tab => (
                  <button key={tab} onClick={() => setActiveBottomTab(tab as any)} className={clsx("px-4 py-1.5 text-[10px] font-bold tracking-wider hover:bg-gray-50 border-r border-neuro-dim", activeBottomTab === tab ? "bg-gray-100 text-neuro-primary border-b-2 border-b-neuro-primary" : "text-gray-500")}>
@@ -1883,7 +2214,7 @@ function AppContent() {
         </div>
       )}
 
-      {/* STATUS BAR - Fixed Z-index and shrink */}
+      {/* STATUS BAR */}
       <div className="h-6 bg-neuro-primary text-gray-400 text-[10px] flex items-center px-4 justify-between select-none shrink-0 border-t border-gray-800 z-50">
          <div className="flex gap-4">
             <span className="flex items-center gap-1"><GitBranch size={10}/> master*</span>
@@ -1908,10 +2239,11 @@ function AppContent() {
          ))}
       </div>
 
-      {/* MODALS */}
+      {/* MODALS (Same as before) */}
       {showTemplateBrowser && <TemplateBrowser onSelect={handleCreateProjectFromTemplate} onClose={() => setShowTemplateBrowser(false)} />}
       {showDeviceManager && <DeviceManagerModal onClose={() => setShowDeviceManager(false)} onConnect={handleConnectDevice} isConnected={isDeviceConnected} />}
       {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
+      {showDocsModal && <DocumentationModal onClose={() => setShowDocsModal(false)} />}
       {showDatasheetModal && (
          <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
             <div className="bg-white border border-neuro-primary shadow-hard w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-150">

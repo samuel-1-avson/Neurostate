@@ -65,7 +65,7 @@ export enum SimulationStatus {
   ERROR = 'ERROR'
 }
 
-export type AgentState = 'IDLE' | 'LISTENING' | 'THINKING' | 'MODIFYING' | 'CREATING';
+export type AgentState = 'IDLE' | 'LISTENING' | 'THINKING' | 'MODIFYING' | 'CREATING' | 'SPEAKING';
 
 export interface TestCase {
   id: string;

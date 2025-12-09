@@ -1,30 +1,21 @@
-import { GoogleGenAI } from "@google/genai";
 
-// Audio Context Global References
-let audioContext: AudioContext | null = null;
-let mediaStream: MediaStream | null = null;
-let processor: ScriptProcessorNode | null = null;
-let source: MediaStreamAudioSourceNode | null = null;
+import { GoogleGenAI, LiveServerMessage, Modality, Type, FunctionDeclaration } from "@google/genai";
+import { AgentState } from "../types";
 
-// PCM Helpers
-function floatTo16BitPCM(input: Float32Array): Int16Array {
-  const output = new Int16Array(input.length);
-  for (let i = 0; i < input.length; i++) {
-    const s = Math.max(-1, Math.min(1, input[i]));
-    output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+// Helper: Decode Base64 to ArrayBuffer
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
   }
-  return output;
+  return bytes;
 }
 
-function base64EncodeAudio(float32Array: Float32Array): string {
-  const int16Array = floatTo16BitPCM(float32Array);
-  const buffer = new ArrayBuffer(int16Array.byteLength);
-  const view = new DataView(buffer);
-  for (let i = 0; i < int16Array.length; i++) {
-    view.setInt16(i * 2, int16Array[i], true); // Little endian
-  }
+// Helper: Encode Uint8Array to Base64
+function encode(bytes: Uint8Array) {
   let binary = '';
-  const bytes = new Uint8Array(buffer);
   const len = bytes.byteLength;
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);
@@ -32,64 +23,294 @@ function base64EncodeAudio(float32Array: Float32Array): string {
   return btoa(binary);
 }
 
+// Helper: Create PCM Blob for Gemini Input
+function createBlob(data: Float32Array): { data: string, mimeType: string } {
+  const l = data.length;
+  const int16 = new Int16Array(l);
+  for (let i = 0; i < l; i++) {
+    // Convert Float32 (-1.0 to 1.0) to Int16
+    int16[i] = Math.max(-1, Math.min(1, data[i])) * 32768;
+  }
+  return {
+    data: encode(new Uint8Array(int16.buffer)),
+    mimeType: 'audio/pcm;rate=16000',
+  };
+}
+
+// Helper: Decode PCM Audio Data from Gemini
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number = 24000,
+  numChannels: number = 1,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+
+// --- TOOL DEFINITIONS ---
+const tools: { functionDeclarations: FunctionDeclaration[] }[] = [
+  {
+    functionDeclarations: [
+      {
+        name: "create_design",
+        description: "Create a new Finite State Machine (FSM) firmware design on the canvas based on a verbal description.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            description: { 
+              type: Type.STRING, 
+              description: "The description of the system to design (e.g., 'traffic light', 'usb stack', 'blinking led')." 
+            }
+          },
+          required: ["description"]
+        }
+      },
+      {
+        name: "modify_design",
+        description: "Modify the existing FSM design (add nodes, connect edges, fix issues, change logic).",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+             instruction: { 
+               type: Type.STRING, 
+               description: "The modification instruction (e.g., 'add an error state', 'connect node A to B')." 
+             }
+          },
+          required: ["instruction"]
+        }
+      }
+    ]
+  }
+];
+
 export const liveService = {
   activeSession: null as any,
   isConnected: false,
+  
+  // Audio Contexts
+  inputContext: null as AudioContext | null,
+  outputContext: null as AudioContext | null,
+  
+  // Input Stream
+  mediaStream: null as MediaStream | null,
+  processor: null as ScriptProcessorNode | null,
+  source: null as MediaStreamAudioSourceNode | null,
+  
+  // Output Queue
+  outputNode: null as GainNode | null,
+  nextStartTime: 0,
+  sources: new Set<AudioBufferSourceNode>(),
+  
+  // State Callback
+  onStateChange: null as ((state: AgentState) => void) | null,
+  
+  // Tool Callback
+  onToolCall: null as ((name: string, args: any) => Promise<any>) | null,
 
-  async connect(apiKey: string, onAudioData: (base64: string) => void) {
-    if (!apiKey) throw new Error("API Key required for Live Service");
+  async connect(
+    onStateChange: (state: AgentState) => void,
+    onToolCall: (name: string, args: any) => Promise<any>
+  ) {
+    if (this.isConnected) return;
+    
+    this.onStateChange = onStateChange;
+    this.onToolCall = onToolCall;
 
-    const client = new GoogleGenAI({ apiKey });
+    const apiKey = process.env.API_KEY || '';
+    if (!apiKey) {
+        console.error("LiveService: API Key missing");
+        return;
+    }
 
-    // Initialize Audio Input (Microphone)
-    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
-      sampleRate: 16000, // Gemini expects 16kHz for input
-    });
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Initialize Audio Contexts
+    this.inputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+    this.outputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    this.outputNode = this.outputContext.createGain();
+    this.outputNode.connect(this.outputContext.destination);
+    this.nextStartTime = 0;
 
     try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.onStateChange('LISTENING');
       
-      source = audioContext.createMediaStreamSource(mediaStream);
-      processor = audioContext.createScriptProcessor(512, 1, 1);
+      // Request Mic Access
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Connect to Gemini Live
+      const sessionPromise = ai.live.connect({
+        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        config: {
+          responseModalities: [Modality.AUDIO],
+          tools: tools,
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } },
+          },
+          systemInstruction: 'You are Neo, an advanced embedded systems architect. You are running inside the NeuroState IDE. You have direct control over the canvas. When asked to design or modify systems, use the available tools. Be concise, technical, and helpful.',
+        },
+        callbacks: {
+          onopen: () => {
+            console.log("LiveService: Connected");
+            this.isConnected = true;
+            this.startInputStream(sessionPromise);
+          },
+          onmessage: async (message: LiveServerMessage) => {
+            // 1. Handle Tool Calls (Function Calling)
+            if (message.toolCall) {
+               this.onStateChange?.('MODIFYING'); // Visual feedback
+               for (const fc of message.toolCall.functionCalls) {
+                  console.log("Neo Tool Call:", fc.name, fc.args);
+                  
+                  try {
+                    // Execute the tool logic in App.tsx
+                    let result = "Done";
+                    if (this.onToolCall) {
+                       result = await this.onToolCall(fc.name, fc.args);
+                    }
 
-      processor.onaudioprocess = (e) => {
-        const inputData = e.inputBuffer.getChannelData(0);
-        const base64PCM = base64EncodeAudio(inputData);
-        // Send to Gemini if session active
-        if (this.isConnected && this.activeSession) {
-             // In a real implementation using the WebSocket API directly:
-             // this.activeSession.send({ realtime_input: { media_chunks: [{ data: base64PCM, mime_type: "audio/pcm" }] } });
-             
-             // Since the SDK handles this differently, we simulate the hook here for the UI
-             onAudioData(base64PCM);
+                    // Send response back to Gemini
+                    sessionPromise.then((session) => {
+                       session.sendToolResponse({
+                          functionResponses: {
+                             id: fc.id,
+                             name: fc.name,
+                             response: { result: result } // Simple confirmation
+                          }
+                       });
+                    });
+                  } catch (e) {
+                     console.error("Tool Execution Failed", e);
+                     // Send error back
+                     sessionPromise.then((session) => {
+                        session.sendToolResponse({
+                           functionResponses: {
+                              id: fc.id,
+                              name: fc.name,
+                              response: { error: (e as Error).message }
+                           }
+                        });
+                     });
+                  }
+               }
+               // Resume listening state after tool handling
+               this.onStateChange?.('LISTENING');
+            }
+
+            // 2. Handle Audio Output
+            const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
+            if (base64Audio) {
+               this.onStateChange?.('SPEAKING');
+               await this.playAudioChunk(base64Audio);
+               // Simple debounce to return to listening state after speaking
+               // In a real app we might track playback time more precisely
+               setTimeout(() => {
+                   if(this.isConnected && this.sources.size === 0 && this.activeSession) this.onStateChange?.('LISTENING');
+               }, 2000); 
+            }
+
+            // 3. Handle Interruption
+            if (message.serverContent?.interrupted) {
+              this.stopAudioPlayback();
+              this.onStateChange?.('LISTENING');
+            }
+          },
+          onclose: () => {
+            console.log("LiveService: Closed");
+            this.disconnect();
+          },
+          onerror: (err) => {
+            console.error("LiveService: Error", err);
+            this.disconnect();
+          }
         }
-      };
-
-      source.connect(processor);
-      processor.connect(audioContext.destination);
+      });
       
-      this.isConnected = true;
-      console.log("Live Service: Audio Stream Connected");
+      this.activeSession = sessionPromise;
 
     } catch (err) {
-      console.error("Live Service Error:", err);
+      console.error("LiveService Connection Failed:", err);
       this.disconnect();
-      throw err;
     }
+  },
+
+  startInputStream(sessionPromise: Promise<any>) {
+    if (!this.inputContext || !this.mediaStream) return;
+    
+    this.source = this.inputContext.createMediaStreamSource(this.mediaStream);
+    this.processor = this.inputContext.createScriptProcessor(4096, 1, 1);
+    
+    this.processor.onaudioprocess = (e) => {
+      if (!this.isConnected) return;
+      const inputData = e.inputBuffer.getChannelData(0);
+      const pcmBlob = createBlob(inputData);
+      
+      sessionPromise.then((session) => {
+        session.sendRealtimeInput({ media: pcmBlob });
+      });
+    };
+    
+    this.source.connect(this.processor);
+    this.processor.connect(this.inputContext.destination);
+  },
+
+  async playAudioChunk(base64Audio: string) {
+    if (!this.outputContext || !this.outputNode) return;
+    
+    // Ensure schedule is valid
+    this.nextStartTime = Math.max(this.nextStartTime, this.outputContext.currentTime);
+
+    const audioBuffer = await decodeAudioData(
+       decode(base64Audio), 
+       this.outputContext,
+       24000,
+       1
+    );
+
+    const source = this.outputContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(this.outputNode);
+    
+    source.addEventListener('ended', () => {
+       this.sources.delete(source);
+       if(this.sources.size === 0) this.onStateChange?.('LISTENING');
+    });
+
+    source.start(this.nextStartTime);
+    this.nextStartTime += audioBuffer.duration;
+    this.sources.add(source);
+  },
+
+  stopAudioPlayback() {
+     this.sources.forEach(s => s.stop());
+     this.sources.clear();
+     this.nextStartTime = 0;
   },
 
   disconnect() {
     this.isConnected = false;
-    if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
-    if (processor) processor.disconnect();
-    if (source) source.disconnect();
-    if (audioContext) audioContext.close();
+    this.onStateChange?.('IDLE');
     
-    mediaStream = null;
-    processor = null;
-    source = null;
-    audioContext = null;
+    // Cleanup Input
+    if (this.mediaStream) this.mediaStream.getTracks().forEach(track => track.stop());
+    if (this.processor) { this.processor.disconnect(); this.processor = null; }
+    if (this.source) { this.source.disconnect(); this.source = null; }
+    if (this.inputContext) { this.inputContext.close(); this.inputContext = null; }
+
+    // Cleanup Output
+    this.stopAudioPlayback();
+    if (this.outputContext) { this.outputContext.close(); this.outputContext = null; }
+    
     this.activeSession = null;
-    console.log("Live Service: Disconnected");
+    this.mediaStream = null;
   }
 };
