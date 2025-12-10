@@ -1,9 +1,25 @@
 
 import { Node, Edge } from 'reactflow';
 
+export type FSMDomain = 'EMBEDDED' | 'SOFTWARE' | 'NETWORKING' | 'MECHANICS';
+
+export type Theme = 'NEURO' | 'CYBERPUNK' | 'BLUEPRINT' | 'TERMINAL';
+
 export interface FSMNodeData {
   label: string;
-  type?: 'input' | 'process' | 'output' | 'error' | 'listener' | 'decision' | 'hardware' | 'uart' | 'interrupt' | 'timer' | 'peripheral' | 'queue' | 'mutex' | 'critical' | 'math' | 'wireless' | 'storage' | 'logger' | 'display' | 'network' | 'sensor';
+  // Expanded types for multi-domain support
+  type?: 
+    // Embedded
+    | 'input' | 'process' | 'output' | 'error' | 'listener' | 'decision' | 'hardware' | 'uart' | 'interrupt' | 'timer' | 'peripheral' | 'queue' | 'mutex' | 'critical' 
+    // Software
+    | 'function' | 'class' | 'interface' | 'database' | 'api_endpoint' | 'ui_view' | 'service' | 'state'
+    // Networking
+    | 'server' | 'client' | 'router' | 'firewall' | 'packet' | 'websocket' | 'cloud'
+    // Mechanics
+    | 'actuator' | 'piston' | 'valve' | 'motor' | 'sensor_analog' | 'sensor_digital' | 'controller'
+    // Generic
+    | 'math' | 'wireless' | 'storage' | 'logger' | 'display' | 'network' | 'sensor' | 'group';
+
   entryAction?: string; // JavaScript code string
   exitAction?: string; // JavaScript code string
   description?: string;
@@ -34,6 +50,7 @@ export interface ChatEntry {
 export interface FSMProject {
   id: string;
   name: string;
+  domain: FSMDomain; // New field to track the domain
   description?: string;
   version?: string;
   tags?: string[];

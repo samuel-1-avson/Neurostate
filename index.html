@@ -14,12 +14,12 @@
           extend: {
             colors: {
               neuro: {
-                bg: '#f9fafb',      // Gray 50 (Lighter background)
-                surface: '#ffffff',  // White
-                primary: '#111827',  // Gray 900 (Text/Borders)
-                secondary: '#6b7280', // Gray 500
-                accent: '#000000',   // Black for minimal accent
-                dim: '#e5e7eb',      // Gray 200
+                bg: 'var(--color-bg)',
+                surface: 'var(--color-surface)',
+                primary: 'var(--color-primary)',
+                secondary: 'var(--color-secondary)',
+                accent: 'var(--color-accent)',
+                dim: 'var(--color-dim)',
               }
             },
             fontFamily: {
@@ -58,13 +58,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow/dist/style.css" />
 
     <style>
+      :root {
+        --color-bg: #f9fafb;
+        --color-surface: #ffffff;
+        --color-primary: #111827;
+        --color-secondary: #6b7280;
+        --color-accent: #000000;
+        --color-dim: #e5e7eb;
+      }
+
       html, body, #root {
         height: 100%;
         width: 100%;
         margin: 0;
         overflow: hidden;
-        background-color: #f9fafb;
-        color: #111827;
+        background-color: var(--color-bg);
+        color: var(--color-primary);
         font-family: 'Space Mono', monospace;
       }
       
@@ -77,11 +86,11 @@
         background: transparent; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #e5e7eb; 
+        background: var(--color-dim); 
         border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #d1d5db; 
+        background: var(--color-secondary); 
       }
 
       /* ReactFlow Overrides for Minimal Theme */
@@ -94,25 +103,25 @@
 
       /* Handles */
       .react-flow__handle {
-        background: #ffffff;
-        border: 1px solid #d1d5db;
+        background: var(--color-surface);
+        border: 1px solid var(--color-dim);
         width: 6px;
         height: 6px;
         border-radius: 50%; /* Rounded for minimal look */
         transition: all 0.2s;
       }
       .react-flow__handle:hover {
-        background: #111827;
-        border-color: #111827;
+        background: var(--color-primary);
+        border-color: var(--color-primary);
         transform: scale(1.2);
       }
       
       .react-flow__edge-path {
-        stroke: #d1d5db;
+        stroke: var(--color-dim);
         stroke-width: 1.5;
       }
       .react-flow__edge.selected .react-flow__edge-path {
-        stroke: #111827;
+        stroke: var(--color-primary);
         stroke-width: 2;
       }
       
@@ -139,7 +148,7 @@
 
       /* Standard Controls Styling - Retro Minimal */
       .react-flow__controls {
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--color-dim);
         box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.05);
         border-radius: 0px;
         padding: 0;
@@ -148,8 +157,8 @@
       .react-flow__controls-button {
         border-radius: 0;
         border: none;
-        border-bottom: 1px solid #e5e7eb;
-        background: white;
+        border-bottom: 1px solid var(--color-dim);
+        background: var(--color-surface);
         width: 28px;
         height: 28px;
         display: flex;
@@ -160,20 +169,24 @@
         border-bottom: none;
       }
       .react-flow__controls-button:hover {
-        background-color: #f9fafb;
+        background-color: var(--color-bg);
       }
       .react-flow__controls-button svg {
-        fill: #374151;
+        fill: var(--color-secondary);
         max-width: 14px;
         max-height: 14px;
       }
 
       /* MiniMap Styling */
       .react-flow__minimap {
-        border: 1px solid #e5e7eb !important;
+        border: 1px solid var(--color-dim) !important;
         box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.05) !important;
         border-radius: 0px !important;
-        background-color: #ffffff !important;
+        background-color: var(--color-surface) !important;
+      }
+      .react-flow__minimap-mask {
+        fill: var(--color-dim) !important;
+        opacity: 0.4;
       }
     </style>
   <script type="importmap">
@@ -197,4 +210,3 @@
     <div id="root"></div>
   </body>
 </html>
-    

@@ -35,6 +35,7 @@ export const fileManager = {
                 nodes: json.nodes,
                 edges: json.edges,
                 name: json.name || file.name.replace('.json', ''),
+                domain: json.domain || 'EMBEDDED',
                 description: json.description || '',
                 version: json.version || '1.0',
                 chatHistory: json.chatHistory || [],

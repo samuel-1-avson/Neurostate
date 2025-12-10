@@ -29,7 +29,6 @@ function createBlob(data: Float32Array): { data: string, mimeType: string } {
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
     // Convert Float32 (-1.0 to 1.0) to Int16
-    // Clamp to prevent wrapping: 1.0 * 32768 = 32768 (overflows to -32768) -> use 32767
     const val = data[i];
     int16[i] = val < 0 ? val * 32768 : val * 32767;
   }
@@ -46,7 +45,6 @@ async function decodeAudioData(
   sampleRate: number = 24000,
   numChannels: number = 1,
 ): Promise<AudioBuffer> {
-  // Ensure even byte length for Int16Array
   let safeData = data;
   if (data.byteLength % 2 !== 0) {
       const newBytes = new Uint8Array(data.byteLength + 1);
@@ -72,14 +70,22 @@ const tools: { functionDeclarations: FunctionDeclaration[] }[] = [
   {
     functionDeclarations: [
       {
+        name: "read_design",
+        description: "Read the current structure of the FSM design (nodes, edges, and logic). Call this to understand the user's work.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {}, 
+        }
+      },
+      {
         name: "create_design",
-        description: "Create a new Finite State Machine (FSM) firmware design on the canvas based on a verbal description.",
+        description: "Create a new FSM design on the canvas based on a verbal description.",
         parameters: {
           type: Type.OBJECT,
           properties: {
             description: { 
               type: Type.STRING, 
-              description: "The description of the system to design (e.g., 'traffic light', 'usb stack', 'blinking led')." 
+              description: "The description of the system to design." 
             }
           },
           required: ["description"]
@@ -93,10 +99,18 @@ const tools: { functionDeclarations: FunctionDeclaration[] }[] = [
           properties: {
              instruction: { 
                type: Type.STRING, 
-               description: "The modification instruction (e.g., 'add an error state', 'connect node A to B')." 
+               description: "The modification instruction." 
              }
           },
           required: ["instruction"]
+        }
+      },
+      {
+        name: "disconnect_session",
+        description: "Disconnect and close the voice session immediately.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {}, 
         }
       }
     ]
@@ -106,60 +120,52 @@ const tools: { functionDeclarations: FunctionDeclaration[] }[] = [
 export const liveService = {
   activeSession: null as any,
   isConnected: false,
-  currentSessionId: null as string | null, // Track unique session ID to prevent race conditions
+  currentSessionId: null as string | null,
   
-  // Audio Contexts
   inputContext: null as AudioContext | null,
   outputContext: null as AudioContext | null,
   
-  // Input Stream
   mediaStream: null as MediaStream | null,
   processor: null as ScriptProcessorNode | null,
   source: null as MediaStreamAudioSourceNode | null,
   
-  // Output Queue
   outputNode: null as GainNode | null,
   nextStartTime: 0,
   sources: new Set<AudioBufferSourceNode>(),
   
-  // Callbacks
   onStateChange: null as ((state: AgentState) => void) | null,
   onToolCall: null as ((name: string, args: any) => Promise<any>) | null,
   onClose: null as (() => void) | null,
+  onLog: null as ((msg: string) => void) | null, // New Logger
 
-  // Helper: Get Media Stream with Retry Logic
   async getStreamWithRetry(constraints: MediaStreamConstraints, retries = 3): Promise<MediaStream> {
     for (let i = 0; i < retries; i++) {
       try {
         return await navigator.mediaDevices.getUserMedia(constraints);
       } catch (e: any) {
-        if (i === retries - 1) throw e; // Last attempt failed, throw
-        
-        // If permission denied, don't retry, fail immediately
+        if (i === retries - 1) throw e;
         if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') throw e;
-        
-        // For NotFound or NotReadable (busy), wait and retry
-        console.warn(`LiveService: Mic busy/not found (Attempt ${i+1}/${retries}), retrying in 500ms...`, e.name);
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
-    throw new Error("Failed to acquire microphone after retries");
+    throw new Error("Failed to acquire microphone");
   },
 
   async connect(
     onStateChange: (state: AgentState) => void,
     onToolCall: (name: string, args: any) => Promise<any>,
-    onClose?: () => void
+    onClose?: () => void,
+    onLog?: (msg: string) => void
   ) {
     if (this.isConnected) return;
     
-    // Generate a new Session ID
     const sessionId = Math.random().toString(36).substring(7);
     this.currentSessionId = sessionId;
 
     this.onStateChange = onStateChange;
     this.onToolCall = onToolCall;
     this.onClose = onClose || null;
+    this.onLog = onLog || null;
 
     const apiKey = process.env.API_KEY || '';
     if (!apiKey) {
@@ -171,9 +177,7 @@ export const liveService = {
     try {
       this.onStateChange('LISTENING');
       
-      // Request Mic Access with Retry Strategy
       try {
-        // Try advanced constraints first
         this.mediaStream = await this.getStreamWithRetry({ 
           audio: {
             channelCount: 1,
@@ -183,23 +187,15 @@ export const liveService = {
           } 
         });
       } catch (e) {
-        console.warn("LiveService: Advanced audio constraints failed. Falling back to basic.", e);
         try {
-            // Fallback to basic if advanced failed
             this.mediaStream = await this.getStreamWithRetry({ audio: true });
         } catch (e2: any) {
-            console.error("LiveService: Basic audio failed:", e2);
             throw new Error(`Microphone unavailable: ${e2.name || e2.message}`);
         }
       }
 
-      // Check for stale session before continuing
-      if (this.currentSessionId !== sessionId) {
-          console.log("LiveService: Connection aborted (stale)");
-          return; 
-      }
+      if (this.currentSessionId !== sessionId) return;
 
-      // Initialize Audio Contexts after stream is ready to avoid context limits
       this.inputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       this.outputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       
@@ -212,7 +208,6 @@ export const liveService = {
 
       const ai = new GoogleGenAI({ apiKey });
       
-      // Connect to Gemini Live
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
@@ -221,7 +216,7 @@ export const liveService = {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } },
           },
-          systemInstruction: 'You are Neo, an advanced embedded systems architect. You are running inside the NeuroState IDE. You have direct control over the canvas. When asked to design or modify systems, use the available tools. Be concise, technical, and helpful.',
+          systemInstruction: 'You are Neo, an advanced embedded systems architect. You have direct control over the canvas. Call "read_design" to see the graph. Use "create_design" and "modify_design" to edit. Be concise and technical.',
         },
         callbacks: {
           onopen: () => {
@@ -229,44 +224,61 @@ export const liveService = {
             console.log("LiveService: Connected");
             this.isConnected = true;
             this.startInputStream(sessionPromise);
+            this.onLog?.("Neo Connected");
           },
           onmessage: async (message: LiveServerMessage) => {
             if (this.currentSessionId !== sessionId) return;
 
-            // 1. Handle Tool Calls
             if (message.toolCall) {
                this.onStateChange?.('MODIFYING');
-               for (const fc of message.toolCall.functionCalls) {
+               const functionCalls = message.toolCall.functionCalls;
+               const responses = [];
+
+               for (const fc of functionCalls) {
+                  if (fc.name === 'disconnect_session') {
+                      this.disconnect();
+                      return;
+                  }
+
+                  this.onLog?.(`Executing: ${fc.name}`);
+                  
                   try {
                     let result = "Done";
                     if (this.onToolCall) {
                        result = await this.onToolCall(fc.name, fc.args);
                     }
-                    sessionPromise.then((session) => {
-                       session.sendToolResponse({
-                          functionResponses: {
-                             id: fc.id,
-                             name: fc.name,
-                             response: { result: result }
-                          }
-                       });
+                    responses.push({
+                        id: fc.id,
+                        name: fc.name,
+                        response: { result: result } 
                     });
                   } catch (e) {
-                     sessionPromise.then((session) => {
-                        session.sendToolResponse({
-                           functionResponses: {
-                              id: fc.id,
-                              name: fc.name,
-                              response: { error: (e as Error).message }
-                           }
-                        });
+                     console.error(`Tool execution failed for ${fc.name}:`, e);
+                     responses.push({
+                        id: fc.id,
+                        name: fc.name,
+                        response: { error: (e as Error).message }
                      });
                   }
                }
+
+               if (responses.length > 0) {
+                   sessionPromise.then((session) => {
+                       if (this.isConnected) {
+                           try {
+                               session.sendToolResponse({
+                                  functionResponses: responses
+                               });
+                           } catch(sendErr) {
+                               console.error("Failed to send tool response", sendErr);
+                           }
+                       }
+                   });
+               }
+               
                this.onStateChange?.('LISTENING');
             }
 
-            // 2. Handle Audio Output
             const parts = message.serverContent?.modelTurn?.parts || [];
             let hasAudio = false;
             for (const part of parts) {
@@ -283,20 +295,14 @@ export const liveService = {
                }, 2000); 
             }
 
-            // 3. Handle Interruption
             if (message.serverContent?.interrupted) {
               this.stopAudioPlayback();
               this.onStateChange?.('LISTENING');
             }
           },
           onclose: () => {
-            if (this.currentSessionId !== sessionId) {
-                console.log("LiveService: Ignoring close from stale session");
-                return;
-            }
+            if (this.currentSessionId !== sessionId) return;
             console.log("LiveService: Closed by Server");
-            // If the socket closes unexpectedly, we want to notify via onClose if it exists.
-            // If we initiated the disconnect, this.onClose would have been nulled.
             if (this.onClose) {
                 this.onClose();
                 this.onClose = null; 
@@ -306,11 +312,12 @@ export const liveService = {
           onerror: (err) => {
             if (this.currentSessionId !== sessionId) return;
             console.error("LiveService: Error", err);
-            if (this.onClose) {
-                this.onClose();
-                this.onClose = null;
+            
+            // Ignore generic Network Errors unless persistent
+            if (err instanceof Error && err.message.includes('Network')) {
+                 console.warn("Network glitch detected. Attempting to stay alive...");
+                 // Only disconnect if it's truly dead (onclose will handle it)
             }
-            this.internalCleanup();
           }
         }
       });
@@ -346,12 +353,10 @@ export const liveService = {
                 session.sendRealtimeInput({ media: pcmBlob });
             }
           }).catch(err => {
-              // Only disconnect if this error belongs to the active session
-              // (Hard to track session ID here easily without closing over it, but isConnected check helps)
-              console.error("Stream send failed:", err);
+              // Suppress streaming errors (common during disconnects)
           });
       } catch (err) {
-          console.error("Audio processing error:", err);
+          // Suppress processing errors
       }
     };
     
@@ -388,10 +393,9 @@ export const liveService = {
      else this.nextStartTime = 0;
   },
 
-  // Manual Disconnect (Client-side initiated)
   disconnect() {
-    this.onClose = null; // Clear the callback so we don't trigger "Disconnected" toast
-    this.currentSessionId = null; // Invalidate current session
+    this.onClose = null; 
+    this.currentSessionId = null;
     this.internalCleanup();
   },
 
