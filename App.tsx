@@ -24,7 +24,7 @@ import ReactFlow, {
   NodeToolbar,
   ConnectionMode
 } from 'reactflow';
-import { Play, Square, Wand2, AlertTriangle, Save, Upload, Undo, Redo, Mic, Cpu, MessageSquare, GitBranch, Zap, FileJson, FileCode, Bot, Menu, ChevronDown, CheckCircle, Terminal, Layers, Plus, X, Variable, Activity, MousePointerClick, Copy, Info, Sparkles, Send, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, LayoutTemplate, Bug, Microscope, FlaskConical, BarChart3, Gauge, Trash2, Edit3, Target, ZoomIn, ZoomOut, Maximize, Move, Box, GripVertical, Sidebar, CircuitBoard, Layout, Monitor, Grid, Search, FilePlus, Settings2, Clock, FastForward, Pause, ArrowRightLeft, Ear, Hash, ToggleLeft, Disc, Battery, Shield, Split, Database, Cable, HardDrive, LayoutDashboard, FolderOpen, BookOpen, Download, Command, ChevronRight, LogOut, TableProperties, Wrench, Hourglass, Loader2, Group, Code2, TestTube, Waves, Volume2, MicOff, Book, AlignJustify, Paperclip, Image as ImageIcon, Film, Camera, Lock, ShieldAlert, Calculator, Wifi, Globe, Thermometer, FileText, Palette, Tag } from 'lucide-react';
+import { Play, Square, Wand2, AlertTriangle, Save, Upload, Undo, Redo, Mic, Cpu, MessageSquare, GitBranch, Zap, FileJson, FileCode, Bot, Menu, ChevronDown, CheckCircle, Terminal, Layers, Plus, X, Variable, Activity, MousePointerClick, Copy, Info, Sparkles, Send, PanelRightClose, PanelRightOpen, PanelBottomClose, PanelBottomOpen, LayoutTemplate, Bug, Microscope, FlaskConical, BarChart3, Gauge, Trash2, Edit3, Target, ZoomIn, ZoomOut, Maximize, Move, Box, GripVertical, Sidebar, CircuitBoard, Layout, Monitor, Grid, Search, FilePlus, Settings2, Clock, FastForward, Pause, ArrowRightLeft, Ear, Hash, ToggleLeft, Disc, Battery, Shield, Split, Database, Cable, HardDrive, LayoutDashboard, FolderOpen, BookOpen, Download, Command, ChevronRight, LogOut, TableProperties, Wrench, Hourglass, Loader2, Group, Code2, TestTube, Waves, Volume2, MicOff, Book, AlignJustify, Paperclip, Image as ImageIcon, Film, Camera, Lock, ShieldAlert, Calculator, Wifi, Globe, Thermometer, FileText, Palette } from 'lucide-react';
 import { clsx } from 'clsx';
 import { toPng } from 'html-to-image';
 
@@ -80,7 +80,7 @@ const THEMES: Record<Theme, Record<string, string>> = {
   }
 };
 
-// ... [DOCS_CONTENT kept same] ...
+// --- DOCUMENTATION CONTENT ---
 const DOCS_CONTENT = [
   {
     id: 'overview',
@@ -213,7 +213,7 @@ const DOCS_CONTENT = [
   }
 ];
 
-// ... [RetroNode, GroupNode, RetroEdge - kept same] ...
+// --- CUSTOM NODE COMPONENT (ADVANCED VISUALS) ---
 const RetroNode = ({ data, id, selected }: { data: FSMNodeData, id: string, selected: boolean }) => {
   const isInput = data.type === 'input' || data.label === 'START';
   const isOutput = data.type === 'output' || data.label === 'END';
@@ -236,6 +236,8 @@ const RetroNode = ({ data, id, selected }: { data: FSMNodeData, id: string, sele
   const isDisplay = data.type === 'display';
   const isNetwork = data.type === 'network';
   const isSensor = data.type === 'sensor';
+  
+  // Custom Check for Code Analysis Node
   const isCodeAnalysis = data.label === 'CODE_ANALYSIS';
   
   const { setNodes, setEdges } = useReactFlow();
@@ -272,6 +274,7 @@ const RetroNode = ({ data, id, selected }: { data: FSMNodeData, id: string, sele
          <button onClick={onToggleBreakpoint} className={clsx("border border-neuro-dim p-1 rounded shadow-sm hover:bg-neuro-bg", data.isBreakpoint ? "bg-red-100 text-red-600" : "bg-neuro-surface text-neuro-primary")} title="Toggle Breakpoint"><Disc size={12}/></button>
       </NodeToolbar>
 
+      {/* Execution Monitor Overlay */}
       {(data.executionState === 'entry' || data.executionState === 'exit') && data.executionLog && (
          <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
             <div className={clsx("px-2 py-1 rounded text-[9px] font-mono border shadow-xl flex items-center gap-2 whitespace-nowrap animate-in zoom-in-95 duration-200", 
@@ -280,6 +283,7 @@ const RetroNode = ({ data, id, selected }: { data: FSMNodeData, id: string, sele
                {data.executionState === 'entry' ? <span className="font-bold text-blue-400">ENTRY &gt;</span> : <span className="font-bold text-purple-400">EXIT &gt;</span>}
                <span className="opacity-90">{data.executionLog.substring(0, 30)}{data.executionLog.length > 30 ? '...' : ''}</span>
             </div>
+            {/* Connecting line */}
             <div className={clsx("w-0.5 h-3 mx-auto", data.executionState === 'entry' ? "bg-blue-500" : "bg-purple-500")}></div>
          </div>
       )}
@@ -434,6 +438,7 @@ const RetroNode = ({ data, id, selected }: { data: FSMNodeData, id: string, sele
   );
 };
 
+// --- GROUP NODE FOR HIERARCHY ---
 const GroupNode = ({ data, selected }: { data: FSMNodeData, selected: boolean }) => {
    return (
       <div className={clsx("w-full h-full border-2 border-dashed rounded-md p-4 transition-all -z-10 relative", selected ? "border-neuro-primary bg-neuro-primary/5" : "border-neuro-dim bg-neuro-bg/50")}>
@@ -444,6 +449,7 @@ const GroupNode = ({ data, selected }: { data: FSMNodeData, selected: boolean })
    );
 };
 
+// --- ADVANCED EDGE WITH PACKET ANIMATION ---
 const RetroEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, label, selected, animated, data }: EdgeProps) => {
   const [edgePath, labelX, labelY] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, borderRadius: 8 });
   const hasCondition = data && data.condition && data.condition.trim() !== '';
@@ -453,11 +459,14 @@ const RetroEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, tar
   return (
     <>
       <BaseEdge path={edgePath} markerEnd={markerEnd} style={{ ...style, strokeWidth: selected || animated || isTraversing ? 2 : 1.5, stroke: isTraversing ? '#06b6d4' : selected ? 'var(--color-primary)' : (style.stroke || 'var(--color-dim)'), transition: 'stroke 0.3s' }} />
+      
+      {/* PACKET ANIMATION */}
       {isTraversing && (
         <circle r="4" fill="#06b6d4">
           <animateMotion dur="0.8s" repeatCount="1" path={edgePath} rotate="auto" />
         </circle>
       )}
+
       {(label || hasCondition) && (
         <EdgeLabelRenderer>
            <div style={{ position: 'absolute', transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`, pointerEvents: 'all' }} className={clsx("px-1.5 py-0.5 text-[9px] font-bold font-mono tracking-wider border transition-all duration-300 bg-neuro-surface shadow-sm select-none rounded-[2px] flex flex-col items-center gap-0.5", selected ? "border-neuro-primary text-neuro-primary z-20" : "border-neuro-dim text-neuro-secondary z-10", animated && "border-green-500 text-green-700 bg-green-50", isTraversing && "!border-cyan-500 !text-cyan-600 !bg-cyan-50 scale-110 shadow-md")}>
@@ -485,8 +494,6 @@ const RetroEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, tar
   );
 };
 
-// ... [ContextMenu, LayoutMenu, TemplateBrowser, VeoModal, DeviceManagerModal, AboutModal, DocumentationModal, DiagnosticPanel, SerialMonitor, CompanionOrb - kept same] ...
-// (Reusing these components from previous correct implementation to save space in this response, as they didn't change)
 const ContextMenu: React.FC<{ top: number; left: number; onClose: () => void; onAddNode: (type: any, x: number, y: number) => void; onGroupSelected?: () => void; onAiDefine?: () => void }> = ({ top, left, onClose, onAddNode, onGroupSelected, onAiDefine }) => {
   useEffect(() => { const h = () => onClose(); document.addEventListener('click', h); return () => document.removeEventListener('click', h); }, [onClose]);
   return (
@@ -498,11 +505,13 @@ const ContextMenu: React.FC<{ top: number; left: number; onClose: () => void; on
             <Plus size={12}/> {t}
           </button>
         ))}
+        
         <div className="h-px bg-neuro-dim my-1 mx-2"></div>
         <button onClick={() => onAddNode('code_analysis', left, top)} className="w-full text-left px-4 py-2 text-xs hover:bg-neuro-bg hover:text-neuro-primary font-bold capitalize flex items-center gap-2 text-blue-600">
             <FileCode size={12}/> Code Analysis
         </button>
       </div>
+      
       {(onGroupSelected || onAiDefine) && (
          <div className="shrink-0 border-t border-neuro-dim mt-1 pt-1">
             {onGroupSelected && (
@@ -523,6 +532,7 @@ const ContextMenu: React.FC<{ top: number; left: number; onClose: () => void; on
 
 const LayoutMenu: React.FC<{ onClose: () => void; onSelect: (template: WorkspaceTemplate) => void; active: WorkspaceTemplate }> = ({ onClose, onSelect, active }) => {
   useEffect(() => { const h = () => onClose(); document.addEventListener('click', h); return () => document.removeEventListener('click', h); }, [onClose]);
+  
   const options: { id: WorkspaceTemplate, label: string, icon: any, desc: string }[] = [
     { id: 'FULL_SUITE', label: 'Mission Control', icon: LayoutDashboard, desc: 'All Panels Open' },
     { id: 'ARCHITECT', label: 'Architect', icon: Box, desc: 'Design & Properties' },
@@ -534,6 +544,7 @@ const LayoutMenu: React.FC<{ onClose: () => void; onSelect: (template: Workspace
     { id: 'HACKER', label: 'Hacker', icon: Terminal, desc: 'Code & Exploits' },
     { id: 'ZEN', label: 'Zen Mode', icon: Maximize, desc: 'Canvas Only' },
   ];
+  
   return (
     <div className="absolute top-10 right-4 z-50 bg-neuro-surface border border-neuro-primary shadow-hard min-w-[200px] py-1 animate-in fade-in zoom-in-95 duration-100">
        <div className="px-3 py-1.5 text-[10px] font-bold text-neuro-secondary uppercase tracking-widest border-b border-neuro-dim mb-1">Workspace Layouts</div>
@@ -551,6 +562,7 @@ const TemplateBrowser: React.FC<{ onSelect: (t: FSMTemplate) => void; onClose: (
   const [category, setCategory] = useState<string>('ALL');
   const categories = ['ALL', ...Array.from(new Set(TEMPLATES.map(t => t.category)))];
   const filtered = TEMPLATES.filter(t => (t.name.toLowerCase().includes(filter.toLowerCase()) || t.description.toLowerCase().includes(filter.toLowerCase())) && (category === 'ALL' || t.category === category));
+
   return (
     <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
        <div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-4xl h-[80vh] flex flex-col animate-in zoom-in-95 duration-150">
@@ -593,24 +605,40 @@ const VeoModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
    const [videoUrl, setVideoUrl] = useState<string | null>(null);
    const [aspect, setAspect] = useState<'16:9'|'9:16'>('16:9');
    const [refImage, setRefImage] = useState<{base64: string, mime: string} | null>(null);
+
    const handleGenerate = async () => {
       if(!prompt) return;
       setLoading(true);
       try {
          const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
-         if (!hasKey) { await (window as any).aistudio?.openSelectKey(); }
+         if (!hasKey) {
+             await (window as any).aistudio?.openSelectKey();
+         }
+         
          const url = await geminiService.generateVeoVideo(prompt, refImage?.base64 || '', refImage?.mime || '', aspect);
          setVideoUrl(url);
-      } catch (e) { alert("Video Generation Failed: " + (e as Error).message); } finally { setLoading(false); }
+      } catch (e) {
+         alert("Video Generation Failed: " + (e as Error).message);
+      } finally {
+         setLoading(false);
+      }
    };
+
    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
          const reader = new FileReader();
-         reader.onloadend = () => { const result = reader.result as string; setRefImage({ base64: result.split(',')[1], mime: file.type }); };
+         reader.onloadend = () => {
+            const result = reader.result as string;
+            setRefImage({
+               base64: result.split(',')[1],
+               mime: file.type
+            });
+         };
          reader.readAsDataURL(file);
       }
    };
+
    return (
     <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
        <div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-2xl flex flex-col animate-in zoom-in-95 duration-150">
@@ -623,7 +651,7 @@ const VeoModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <>
                    <div className="mb-4">
                       <Label>Video Prompt</Label>
-                      <textarea className="w-full h-24 border border-neuro-dim bg-neuro-bg p-2 text-xs font-mono outline-none focus:border-neuro-primary resize-none text-neuro-primary" placeholder="Describe the video..." value={prompt} onChange={e => setPrompt(e.target.value)} />
+                      <textarea className="w-full h-24 border border-neuro-dim bg-neuro-bg p-2 text-xs font-mono outline-none focus:border-neuro-primary resize-none text-neuro-primary" placeholder="Describe the video (e.g., 'A cyberpunk city circuit board glowing neon...')" value={prompt} onChange={e => setPrompt(e.target.value)} />
                    </div>
                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
@@ -638,8 +666,12 @@ const VeoModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                          </div>
                       </div>
                    </div>
-                   <div className="bg-blue-50 text-blue-800 p-2 text-[10px] rounded mb-4">Note: Veo requires a paid billing account.</div>
-                   <Button onClick={handleGenerate} disabled={loading || !prompt} className="w-full py-3">{loading ? <span className="flex items-center gap-2 justify-center"><Loader2 className="animate-spin"/> GENERATING...</span> : 'GENERATE VIDEO'}</Button>
+                   <div className="bg-blue-50 text-blue-800 p-2 text-[10px] rounded mb-4">
+                      Note: Veo video generation requires a paid billing account. You will be prompted to select a key.
+                   </div>
+                   <Button onClick={handleGenerate} disabled={loading || !prompt} className="w-full py-3">
+                      {loading ? <span className="flex items-center gap-2 justify-center"><Loader2 className="animate-spin"/> GENERATING VIDEO (This may take a minute)...</span> : 'GENERATE VIDEO'}
+                   </Button>
                 </>
              ) : (
                 <div className="flex flex-col items-center">
@@ -656,10 +688,10 @@ const VeoModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
    );
 };
 
-// ... [DeviceManagerModal, AboutModal, DocumentationModal, DiagnosticPanel, SerialMonitor, CompanionOrb - condensed for brevity but functionally identical] ...
 const DeviceManagerModal: React.FC<{ onClose: () => void, onConnect: (mcu: McuDefinition) => void, isConnected: boolean }> = ({ onClose, onConnect, isConnected }) => {
    const [search, setSearch] = useState("");
    const filtered = MCU_REGISTRY.filter(m => m.name.toLowerCase().includes(search.toLowerCase()) || m.family.toLowerCase().includes(search.toLowerCase()));
+
    return (
     <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
        <div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-3xl h-[70vh] flex flex-col animate-in zoom-in-95 duration-150">
@@ -673,56 +705,212 @@ const DeviceManagerModal: React.FC<{ onClose: () => void, onConnect: (mcu: McuDe
                <input className="w-full pl-9 pr-4 py-2 border border-neuro-dim bg-neuro-surface text-neuro-primary text-sm outline-none focus:border-neuro-primary" placeholder="Search MCUs..." value={search} onChange={e => setSearch(e.target.value)} autoFocus />
              </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar"><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{filtered.map(mcu => (<div key={mcu.id} className="border border-neuro-dim p-3 hover:border-neuro-primary hover:shadow-md transition-all cursor-pointer bg-neuro-surface group" onClick={() => onConnect(mcu)}><div className="flex justify-between items-start mb-2"><span className="font-bold text-neuro-primary group-hover:text-neuro-accent transition-colors">{mcu.name}</span><span className="text-[9px] bg-neuro-bg border border-neuro-dim px-1 rounded text-neuro-secondary">{mcu.family}</span></div><p className="text-[10px] text-neuro-secondary mb-3 h-8 line-clamp-2">{mcu.description}</p><div className="grid grid-cols-2 gap-2 text-[9px] text-neuro-secondary font-mono bg-neuro-bg p-2 rounded-sm border border-neuro-dim"><div>FLASH: {mcu.specs.flashKB}KB</div><div>RAM: {mcu.specs.ramKB}KB</div><div>FREQ: {mcu.specs.freqMHz}MHz</div><div>ARCH: {mcu.arch}</div></div><div className="mt-2 text-right"><span className={clsx("text-[9px] font-bold", mcu.flashMethod === 'WEB_SERIAL' ? "text-green-600" : "text-blue-600")}>{mcu.flashMethod === 'WEB_SERIAL' ? 'WEB SERIAL' : 'USB STORAGE'}</span></div></div>))}</div></div><div className="p-3 bg-neuro-bg border-t border-neuro-dim text-[10px] text-neuro-secondary text-center shrink-0">{isConnected ? <span className="text-green-600 font-bold">DEVICE CONNECTED</span> : "Select a target to connect debug probe."}</div></div></div>);
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {filtered.map(mcu => (
+                   <div key={mcu.id} className="border border-neuro-dim p-3 hover:border-neuro-primary hover:shadow-md transition-all cursor-pointer bg-neuro-surface group" onClick={() => onConnect(mcu)}>
+                      <div className="flex justify-between items-start mb-2">
+                         <span className="font-bold text-neuro-primary group-hover:text-neuro-accent transition-colors">{mcu.name}</span>
+                         <span className="text-[9px] bg-neuro-bg border border-neuro-dim px-1 rounded text-neuro-secondary">{mcu.family}</span>
+                      </div>
+                      <p className="text-[10px] text-neuro-secondary mb-3 h-8 line-clamp-2">{mcu.description}</p>
+                      <div className="grid grid-cols-2 gap-2 text-[9px] text-neuro-secondary font-mono bg-neuro-bg p-2 rounded-sm border border-neuro-dim">
+                         <div>FLASH: {mcu.specs.flashKB}KB</div>
+                         <div>RAM: {mcu.specs.ramKB}KB</div>
+                         <div>FREQ: {mcu.specs.freqMHz}MHz</div>
+                         <div>ARCH: {mcu.arch}</div>
+                      </div>
+                      <div className="mt-2 text-right">
+                         <span className={clsx("text-[9px] font-bold", mcu.flashMethod === 'WEB_SERIAL' ? "text-green-600" : "text-blue-600")}>
+                            {mcu.flashMethod === 'WEB_SERIAL' ? 'WEB SERIAL' : 'USB STORAGE'}
+                         </span>
+                      </div>
+                   </div>
+                ))}
+             </div>
+          </div>
+          <div className="p-3 bg-neuro-bg border-t border-neuro-dim text-[10px] text-neuro-secondary text-center shrink-0">
+             {isConnected ? <span className="text-green-600 font-bold">DEVICE CONNECTED</span> : "Select a target to connect debug probe."}
+          </div>
+       </div>
+    </div>
+   );
 };
+
 const AboutModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
-    <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8"><div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-md p-6 animate-in zoom-in-95 duration-150 relative"><button onClick={onClose} className="absolute top-4 right-4 text-neuro-secondary hover:text-red-500"><X size={16}/></button><div className="flex flex-col items-center text-center"><div className="w-16 h-16 bg-neuro-primary rounded-full flex items-center justify-center text-white mb-4 shadow-xl"><CircuitBoard size={32}/></div><h2 className="text-xl font-bold text-neuro-primary mb-1">NeuroState</h2><p className="text-xs text-neuro-secondary uppercase tracking-widest mb-6">Embedded AI Workbench v2.0</p><p className="text-xs text-neuro-primary leading-relaxed mb-6">A next-generation IDE for designing, simulating, and generating firmware for embedded systems. Powered by Gemini 3 Pro and React Flow.</p><div className="text-[10px] text-neuro-secondary font-mono"><p>Build: 2024.10.Alpha</p><p>Engine: FSM-X3</p></div></div></div></div>
+    <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
+       <div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-md p-6 animate-in zoom-in-95 duration-150 relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-neuro-secondary hover:text-red-500"><X size={16}/></button>
+          <div className="flex flex-col items-center text-center">
+             <div className="w-16 h-16 bg-neuro-primary rounded-full flex items-center justify-center text-white mb-4 shadow-xl">
+                <CircuitBoard size={32}/>
+             </div>
+             <h2 className="text-xl font-bold text-neuro-primary mb-1">NeuroState</h2>
+             <p className="text-xs text-neuro-secondary uppercase tracking-widest mb-6">Embedded AI Workbench v2.0</p>
+             <p className="text-xs text-neuro-primary leading-relaxed mb-6">
+                A next-generation IDE for designing, simulating, and generating firmware for embedded systems.
+                Powered by Gemini 3 Pro and React Flow.
+             </p>
+             <div className="text-[10px] text-neuro-secondary font-mono">
+                <p>Build: 2024.10.Alpha</p>
+                <p>Engine: FSM-X3</p>
+             </div>
+          </div>
+       </div>
+    </div>
 );
+
 const DocumentationModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
    const [activeSection, setActiveSection] = useState(DOCS_CONTENT[0].id);
    const section = DOCS_CONTENT.find(s => s.id === activeSection) || DOCS_CONTENT[0];
+
    return (
-    <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8"><div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-5xl h-[80vh] flex flex-col animate-in zoom-in-95 duration-150"><div className="bg-neuro-primary text-white p-3 font-bold flex justify-between items-center shrink-0"><div className="flex items-center gap-2"><Book size={16}/> DOCUMENTATION</div><button onClick={onClose}><X size={16}/></button></div><div className="flex flex-1 overflow-hidden"><div className="w-64 bg-neuro-bg border-r border-neuro-dim p-4 overflow-y-auto custom-scrollbar shrink-0">{DOCS_CONTENT.map(s => (<button key={s.id} onClick={() => setActiveSection(s.id)} className={clsx("w-full text-left py-2 text-xs font-bold border-b border-neuro-dim hover:text-neuro-accent transition-colors block", activeSection === s.id ? "text-neuro-primary" : "text-neuro-secondary")}>{s.title}</button>))}</div><div className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-neuro-surface text-neuro-primary"><div className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:uppercase prose-headings:text-neuro-primary prose-p:text-neuro-primary prose-strong:text-neuro-primary prose-code:text-purple-600 prose-pre:bg-neuro-bg prose-pre:border prose-pre:border-neuro-dim">{section.content.split('\n').map((line, i) => {if (line.trim().startsWith('# ')) return <h1 key={i} className="text-2xl mb-4 pb-2 border-b border-neuro-dim">{line.replace('# ', '')}</h1>;if (line.trim().startsWith('### ')) return <h3 key={i} className="text-lg mt-6 mb-2">{line.replace('### ', '')}</h3>;if (line.trim().startsWith('- ')) return <li key={i} className="ml-4">{line.replace('- ', '')}</li>;if (line.trim().match(/^\d\./)) return <li key={i} className="ml-4 list-decimal">{line}</li>;return <p key={i} className="mb-2">{line}</p>;})}</div></div></div></div></div>
+    <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
+       <div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-5xl h-[80vh] flex flex-col animate-in zoom-in-95 duration-150">
+          <div className="bg-neuro-primary text-white p-3 font-bold flex justify-between items-center shrink-0">
+             <div className="flex items-center gap-2"><Book size={16}/> DOCUMENTATION</div>
+             <button onClick={onClose}><X size={16}/></button>
+          </div>
+          <div className="flex flex-1 overflow-hidden">
+             <div className="w-64 bg-neuro-bg border-r border-neuro-dim p-4 overflow-y-auto custom-scrollbar shrink-0">
+                {DOCS_CONTENT.map(s => (
+                   <button key={s.id} onClick={() => setActiveSection(s.id)} className={clsx("w-full text-left py-2 text-xs font-bold border-b border-neuro-dim hover:text-neuro-accent transition-colors block", activeSection === s.id ? "text-neuro-primary" : "text-neuro-secondary")}>
+                      {s.title}
+                   </button>
+                ))}
+             </div>
+             <div className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-neuro-surface text-neuro-primary">
+                 <div className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:uppercase prose-headings:text-neuro-primary prose-p:text-neuro-primary prose-strong:text-neuro-primary prose-code:text-purple-600 prose-pre:bg-neuro-bg prose-pre:border prose-pre:border-neuro-dim">
+                     {section.content.split('\n').map((line, i) => {
+                         if (line.trim().startsWith('# ')) return <h1 key={i} className="text-2xl mb-4 pb-2 border-b border-neuro-dim">{line.replace('# ', '')}</h1>;
+                         if (line.trim().startsWith('### ')) return <h3 key={i} className="text-lg mt-6 mb-2">{line.replace('### ', '')}</h3>;
+                         if (line.trim().startsWith('- ')) return <li key={i} className="ml-4">{line.replace('- ', '')}</li>;
+                         if (line.trim().match(/^\d\./)) return <li key={i} className="ml-4 list-decimal">{line}</li>;
+                         return <p key={i} className="mb-2">{line}</p>;
+                     })}
+                 </div>
+             </div>
+          </div>
+       </div>
+    </div>
    );
 };
+
 const DiagnosticPanel: React.FC<{ state: HalSnapshot }> = ({ state }) => {
    return (
       <div className="bg-neuro-surface border border-neuro-primary shadow-hard p-0 flex flex-col w-[300px] h-[200px] overflow-hidden">
-         <div className="bg-neuro-bg p-2 text-[10px] font-bold border-b border-neuro-dim flex justify-between shrink-0"><span>SYSTEM DIAGNOSTICS (HAL)</span><Activity size={12}/></div>
+         <div className="bg-neuro-bg p-2 text-[10px] font-bold border-b border-neuro-dim flex justify-between shrink-0">
+            <span>SYSTEM DIAGNOSTICS (HAL)</span>
+            <Activity size={12}/>
+         </div>
          <div className="p-3 overflow-y-auto custom-scrollbar flex-1 font-mono text-[10px]">
-            <div className="mb-2"><div className="text-neuro-secondary mb-1">GPIO STATE</div><div className="grid grid-cols-8 gap-1">{Object.entries(state.gpio).map(([pin, val]) => (<div key={pin} className={clsx("text-center border rounded p-0.5", val ? "bg-green-100 border-green-300 text-green-800" : "bg-gray-50 border-gray-200 text-gray-400")}>{pin}</div>))}</div></div>
-            <div><div className="text-neuro-secondary mb-1">PWM CHANNELS</div><div className="space-y-1">{Object.entries(state.pwm).map(([ch, val]) => (<div key={ch} className="flex items-center gap-2"><span className="w-4 text-right text-neuro-secondary">{ch}</span><div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-blue-500" style={{width: `${val}%`}}></div></div><span className="w-8 text-right text-neuro-primary">{val}%</span></div>))}</div></div>
+            <div className="mb-2">
+               <div className="text-neuro-secondary mb-1">GPIO STATE</div>
+               <div className="grid grid-cols-8 gap-1">
+                  {Object.entries(state.gpio).map(([pin, val]) => (
+                     <div key={pin} className={clsx("text-center border rounded p-0.5", val ? "bg-green-100 border-green-300 text-green-800" : "bg-gray-50 border-gray-200 text-gray-400")}>
+                        {pin}
+                     </div>
+                  ))}
+               </div>
+            </div>
+            <div>
+               <div className="text-neuro-secondary mb-1">PWM CHANNELS</div>
+               <div className="space-y-1">
+                  {Object.entries(state.pwm).map(([ch, val]) => (
+                     <div key={ch} className="flex items-center gap-2">
+                        <span className="w-4 text-right text-neuro-secondary">{ch}</span>
+                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                           <div className="h-full bg-blue-500" style={{width: `${val}%`}}></div>
+                        </div>
+                        <span className="w-8 text-right text-neuro-primary">{val}%</span>
+                     </div>
+                  ))}
+               </div>
+            </div>
          </div>
       </div>
    );
 };
+
 const SerialMonitor: React.FC<{ state: HalSnapshot }> = ({ state }) => {
    const [input, setInput] = useState("");
    const bottomRef = useRef<HTMLDivElement>(null);
+   
    useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [state.uartRx, state.uartTx]);
-   const handleSend = () => { if(!input) return; HAL.mockReceive(input); setInput(""); };
+
+   const handleSend = () => {
+      if(!input) return;
+      HAL.mockReceive(input); // Simulate receiving data from PC
+      setInput("");
+   };
+
+   // Merge and sort logs roughly
+   const logs = [
+      ...state.uartTx.map(t => ({ type: 'TX', msg: t, ts: Date.now() })), // Timestamps are fake here, ideally HalSnapshot has them
+      ...state.uartRx.map(t => ({ type: 'RX', msg: t, ts: Date.now() }))
+   ]; 
+   
    return (
       <div className="flex flex-col h-full font-mono text-xs">
          <div className="flex-1 overflow-y-auto p-2 space-y-1 bg-[#1e1e1e] text-gray-300 custom-scrollbar">
              {state.uartTx.length === 0 && state.uartRx.length === 0 && <div className="text-gray-600 italic">No data.</div>}
-             {state.uartTx.map((msg, i) => (<div key={`tx-${i}`} className="flex gap-2"><span className="text-green-500 font-bold">TX&gt;</span><span>{msg}</span></div>))}
-             {state.uartRx.map((msg, i) => (<div key={`rx-${i}`} className="flex gap-2"><span className="text-blue-400 font-bold">RX&lt;</span><span>{msg}</span></div>))}
+             {state.uartTx.map((msg, i) => (
+                <div key={`tx-${i}`} className="flex gap-2">
+                   <span className="text-green-500 font-bold">TX&gt;</span>
+                   <span>{msg}</span>
+                </div>
+             ))}
+             {state.uartRx.map((msg, i) => (
+                <div key={`rx-${i}`} className="flex gap-2">
+                   <span className="text-blue-400 font-bold">RX&lt;</span>
+                   <span>{msg}</span>
+                </div>
+             ))}
              <div ref={bottomRef}></div>
          </div>
-         <div className="p-2 bg-neuro-surface border-t border-neuro-dim flex gap-2"><input className="flex-1 bg-neuro-bg border border-neuro-dim px-2 py-1 outline-none text-neuro-primary focus:border-neuro-primary" placeholder="Send ASCII..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} /><Button onClick={handleSend} className="h-full">SEND</Button></div>
+         <div className="p-2 bg-neuro-surface border-t border-neuro-dim flex gap-2">
+             <input className="flex-1 bg-neuro-bg border border-neuro-dim px-2 py-1 outline-none text-neuro-primary focus:border-neuro-primary" 
+                placeholder="Send ASCII..." 
+                value={input} 
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+             />
+             <Button onClick={handleSend} className="h-full">SEND</Button>
+         </div>
       </div>
    );
 };
+
 const CompanionOrb: React.FC<{ state: AgentState, onMute: () => void, muted: boolean }> = ({ state, onMute, muted }) => {
   return (
     <div className="absolute bottom-6 right-6 z-50 flex flex-col items-center gap-2">
        <div className={clsx("w-16 h-16 rounded-full shadow-[0_0_30px_currentColor] flex items-center justify-center transition-all duration-500 relative bg-neuro-surface border-2", 
-          state === 'IDLE' ? "text-neuro-secondary border-neuro-dim" : state === 'LISTENING' ? "text-green-500 border-green-500 scale-110 shadow-green-500/50" : state === 'THINKING' ? "text-blue-500 border-blue-500 animate-bounce shadow-blue-500/50" : state === 'SPEAKING' ? "text-purple-500 border-purple-500 scale-125 shadow-purple-500/50" : "text-neuro-primary border-neuro-primary"
+          state === 'IDLE' ? "text-neuro-secondary border-neuro-dim" :
+          state === 'LISTENING' ? "text-green-500 border-green-500 scale-110 shadow-green-500/50" :
+          state === 'THINKING' ? "text-blue-500 border-blue-500 animate-bounce shadow-blue-500/50" :
+          state === 'SPEAKING' ? "text-purple-500 border-purple-500 scale-125 shadow-purple-500/50" :
+          "text-neuro-primary border-neuro-primary"
        )}>
           {state === 'LISTENING' ? <div className="absolute inset-0 rounded-full border-4 border-current animate-ping opacity-20"></div> : null}
-          {state === 'SPEAKING' ? (<div className="flex gap-1 h-4 items-end"><div className="w-1 bg-current animate-[bounce_1s_infinite] h-full"></div><div className="w-1 bg-current animate-[bounce_1.2s_infinite] h-2"></div><div className="w-1 bg-current animate-[bounce_0.8s_infinite] h-3"></div></div>) : state === 'THINKING' ? (<Loader2 className="animate-spin" size={24}/>) : (<Bot size={24}/>)}
+          {state === 'SPEAKING' ? (
+             <div className="flex gap-1 h-4 items-end">
+                <div className="w-1 bg-current animate-[bounce_1s_infinite] h-full"></div>
+                <div className="w-1 bg-current animate-[bounce_1.2s_infinite] h-2"></div>
+                <div className="w-1 bg-current animate-[bounce_0.8s_infinite] h-3"></div>
+             </div>
+          ) : state === 'THINKING' ? (
+             <Loader2 className="animate-spin" size={24}/>
+          ) : (
+             <Bot size={24}/>
+          )}
        </div>
-       <div className="bg-neuro-surface border border-neuro-dim px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-neuro-primary shadow-sm flex items-center gap-2">{state}<button onClick={onMute} className={clsx("hover:text-red-500", muted && "text-red-500")}>{muted ? <MicOff size={10}/> : <Mic size={10}/>}</button></div>
+       <div className="bg-neuro-surface border border-neuro-dim px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-neuro-primary shadow-sm flex items-center gap-2">
+          {state}
+          <button onClick={onMute} className={clsx("hover:text-red-500", muted && "text-red-500")}>
+             {muted ? <MicOff size={10}/> : <Mic size={10}/>}
+          </button>
+       </div>
     </div>
   );
 };
@@ -796,8 +984,6 @@ function AppContent() {
   const [contextMenu, setContextMenu] = useState<{ top: number; left: number } | null>(null);
 
   const [rightPanelTab, setRightPanelTab] = useState<'DEBUG' | 'PROPS' | 'CHAT'>('CHAT');
-  // Sub-tabs for properties panel
-  const [propsSubTab, setPropsSubTab] = useState<'SETTINGS' | 'LOGIC' | 'AI'>('SETTINGS');
 
   const { projects, setProjects, activeProjectId, setActiveProjectId, isLoaded } = usePersistence([createDefaultProject()], DEFAULT_PROJECT_ID);
   
@@ -840,7 +1026,6 @@ function AppContent() {
   const autoSimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // ... [Other handlers showToast, addLog, useEffects remain identical] ...
   const showToast = useCallback((message: string, type: ToastMessage['type'] = 'info') => {
     setToasts(prev => [...prev, { id: Math.random().toString(36), message, type }]);
   }, []);
@@ -888,14 +1073,88 @@ function AppContent() {
      }
   }, [selectedNodeId]);
 
-  // ... [liveService handlers, nodeTypes, edgeTypes, other functions] ...
+  useEffect(() => {
+     if (isCompanionMode) {
+        setRightPanelTab('CHAT');
+        setShowRightPanel(true);
+     }
+  }, [isCompanionMode]);
+
+  useEffect(() => {
+    const issues = GhostEngineer.analyze(nodes, edges);
+    setGhostIssues(issues);
+  }, [nodes, edges]);
+
   const handleLiveToolCall = useCallback(async (name: string, args: any) => {
-     // ... (implementation same as before)
-     return "Done"; 
-  }, [activeProjectId]); 
-  
+     const logToChat = (msg: string) => {
+        setProjects(prev => prev.map(p => p.id === activeProjectId ? { 
+            ...p, 
+            chatHistory: [...p.chatHistory, { id: Date.now().toString(), role: 'system', content: msg, timestamp: Date.now() }] 
+        } : p));
+     };
+
+     if (name === 'read_design') {
+        const graphSnapshot = {
+           nodes: nodes.map(n => ({
+              id: n.id,
+              label: n.data.label,
+              type: n.data.type,
+              entry: n.data.entryAction ? 'Yes' : 'No',
+              exit: n.data.exitAction ? 'Yes' : 'No'
+           })),
+           edges: edges.map(e => ({
+              source: e.source,
+              target: e.target,
+              label: e.label,
+              condition: e.data?.condition
+           })),
+           issuesCount: ghostIssues.length
+        };
+        return JSON.stringify(graphSnapshot, null, 2);
+     }
+
+     if (name === 'create_design' && args.description) {
+         logToChat(`Neo: "I'm creating a design for: ${args.description}..."`);
+         try {
+             const newGraph = await geminiService.createGraphFromPrompt(args.description);
+             if (newGraph) {
+                takeSnapshot(nodes, edges);
+                setNodes(newGraph.nodes);
+                setEdges(newGraph.edges);
+                logToChat("Neo: " + "Design created successfully.");
+                return "Design created successfully on the canvas.";
+             }
+         } catch (e) {
+             const err = "Failed to create design: " + (e as Error).message;
+             logToChat("Neo Error: " + err);
+             throw new Error(err);
+         }
+     }
+     
+     if (name === 'modify_design' && args.instruction) {
+         logToChat(`Neo: "Modifying design: ${args.instruction}..."`);
+         try {
+             const newGraph = await geminiService.modifyGraph(nodes, edges, args.instruction, ghostIssues);
+             if (newGraph) {
+                takeSnapshot(nodes, edges);
+                setNodes(newGraph.nodes);
+                setEdges(newGraph.edges);
+                logToChat("Neo: " + "Modifications applied.");
+                return "Modifications applied successfully.";
+             }
+         } catch (e) {
+             const err = "Failed to modify design: " + (e as Error).message;
+             logToChat("Neo Error: " + err);
+             throw new Error(err);
+         }
+     }
+     return "Unknown tool";
+  }, [nodes, edges, ghostIssues, takeSnapshot, setNodes, setEdges, activeProjectId]); 
+
   const handleLiveToolCallRef = useRef(handleLiveToolCall);
-  useEffect(() => { handleLiveToolCallRef.current = handleLiveToolCall; }, [handleLiveToolCall]);
+  useEffect(() => {
+      handleLiveToolCallRef.current = handleLiveToolCall;
+  }, [handleLiveToolCall]);
 
   useEffect(() => {
     let timeoutId: any;
@@ -904,9 +1163,16 @@ function AppContent() {
           liveService.connect(
             (state) => setAgentState(state), 
             (name, args) => handleLiveToolCallRef.current(name, args),
-            () => { setIsCompanionMode(false); setAgentState('IDLE'); showToast("Neo Disconnected", "warning"); },
+            () => { 
+               setIsCompanionMode(false); 
+               setAgentState('IDLE');
+               showToast("Neo Disconnected", "warning");
+            },
             (msg) => {
-                setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, chatHistory: [...p.chatHistory, { id: Date.now().toString(), role: 'system', content: `[Neo] ${msg}`, timestamp: Date.now() }] } : p));
+                setProjects(prev => prev.map(p => p.id === activeProjectId ? { 
+                    ...p, 
+                    chatHistory: [...p.chatHistory, { id: Date.now().toString(), role: 'system', content: `[Neo] ${msg}`, timestamp: Date.now() }] 
+                } : p));
             }
           );
       }, 800); 
@@ -914,43 +1180,127 @@ function AppContent() {
       liveService.disconnect();
       setAgentState('IDLE');
     }
-    return () => { if(timeoutId) clearTimeout(timeoutId); liveService.disconnect(); };
+    return () => {
+        if(timeoutId) clearTimeout(timeoutId);
+        liveService.disconnect();
+    };
   }, [isCompanionMode, showToast, activeProjectId]);
 
-  const handleWake = useCallback(() => { showToast("Neo Activated!", "success"); setIsCompanionMode(true); setRightPanelTab('CHAT'); }, [showToast]);
+  const handleWake = useCallback(() => {
+        showToast("Neo Activated!", "success");
+        setIsCompanionMode(true);
+        setRightPanelTab('CHAT');
+  }, [showToast]);
+
   const isWakeWordActive = useWakeWord(isStandbyMode && !isCompanionMode, handleWake);
 
-  const nodeTypes = useMemo(() => ({ input: RetroNode, process: RetroNode, output: RetroNode, error: RetroNode, listener: RetroNode, decision: RetroNode, hardware: RetroNode, uart: RetroNode, interrupt: RetroNode, timer: RetroNode, peripheral: RetroNode, queue: RetroNode, mutex: RetroNode, critical: RetroNode, math: RetroNode, wireless: RetroNode, storage: RetroNode, logger: RetroNode, display: RetroNode, network: RetroNode, sensor: RetroNode, group: GroupNode, default: RetroNode }), []);
+  const nodeTypes = useMemo(() => ({ 
+     input: RetroNode, process: RetroNode, output: RetroNode, error: RetroNode, 
+     listener: RetroNode, decision: RetroNode, hardware: RetroNode, uart: RetroNode, 
+     interrupt: RetroNode, timer: RetroNode, peripheral: RetroNode, 
+     queue: RetroNode, mutex: RetroNode, critical: RetroNode, math: RetroNode,
+     wireless: RetroNode, storage: RetroNode, logger: RetroNode, display: RetroNode,
+     network: RetroNode, sensor: RetroNode,
+     group: GroupNode, default: RetroNode 
+  }), []);
   const edgeTypes = useMemo(() => ({ retro: RetroEdge, default: RetroEdge, smoothstep: RetroEdge }), []);
 
   const syncCurrentProject = useCallback(() => {
       if (!activeProjectId) return;
-      setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, nodes, edges, updatedAt: Date.now() } : p));
+      setProjects(prev => prev.map(p => p.id === activeProjectId ? { 
+          ...p, 
+          nodes, 
+          edges, 
+          updatedAt: Date.now() 
+      } : p));
   }, [activeProjectId, nodes, edges, setProjects]);
 
   const handleAttachmentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      // ... implementation same ...
+      const file = e.target.files?.[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+          const result = reader.result as string;
+          const [header, base64] = result.split(',');
+          const mime = header.match(/:(.*?);/)?.[1] || 'image/png';
+          
+          setChatAttachment({
+              base64,
+              mimeType: mime,
+              preview: result
+          });
+      };
+      reader.readAsDataURL(file);
+      e.target.value = ''; 
   };
 
   const handleChatSend = async () => {
-      // ... implementation same ...
+      if (!aiQuery.trim() && !chatAttachment) return;
+      
+      const userMsg = aiQuery.trim();
+      const currentAttachment = chatAttachment;
+      
+      setAiQuery('');
+      setChatAttachment(null);
+      setIsAiLoading(true);
+
+      const displayContent = userMsg + (currentAttachment ? `\n[Attached: ${currentAttachment.mimeType}]` : '');
+      appendChatMessage('user', displayContent);
+
+      try {
+          let intent = 'CHAT';
+          if (currentAttachment) {
+              intent = await geminiService.classifyIntent(userMsg || "Analyze this image");
+          } else if (userMsg) {
+              intent = await geminiService.classifyIntent(userMsg);
+          }
+
+          if (intent === 'CREATE' && currentAttachment) {
+              showToast("Analyzing Visual Design...", "info");
+              const newGraph = await geminiService.createGraphFromPrompt(userMsg || "Create FSM from this image", currentAttachment);
+              if (newGraph) {
+                  takeSnapshot(nodes, edges);
+                  setNodes(newGraph.nodes);
+                  setEdges(newGraph.edges);
+                  appendChatMessage('assistant', "I've generated the FSM design based on your image and requirements.");
+                  showToast("Design Generated", "success");
+              } else {
+                  appendChatMessage('assistant', "I couldn't generate a valid graph from the input.");
+              }
+          } else {
+              const response = await geminiService.chatWithAssistant(activeProject.chatHistory, nodes, edges, ghostIssues, userMsg, currentAttachment || undefined);
+              appendChatMessage('assistant', response);
+          }
+      } catch (e) {
+          appendChatMessage('assistant', `Error: ${(e as Error).message}`);
+      } finally {
+          setIsAiLoading(false);
+      }
   };
 
   const handleVisualEvent = useCallback(async (event: VisualEventType, id: string, data?: any) => {
-      if (event === 'node_entry') setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'entry', executionLog: data?.code ? data.code.split('\n')[0] : 'Executing...' } } : n));
-      else if (event === 'node_exit') setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'exit', executionLog: data?.code ? data.code.split('\n')[0] : 'Exiting...' } } : n));
-      else if (event === 'node_idle') setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'idle', executionLog: undefined } } : n));
-      else if (event === 'edge_traverse') {
+      if (event === 'node_entry') {
+         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'entry', executionLog: data?.code ? data.code.split('\n')[0] : 'Executing...' } } : n));
+      } else if (event === 'node_exit') {
+         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'exit', executionLog: data?.code ? data.code.split('\n')[0] : 'Exiting...' } } : n));
+      } else if (event === 'node_idle') {
+         setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, executionState: 'idle', executionLog: undefined } } : n));
+      } else if (event === 'edge_traverse') {
          setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, isTraversing: true } } : e));
-         setTimeout(() => setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, isTraversing: false } } : e)), 800); 
-      } else if (event === 'guard_check') setEdges(eds => eds.map(e => e.id === id ? { ...e, animated: true } : e));
-      else if (event === 'guard_result') {
+         setTimeout(() => {
+            setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, isTraversing: false } } : e));
+         }, 800); 
+      } else if (event === 'guard_check') {
+         setEdges(eds => eds.map(e => e.id === id ? { ...e, animated: true } : e));
+      } else if (event === 'guard_result') {
          setEdges(eds => eds.map(e => e.id === id ? { ...e, animated: false, data: { ...e.data, guardResult: data?.passed ? 'pass' : 'fail' } } : e));
-         setTimeout(() => setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, guardResult: null } } : e)), 1500);
+         setTimeout(() => {
+            setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, guardResult: null } } : e));
+         }, 1500);
       }
   }, [setNodes, setEdges]);
 
-  // ... [Simulation handlers startSimulation, stopSimulation, etc] ...
   const stopSimulation = useCallback(() => {
     if (executorRef.current) executorRef.current.stop();
     setSimStatus(SimulationStatus.IDLE); setActiveStateId(null); setSimHistory([]); setSimTelemetry(null);
@@ -975,115 +1325,287 @@ function AppContent() {
   const handleCreateProjectFromTemplate = (template: FSMTemplate) => { if (simStatus !== SimulationStatus.IDLE) stopSimulation(); syncCurrentProject(); const newId = `proj_${Date.now()}`; const newProject: FSMProject = { id: newId, name: template.name, domain: 'EMBEDDED', description: template.description, version: '0.1.0', nodes: template.nodes, edges: template.edges, chatHistory: [], updatedAt: Date.now() }; setProjects(prev => [...prev, newProject]); setNodes(newProject.nodes); setEdges(newProject.edges); setActiveProjectId(newId); setSelectedNodeId(null); setSelectedEdgeId(null); clearHistory(); setValidationReport(null); setResourceMetrics(null); setShowTemplateBrowser(false); showToast('Template Instantiated', 'success'); };
   const handleImportProject = () => { fileInputRef.current?.click(); };
   const handleImportCpp = () => { cppInputRef.current?.click(); };
-  const onCppLoad = async (e: React.ChangeEvent<HTMLInputElement>) => { /* ... */ };
-  const onFileLoad = async (e: React.ChangeEvent<HTMLInputElement>) => { /* ... */ };
-  const handleExportCode = async (lang: any) => { /* ... */ };
-  const handleGenerateRegisterMap = async () => { /* ... */ };
-  const handlePowerAnalysis = async () => { /* ... */ };
   
-  // FIX: Updated Smart Logic Handler
+  const onCppLoad = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; showToast("Reverse Engineering C++...", "info"); try { const text = await file.text(); const graph = await geminiService.reverseEngineerCode(text); if (graph) { if (simStatus !== SimulationStatus.IDLE) stopSimulation(); syncCurrentProject(); const newId = `proj_rev_${Date.now()}`; const newProject: FSMProject = { id: newId, name: file.name.replace('.cpp','').replace('.h',''), domain: 'EMBEDDED', description: 'Reverse Engineered from C++ Source', version: '0.1.0', nodes: graph.nodes, edges: graph.edges, chatHistory: [], updatedAt: Date.now() }; setProjects(prev => [...prev, newProject]); setNodes(newProject.nodes); setEdges(newProject.edges); setActiveProjectId(newId); clearHistory(); showToast('Code Successfully Imported', 'success'); } } catch (err) { showToast("Reverse Engineering Failed", "error"); } finally { if (cppInputRef.current) cppInputRef.current.value = ''; } };
+  const onFileLoad = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; try { const projData = await fileManager.loadProject(file); if (simStatus !== SimulationStatus.IDLE) stopSimulation(); syncCurrentProject(); const newId = `proj_imp_${Date.now()}`; const newProject: FSMProject = { id: newId, name: projData.name || 'Imported Project', domain: projData.domain || 'EMBEDDED', description: projData.description || 'Imported from JSON', version: projData.version || '1.0', nodes: projData.nodes || [], edges: projData.edges || [], chatHistory: projData.chatHistory || [], updatedAt: Date.now() }; setProjects(prev => [...prev, newProject]); setNodes(newProject.nodes); setEdges(newProject.edges); setActiveProjectId(newId); clearHistory(); showToast('Project Imported', 'success'); } catch (err) { showToast("Failed to load project file", "error"); } finally { if(fileInputRef.current) fileInputRef.current.value = ''; } };
+  const handleExportCode = async (lang: 'cpp' | 'verilog' | 'python' | 'rust') => { setIsAiLoading(true); try { const code = await geminiService.generateCode(nodes, edges, lang); const ext = lang === 'verilog' ? 'v' : lang === 'python' ? 'py' : lang === 'rust' ? 'rs' : 'cpp'; fileManager.downloadCode(code, `fsm_export.${ext}`); showToast(`${lang.toUpperCase()} Exported`, 'success'); } catch(e) { showToast('Export Failed', 'error'); } finally { setIsAiLoading(false); } };
+  const handleGenerateRegisterMap = async () => { showToast('Generating RegMap...', 'info'); const code = await geminiService.generateRegisterMap(nodes); fileManager.downloadCode(code, 'registers.h'); showToast('Header File Exported', 'success'); };
+  const handlePowerAnalysis = async () => { showToast('Analyzing Power...', 'info'); const result = await geminiService.optimizeForLowPower(nodes, edges); appendChatMessage('assistant', result); setRightPanelTab('CHAT'); setShowRightPanel(true); showToast('Report in Chat', 'success'); };
+  
   const handleSmartLogicGenerate = async () => { 
-      if (!selectedNodeId || !smartPrompt.trim()) return; 
-      // Ensure we get the latest node state
-      const currentNode = nodes.find(n => n.id === selectedNodeId); 
-      if (!currentNode) return; 
-      
+      if (!selectedNodeId || !smartPrompt) return; 
+      const node = nodes.find(n => n.id === selectedNodeId); 
+      if (!node) return; 
       setIsAiLoading(true); 
       try { 
-          // Pass context keys even if empty to let AI know what variables exist
-          const contextKeys = Object.keys(simContext || {});
-          
-          const result = await geminiService.generateNodeScript(
-              currentNode.data.label, 
-              currentNode.data.type || 'process', 
-              smartPrompt, 
-              contextKeys
-          ); 
-          
+          const result = await geminiService.generateNodeScript(node.data.label, node.data.type || 'process', smartPrompt, Object.keys(simContext)); 
           takeSnapshot(nodes, edges); 
-          setNodes(nds => nds.map(n => n.id === selectedNodeId ? { 
-              ...n, 
-              data: { 
-                  ...n.data, 
-                  entryAction: result.code, 
-                  aiReasoning: result.reasoning 
-              } 
-          } : n)); 
-          
+          setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, entryAction: result.code, aiReasoning: result.reasoning } } : n)); 
           setSmartPrompt(''); 
           showToast('Logic Generated!', 'success'); 
-          setPropsSubTab('LOGIC'); // Switch to Logic tab to see result
       } catch (e) { 
-          console.error(e);
-          showToast('Generation Failed: ' + (e as Error).message, 'error'); 
+          showToast('Generation Failed', 'error'); 
       } finally { 
           setIsAiLoading(false); 
       } 
   };
 
-  // ... [Other handlers] ...
-  const handleConnectDevice = async (mcu: McuDefinition) => { /* ... */ };
-  const handleFlashBoard = async () => { /* ... */ };
-  const handleAnalyzeDatasheet = async () => { /* ... */ };
-  const appendChatMessage = (role: 'user'|'assistant', content: string) => { /* ... */ };
-  const renderMessageContent = (content: string) => { /* ... */ return <div>{content}</div>; };
-  const formatInline = (text: string) => { return [text]; }; // Simplified for space
-  const handleDeleteSelected = useCallback(() => { /* ... */ }, [selectedNodeIds, selectedEdgeId]);
-  const handleGroupSelection = useCallback(() => { /* ... */ }, [selectedNodeIds]);
-  const applyLayout = useCallback((template: WorkspaceTemplate) => { /* ... */ }, []);
-  const switchProject = useCallback((id: string) => { /* ... */ }, [simStatus]);
-  const closeProject = useCallback((e: React.MouseEvent, id: string) => { /* ... */ }, [projects]);
+  const handleConnectDevice = async (mcu: McuDefinition) => { setTargetMcu(mcu); if (mcu.flashMethod === 'WEB_SERIAL') { const connected = await hardwareBridge.requestConnection(); setIsDeviceConnected(connected); if (connected) showToast(`Connected to ${mcu.name}`, 'success'); } else { setIsDeviceConnected(true); showToast(`Target Set: ${mcu.name}`, 'info'); } setShowDeviceManager(false); };
+  const handleFlashBoard = async () => { if (!isDeviceConnected) { setShowDeviceManager(true); return; } setIsFlashing(true); setFlashProgress(0); setFlashStatus('Initializing...'); showToast('Starting Flash Sequence...', 'info'); try { const msg = await hardwareBridge.flashDevice(targetMcu, (pct, status) => { setFlashProgress(pct); setFlashStatus(status); }); showToast(msg, 'success'); setFlashStatus('DONE'); } catch (e) { showToast('Flash Failed: ' + (e as Error).message, 'error'); setFlashStatus('ERROR'); } finally { setTimeout(() => setIsFlashing(false), 2000); } };
+  const handleAnalyzeDatasheet = async () => { setIsAiLoading(true); try { const result = await geminiService.analyzeDatasheet(datasheetInput); appendChatMessage('assistant', `**Datasheet Analysis Checklist:**\n\n${result}`); setShowDatasheetModal(false); showToast('Checklist added to Chat', 'success'); } catch (e) { showToast('Analysis Failed', 'error'); } finally { setIsAiLoading(false); } };
+  const appendChatMessage = (role: 'user' | 'assistant', content: string) => { setProjects(prev => prev.map(p => p.id === activeProjectId ? { ...p, chatHistory: [...p.chatHistory, { id: Date.now().toString(), role, content, timestamp: Date.now() }] } : p)); };
+  
+  const renderMessageContent = (content: string) => {
+    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+        if (match.index > lastIndex) { parts.push({ type: 'text', content: content.substring(lastIndex, match.index) }); }
+        parts.push({ type: 'code', lang: match[1] || 'text', content: match[2] });
+        lastIndex = codeBlockRegex.lastIndex;
+    }
+    if (lastIndex < content.length) { parts.push({ type: 'text', content: content.substring(lastIndex) }); }
+    return parts.map((part, i) => {
+        if (part.type === 'code') {
+            return ( <div key={i} className="my-3 bg-[#1e1e1e] text-gray-200 p-3 rounded-md border border-gray-700 font-mono text-[11px] overflow-x-auto shadow-inner relative group"> {part.lang && <div className="text-[9px] text-gray-500 uppercase mb-1 font-bold select-none border-b border-gray-700 pb-1 flex justify-between"> <span>{part.lang}</span> <span className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-white" onClick={() => { navigator.clipboard.writeText(part.content); showToast("Copied code", "info"); }}>COPY</span> </div>} <pre className="whitespace-pre">{part.content}</pre> </div> );
+        } else {
+            const lines = part.content.split('\n');
+            return ( <div key={i} className="whitespace-pre-wrap leading-relaxed text-neuro-primary"> {lines.map((line, j) => { if (line.startsWith('### ')) { return <h4 key={j} className="font-bold text-neuro-primary mt-2 mb-1 uppercase text-[11px]">{line.replace('### ', '')}</h4>; } if (line.trim().startsWith('- ')) { return <div key={j} className="flex gap-2 ml-2"><span className="text-neuro-secondary">•</span> <span>{formatInline(line.replace('- ', ''))}</span></div>; } if (/^\d+\.\s/.test(line.trim())) { return <div key={j} className="flex gap-2 ml-2"><span className="text-neuro-secondary font-mono text-[10px]">{line.trim().split('.')[0]}.</span> <span>{formatInline(line.replace(/^\d+\.\s/, ''))}</span></div>; } return <div key={j} className="min-h-[4px]">{formatInline(line)}</div>; })} </div> );
+        }
+    });
+  };
+  const formatInline = (text: string) => { return text.split(/(\*\*.*?\*\*|`[^`]+`)/g).map((subPart, j) => { if (subPart.startsWith('**') && subPart.endsWith('**')) { return <strong key={j} className="font-bold text-neuro-primary">{subPart.slice(2, -2)}</strong>; } if (subPart.startsWith('`') && subPart.endsWith('`')) { return <code key={j} className="bg-neuro-dim text-purple-700 px-1 py-0.5 rounded text-[90%] font-mono border border-neuro-dim mx-0.5">{subPart.slice(1, -1)}</code>; } return subPart; }); };
+  const handleDeleteSelected = useCallback(() => { if (selectedNodeIds.length > 0) { setNodes(nds => nds.filter(n => !selectedNodeIds.includes(n.id))); setEdges(eds => eds.filter(e => !selectedNodeIds.includes(e.source) && !selectedNodeIds.includes(e.target))); setSelectedNodeId(null); setSelectedNodeIds([]); showToast('Selection Deleted', 'info'); } if (selectedEdgeId) { setEdges(eds => eds.filter(e => e.id !== selectedEdgeId)); setSelectedEdgeId(null); showToast('Edge Deleted', 'info'); } }, [selectedNodeIds, selectedEdgeId, setNodes, setEdges, showToast]);
+  const handleGroupSelection = useCallback(() => { if (selectedNodeIds.length < 2) { showToast("Select at least 2 nodes to group", "warning"); return; } const selectedNodes = nodes.filter(n => selectedNodeIds.includes(n.id)); const minX = Math.min(...selectedNodes.map(n => n.position.x)); const minY = Math.min(...selectedNodes.map(n => n.position.y)); const maxX = Math.max(...selectedNodes.map(n => n.position.x + (n.width || 150))); const maxY = Math.max(...selectedNodes.map(n => n.position.y + (n.height || 100))); const padding = 40; const groupNode: Node = { id: `group_${Date.now()}`, type: 'group', position: { x: minX - padding, y: minY - padding }, style: { width: maxX - minX + padding*2, height: maxY - minY + padding*2 }, data: { label: 'New Superstate' } }; takeSnapshot(nodes, edges); setNodes(nds => [groupNode, ...nds]); showToast("Nodes Grouped", "success"); }, [nodes, selectedNodeIds, takeSnapshot, setNodes, showToast]);
+  const applyLayout = useCallback((template: WorkspaceTemplate) => { setActiveLayout(template); setShowLayoutMenu(false); setShowLeftPanel(false); setShowRightPanel(false); setShowBottomPanel(false); setShowIOPanel(false); setShowDiagnostics(false); if (template === 'ARCHITECT') { setShowLeftPanel(true); setShowRightPanel(true); setRightPanelTab('PROPS'); } else if (template === 'ENGINEER') { setShowLeftPanel(true); setShowRightPanel(true); setShowBottomPanel(true); setActiveBottomTab('SERIAL'); setRightPanelTab('DEBUG'); } else if (template === 'HARDWARE_LAB') { setShowRightPanel(true); setShowBottomPanel(true); setShowIOPanel(true); setShowDiagnostics(true); setActiveBottomTab('LOGIC'); setRightPanelTab('DEBUG'); } else if (template === 'DEBUG_FOCUS') { setShowRightPanel(true); setShowBottomPanel(true); setActiveBottomTab('OUTPUT'); setRightPanelTab('DEBUG'); } else if (template === 'HACKER') { setShowBottomPanel(true); setActiveBottomTab('OUTPUT'); } else if (template === 'FULL_SUITE') { setShowLeftPanel(true); setShowRightPanel(true); setShowBottomPanel(true); } else if (template === 'AI_PAIR') { setShowRightPanel(true); setIsCompanionMode(true); setRightPanelTab('CHAT'); } if (template !== 'AI_PAIR') setIsCompanionMode(false); showToast(`Layout: ${template.replace('_', ' ')}`, 'info'); }, [showToast]);
+  const switchProject = useCallback((id: string) => { if (simStatus !== SimulationStatus.IDLE) stopSimulation(); syncCurrentProject(); setActiveProjectId(id); clearHistory(); setValidationReport(null); setResourceMetrics(null); setSelectedNodeId(null); setSelectedEdgeId(null); }, [simStatus, stopSimulation, syncCurrentProject, setActiveProjectId, clearHistory]);
+  const closeProject = useCallback((e: React.MouseEvent, id: string) => { e.stopPropagation(); if (projects.length <= 1) { showToast("Cannot close the last project.", "warning"); return; } const newProjects = projects.filter(p => p.id !== id); setProjects(newProjects); if (activeProjectId === id && newProjects.length > 0) { setActiveProjectId(newProjects[0].id); clearHistory(); } }, [projects, activeProjectId, setProjects, setActiveProjectId, clearHistory, showToast]);
+  
   const handleAddNodeFromContext = useCallback((type: string, x: number, y: number) => { 
       const position = reactFlowInstance.screenToFlowPosition({ x, y });
-      // ... same implementation ...
-      const newNode: Node = { id: `node_${Date.now()}`, type: type === 'code_analysis' ? 'process' : type as any, position, data: { label: `${type.toUpperCase()}_${Math.floor(Math.random()*100)}`, type: type as any } };
-      setNodes(nds => nds.concat(newNode));
+      
+      let newNode: Node;
+      if (type === 'code_analysis') {
+          newNode = { 
+            id: `node_${Date.now()}`, 
+            type: 'process', 
+            position, 
+            data: { 
+                label: 'CODE_ANALYSIS', 
+                type: 'process',
+                tags: ['analysis', 'static'],
+                entryAction: `// --- CODE ANALYSIS ACTION ---\n// Placeholder for analysis logic\n\nconst snippet = ctx.codeBuffer || "";\nif (snippet.includes("unsafe")) {\n  console.warn("Unsafe pattern detected");\n  dispatch("RISK_HIGH");\n} else {\n  dispatch("ANALYSIS_PASS");\n}`,
+                exitAction: '' 
+            }, 
+          };
+      } else {
+          newNode = { 
+            id: `node_${Date.now()}`, 
+            type: type === 'group' ? 'group' : (['input','output','process','decision','hardware','error'].includes(type) ? type : 'process'), 
+            position, 
+            data: { 
+               label: `${type.toUpperCase()}_${Math.floor(Math.random()*100)}`, 
+               type: type as any, 
+               entryAction: '', 
+               exitAction: '' 
+            } 
+         };
+      }
+
+      takeSnapshot(nodes, edges); 
+      setNodes((nds) => nds.concat(newNode)); 
       setContextMenu(null); 
-  }, [reactFlowInstance, nodes, edges]);
-  const onDrop = useCallback((event: React.DragEvent) => { /* ... */ }, []);
-  const onDragOver = useCallback((event: React.DragEvent) => { /* ... */ }, []);
-  const onDragStart = useCallback((event: React.DragEvent, nodeType: string) => { /* ... */ }, []);
+  }, [reactFlowInstance, nodes, edges, takeSnapshot, setNodes]);
+
+  const onDrop = useCallback((event: React.DragEvent) => { event.preventDefault(); const type = event.dataTransfer.getData('application/reactflow'); if (!type) return; const position = reactFlowInstance.screenToFlowPosition({ x: event.clientX, y: event.clientY, }); const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label: `${type.toUpperCase()}_${Math.floor(Math.random()*100)}`, type: type as any, entryAction: '', exitAction: '' }, }; takeSnapshot(nodes, edges); setNodes((nds) => nds.concat(newNode)); }, [reactFlowInstance, nodes, edges, takeSnapshot, setNodes]);
+  const onDragOver = useCallback((event: React.DragEvent) => { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; }, []);
+  const onDragStart = useCallback((event: React.DragEvent, nodeType: string) => { event.dataTransfer.setData('application/reactflow', nodeType); event.dataTransfer.effectAllowed = 'move'; }, []);
   const onPaneClick = useCallback(() => { setContextMenu(null); setShowLayoutMenu(false); setActiveMenu(null); }, []);
   const onPaneContextMenu = useCallback((event: React.MouseEvent) => { event.preventDefault(); setContextMenu({ top: event.clientY, left: event.clientX }); }, []);
-  const onSelectionChange = useCallback(({ nodes: selectedNodes, edges: selectedEdges }: { nodes: Node[], edges: Edge[] }) => { 
-      setSelectedNodeIds(selectedNodes.map(n => n.id)); 
-      setSelectedNodeId(selectedNodes.length === 1 ? selectedNodes[0].id : null); 
-      setSelectedEdgeId(selectedEdges.length === 1 ? selectedEdges[0].id : null); 
-      if (selectedNodes.length === 1) { setRightPanelTab('PROPS'); setShowRightPanel(true); } 
-  }, []);
-  const onConnect = useCallback((params: Connection) => { takeSnapshot(nodes, edges); setEdges((eds) => addEdge({ ...params, type: 'retro', animated: false }, eds)); }, [nodes, edges]);
+  const onSelectionChange = useCallback(({ nodes: selectedNodes, edges: selectedEdges }: { nodes: Node[], edges: Edge[] }) => { setSelectedNodeIds(selectedNodes.map(n => n.id)); setSelectedNodeId(selectedNodes.length === 1 ? selectedNodes[0].id : null); setSelectedEdgeId(selectedEdges.length === 1 ? selectedEdges[0].id : null); if (selectedNodes.length === 1) { setRightPanelTab('PROPS'); setShowRightPanel(true); } }, []);
+  const onConnect = useCallback((params: Connection) => { takeSnapshot(nodes, edges); setEdges((eds) => addEdge({ ...params, type: 'retro', animated: false }, eds)); }, [nodes, edges, takeSnapshot, setEdges]);
   const onNodesChangeWithHistory = useCallback((changes: any) => { onNodesChange(changes); }, [onNodesChange]);
   const onEdgesChangeWithHistory = useCallback((changes: any) => { onEdgesChange(changes); }, [onEdgesChange]);
-  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => { /* ... */ }, []);
-  const handleAutoFix = async () => { /* ... */ };
-  const handleRunValidationWrapper = async () => { /* ... */ };
-  const handleEstimateResourcesWrapper = async () => { /* ... */ };
 
-  // ... [MENU_ITEMS] ... 
-  const MENU_ITEMS = { File: [], Edit: [], View: [], Help: [] }; // Placeholder for brevity
+  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    setSelectedNodeId(node.id);
+    setSelectedNodeIds([node.id]); 
+    setContextMenu({ top: event.clientY, left: event.clientX });
+  }, []);
+
+  const handleAutoFix = async () => {
+    if (ghostIssues.length === 0) return;
+    setIsAiLoading(true);
+    try {
+        const fixInstruction = "Fix the following issues: " + ghostIssues.map(i => i.description).join('; ');
+        const newGraph = await geminiService.modifyGraph(nodes, edges, fixInstruction, ghostIssues);
+        if (newGraph) {
+            takeSnapshot(nodes, edges);
+            setNodes(newGraph.nodes);
+            setEdges(newGraph.edges);
+            showToast("Auto-fix applied", "success");
+        }
+    } catch (e) {
+        showToast("Auto-fix failed", "error");
+    } finally {
+        setIsAiLoading(false);
+    }
+  };
+
+  const handleRunValidationWrapper = async () => {
+    setIsValidating(true);
+    try {
+        const report = await geminiService.generateValidationReport(nodes, edges);
+        setValidationReport(report);
+    } catch (e) {
+        showToast("Validation check failed", "error");
+    } finally {
+        setIsValidating(false);
+    }
+  };
+
+  const handleEstimateResourcesWrapper = async () => {
+    setIsEstimating(true);
+    try {
+        const metrics = await geminiService.estimateResources(nodes, edges);
+        setResourceMetrics(metrics);
+    } catch (e) {
+        showToast("Resource estimation failed", "error");
+    } finally {
+        setIsEstimating(false);
+    }
+  };
+
+  const MENU_ITEMS = {
+      File: [
+        { label: 'New Project', icon: FilePlus, action: createBlankProject },
+        { label: 'Open...', icon: FolderOpen, action: handleImportProject },
+        { label: 'Import C++', icon: Code2, action: handleImportCpp },
+        { separator: true },
+        { label: 'Save Project', icon: Save, action: () => fileManager.saveProject(activeProject), shortcut: 'Ctrl+S' },
+        { separator: true },
+        { label: 'Export C++', icon: FileCode, action: () => handleExportCode('cpp') },
+        { label: 'Export Verilog', icon: Cpu, action: () => handleExportCode('verilog') },
+        { label: 'Export Python', icon: Terminal, action: () => handleExportCode('python') },
+        { label: 'Export Rust', icon: Shield, action: () => handleExportCode('rust') },
+      ],
+      Edit: [
+        { label: 'Undo', icon: Undo, action: () => undo(nodes, edges), shortcut: 'Ctrl+Z', disabled: !canUndo },
+        { label: 'Redo', icon: Redo, action: () => redo(nodes, edges), shortcut: 'Ctrl+Y', disabled: !canRedo },
+        { separator: true },
+        { label: 'Delete Selected', icon: Trash2, action: handleDeleteSelected, shortcut: 'Del' },
+        { label: 'Group Nodes', icon: Group, action: handleGroupSelection },
+      ],
+      View: [
+        { label: 'Zoom In', icon: ZoomIn, action: () => reactFlowInstance.zoomIn() },
+        { label: 'Zoom Out', icon: ZoomOut, action: () => reactFlowInstance.zoomOut() },
+        { label: 'Fit View', icon: Maximize, action: () => reactFlowInstance.fitView() },
+        { separator: true },
+        { label: 'Theme: Neuro (Default)', icon: Palette, action: () => setCurrentTheme('NEURO'), checked: currentTheme === 'NEURO' },
+        { label: 'Theme: Cyberpunk', icon: Palette, action: () => setCurrentTheme('CYBERPUNK'), checked: currentTheme === 'CYBERPUNK' },
+        { label: 'Theme: Blueprint', icon: Palette, action: () => setCurrentTheme('BLUEPRINT'), checked: currentTheme === 'BLUEPRINT' },
+        { label: 'Theme: Terminal', icon: Palette, action: () => setCurrentTheme('TERMINAL'), checked: currentTheme === 'TERMINAL' },
+      ],
+      Help: [
+         { label: 'Documentation', icon: Book, action: () => setShowDocsModal(true) },
+         { label: 'About', icon: Info, action: () => setShowAboutModal(true) },
+      ]
+  };
 
   return (
     <div className="flex flex-col h-[100dvh] bg-neuro-bg text-neuro-primary font-mono text-xs overflow-hidden min-h-0">
-      {/* ... [Top Menu & Toolbar same as before] ... */}
+      
+      {activeMenu && <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)}></div>}
+
       <div className="bg-neuro-bg border-b border-neuro-dim px-2 flex items-center h-8 select-none shrink-0 relative z-50">
          <div className="flex items-center gap-1">
             <span className="font-bold mr-4 text-sm tracking-tight text-neuro-primary flex items-center gap-2"><CircuitBoard size={16}/> NeuroState</span>
-            {/* ... Menu items ... */}
+            {Object.keys(MENU_ITEMS).map(m => (
+               <div key={m} className="relative">
+                  <button className={clsx("px-3 py-1 hover:bg-neuro-surface text-neuro-primary rounded-sm font-medium transition-colors", activeMenu === m && "bg-neuro-surface")} onClick={() => setActiveMenu(activeMenu === m ? null : m)}>{m}</button>
+                  {activeMenu === m && (
+                     <div className="absolute top-full left-0 mt-1 bg-neuro-surface border border-neuro-dim shadow-xl rounded-sm min-w-[220px] py-1 animate-in fade-in zoom-in-95 duration-75 flex flex-col">
+                        {(MENU_ITEMS as any)[m].map((item: any, i: number) => (
+                           item.separator ? <div key={i} className="h-px bg-neuro-dim my-1 mx-2"></div> :
+                           <button key={i} onClick={() => { item.action(); setActiveMenu(null); }} disabled={item.disabled} className="px-4 py-2 text-left hover:bg-neuro-bg flex items-center gap-3 text-neuro-primary disabled:opacity-40 disabled:cursor-not-allowed group">
+                              <span className="text-neuro-secondary group-hover:text-neuro-primary">{item.icon && <item.icon size={14}/>}</span>
+                              <span className="flex-1">{item.label}</span>
+                              {item.checked !== undefined && (item.checked ? <CheckCircle size={12} className="text-neuro-primary"/> : <div className="w-3"/>)}
+                              {item.shortcut && <span className="text-[9px] text-neuro-secondary ml-4 font-sans border border-neuro-dim px-1 rounded bg-neuro-bg">{item.shortcut}</span>}
+                           </button>
+                        ))}
+                     </div>
+                  )}
+               </div>
+            ))}
          </div>
+         <div className="flex-1"></div>
       </div>
 
       <div className="h-10 border-b border-neuro-dim bg-neuro-surface flex items-center px-4 gap-2 justify-between shrink-0 z-40 shadow-sm relative">
-         <div className="flex items-center gap-2">
-            <Button onClick={createBlankProject} tooltip="New Blank Project"><FilePlus size={14}/></Button>
-            <Button onClick={() => setShowTemplateBrowser(true)} tooltip="Browse Templates"><Grid size={14}/></Button>
-            <div className="w-px h-6 bg-neuro-dim mx-1"></div>
-            <Button onClick={() => setShowLayoutMenu(!showLayoutMenu)} tooltip="Layouts"><LayoutTemplate size={14}/></Button>
-         </div>
-         {/* ... Project Tabs ... */}
-         <div className="flex items-center gap-2">
-            <Button onClick={() => { setIsCompanionMode(!isCompanionMode); setRightPanelTab('CHAT'); setShowRightPanel(true); }} variant={isCompanionMode ? 'primary' : 'ghost'} tooltip="Neo AI Companion"><Waves size={14} className={isCompanionMode ? "text-purple-500 animate-pulse" : ""}/></Button>
-            {simStatus === SimulationStatus.IDLE ? (<Button onClick={startSimulation} className="border-green-600 text-green-700 bg-green-50 hover:bg-green-100 shadow-sm"><Play size={14}/> SIMULATE</Button>) : (<Button onClick={stopSimulation} className="border-red-600 text-red-600 bg-red-50 hover:bg-red-100 shadow-sm"><Square size={14}/> STOP</Button>)}
-         </div>
+        <div className="flex items-center gap-2">
+           <Button onClick={createBlankProject} tooltip="New Blank Project"><FilePlus size={14}/></Button>
+           <Button onClick={() => setShowTemplateBrowser(true)} tooltip="Browse Templates"><Grid size={14}/></Button>
+           <Button onClick={() => fileManager.saveProject(activeProject)} tooltip="Save Project (Ctrl+S)"><Save size={14}/></Button>
+           <div className="w-px h-6 bg-neuro-dim mx-1"></div>
+           <Button onClick={() => undo(nodes, edges)} disabled={!canUndo} tooltip="Undo (Ctrl+Z)"><Undo size={14}/></Button>
+           <Button onClick={() => redo(nodes, edges)} disabled={!canRedo} tooltip="Redo (Ctrl+Y)"><Redo size={14}/></Button>
+           <div className="w-px h-6 bg-neuro-dim mx-1"></div>
+           <Button onClick={() => setShowLayoutMenu(!showLayoutMenu)} tooltip="Layouts"><LayoutTemplate size={14}/></Button>
+           <Button onClick={() => setShowBottomPanel(!showBottomPanel)} variant={showBottomPanel ? 'primary' : 'ghost'} tooltip="Toggle Bottom Panel (Logs, Validation)"><PanelBottomOpen size={14}/></Button>
+           <Button onClick={() => setShowDiagnostics(!showDiagnostics)} variant={showDiagnostics ? 'primary' : 'ghost'} tooltip="Toggle Diagnostics"><Monitor size={14}/></Button>
+           <Button onClick={() => setShowIOPanel(!showIOPanel)} variant={showIOPanel ? 'primary' : 'ghost'} tooltip="Toggle IO Panel"><ToggleLeft size={14}/></Button>
+        </div>
+
+        <div className="flex-1 flex justify-center overflow-hidden px-4">
+           <div className="flex items-end gap-1 h-full pt-1 overflow-x-auto custom-scrollbar">
+              {projects.map(p => (
+                 <div key={p.id} onClick={() => switchProject(p.id)} className={clsx("px-3 py-1.5 border-t border-l border-r rounded-t-sm cursor-pointer flex items-center gap-2 min-w-[120px] max-w-[200px] transition-all", p.id === activeProjectId ? "bg-neuro-bg border-neuro-dim border-b-neuro-bg -mb-px font-bold z-10 text-neuro-primary" : "bg-neuro-surface border-neuro-dim text-neuro-secondary hover:bg-neuro-bg hover:text-neuro-primary")}>
+                    <span className="truncate flex-1">{p.name}</span>
+                    <button onClick={(e) => closeProject(e, p.id)} className="hover:text-red-500 rounded-full p-0.5 hover:bg-red-50"><X size={10}/></button>
+                 </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+           {!isCompanionMode && isStandbyMode && (
+              <button 
+                 onClick={() => setIsStandbyMode(!isStandbyMode)}
+                 className={clsx("flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded border transition-colors hover:bg-neuro-bg", 
+                    isWakeWordActive ? "bg-green-50 text-green-600 border-green-200 animate-pulse" : "bg-neuro-surface text-neuro-secondary border-neuro-dim"
+                 )} 
+                 title="Click to toggle Standby Mode"
+              >
+                 <Ear size={10} className={isWakeWordActive ? "animate-bounce" : ""} />
+                 {isWakeWordActive ? 'LISTENING' : 'STANDBY'}
+              </button>
+           )}
+           <Button onClick={() => setShowVeoModal(true)} variant={showVeoModal ? 'primary' : 'ghost'} tooltip="Visualize with Veo (Video)">
+              <Film size={14} className="text-purple-600"/>
+           </Button>
+           <Button onClick={() => { setIsCompanionMode(!isCompanionMode); setRightPanelTab('CHAT'); setShowRightPanel(true); }} variant={isCompanionMode ? 'primary' : 'ghost'} tooltip="Neo AI Companion (Live Voice)">
+              <Waves size={14} className={isCompanionMode ? "text-purple-500 animate-pulse" : ""}/>
+           </Button>
+           <div className="flex items-center bg-neuro-bg rounded-md px-1 border border-neuro-dim" title="Shadow Mode (Hardware-in-Loop)">
+              <button 
+                 onClick={() => setIsShadowMode(!isShadowMode)} 
+                 className={clsx("p-1.5 rounded transition-all", isShadowMode ? "bg-neuro-primary text-white shadow-sm" : "text-neuro-secondary hover:text-neuro-primary")}
+              >
+                 <Activity size={14}/>
+              </button>
+           </div>
+           <Button onClick={() => setShowDeviceManager(true)} variant={isDeviceConnected ? 'primary' : 'ghost'} tooltip="Device Manager"><CircuitBoard size={14}/></Button>
+           <Button onClick={handleFlashBoard} disabled={isFlashing} tooltip="Flash Firmware"><Zap size={14} className={isFlashing ? "fill-yellow-400 text-yellow-500 animate-pulse" : ""}/></Button>
+           <div className="w-px h-6 bg-neuro-dim mx-1"></div>
+           {simStatus === SimulationStatus.IDLE ? (
+             <Button onClick={startSimulation} className="border-green-600 text-green-700 bg-green-50 hover:bg-green-100 shadow-sm" tooltip="Start Simulation"><Play size={14} fill="currentColor"/> {isShadowMode ? 'CONNECT' : 'SIMULATE'}</Button>
+           ) : (
+             <Button onClick={stopSimulation} className="border-red-600 text-red-600 bg-red-50 hover:bg-red-100 shadow-sm"><Square size={14} fill="currentColor"/> STOP</Button>
+           )}
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden relative min-h-0">
@@ -1091,8 +1613,29 @@ function AppContent() {
           <div className="w-16 border-r border-neuro-dim bg-neuro-surface flex flex-col items-center py-4 gap-4 z-10 shadow-sm shrink-0 overflow-y-auto custom-scrollbar">
              {['input', 'process', 'decision', 'output', 'error', 'hardware', 'uart', 'listener', 'interrupt', 'timer', 'peripheral', 'queue', 'mutex', 'critical', 'math', 'wireless', 'storage', 'logger', 'display', 'network', 'sensor'].map(type => (
                <div key={type} draggable onDragStart={(e) => onDragStart(e, type)} className="w-10 h-10 border border-neuro-dim bg-neuro-surface hover:border-neuro-primary hover:shadow-md hover:scale-110 transition-all flex items-center justify-center cursor-grab active:cursor-grabbing rounded-sm group relative shrink-0">
-                  {/* ... Icons ... */}
-                  {type==='input'?<Play size={18} fill="currentColor" className="text-neuro-primary"/>:<Square size={18} className="text-gray-500"/>}
+                  {/* Icon Rendering Logic */}
+                  {type==='input'?<Play size={18} fill="currentColor" className="text-neuro-primary"/> :
+                   type==='output'?<CheckCircle size={18} className="text-neuro-accent"/> :
+                   type==='error'?<AlertTriangle size={18} className="text-red-500"/> :
+                   type==='listener'?<Ear size={18} className="text-indigo-500"/> :
+                   type==='decision'?<Split size={18} className="text-amber-500"/> :
+                   type==='hardware'?<CircuitBoard size={18} className="text-cyan-600"/> :
+                   type==='uart'?<Cable size={18} className="text-purple-600"/> :
+                   type==='interrupt'?<Zap size={18} className="text-purple-600"/> :
+                   type==='timer'?<Hourglass size={18} className="text-orange-500"/> :
+                   type==='peripheral'?<Cpu size={18} className="text-teal-500"/> :
+                   type==='queue'?<Layers size={18} className="text-pink-500"/> :
+                   type==='mutex'?<Lock size={18} className="text-slate-500"/> :
+                   type==='critical'?<ShieldAlert size={18} className="text-rose-600"/> :
+                   type==='math'?<Calculator size={18} className="text-blue-400"/> :
+                   type==='wireless'?<Wifi size={18} className="text-sky-500"/> :
+                   type==='storage'?<Database size={18} className="text-amber-600"/> :
+                   type==='logger'?<FileText size={18} className="text-gray-500"/> :
+                   type==='display'?<Monitor size={18} className="text-fuchsia-500"/> :
+                   type==='network'?<Globe size={18} className="text-indigo-600"/> :
+                   type==='sensor'?<Thermometer size={18} className="text-emerald-500"/> :
+                   <Square size={18} className="text-gray-500"/>}
+                  <div className="absolute left-full ml-2 bg-neuro-primary text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 capitalize font-bold tracking-wider shadow-lg transform translate-x-2 group-hover:translate-x-0 transition-all">{type}</div>
                </div>
              ))}
           </div>
@@ -1121,21 +1664,166 @@ function AppContent() {
             <Controls className="!bg-neuro-surface !border-neuro-dim !shadow-sm !rounded-sm !m-4" />
             <MiniMap className="!bg-neuro-surface !border-neuro-dim !shadow-sm !rounded-sm !m-4" nodeColor={() => 'var(--color-dim)'} maskColor="rgba(0, 0, 0, 0.1)" />
           </ReactFlow>
-          {/* ... [Overlays like Diagnostics, IO Panel, CompanionOrb] ... */}
+
+          {isCompanionMode && (
+             <CompanionOrb 
+                state={agentState} 
+                onMute={() => setIsCompanionMuted(!isCompanionMuted)}
+                muted={isCompanionMuted}
+             />
+          )}
+
+          {showDiagnostics && <div className="absolute bottom-4 left-4 z-40 animate-in slide-in-from-bottom-5 duration-300"><DiagnosticPanel state={halSnapshot} /></div>}
+          {showIOPanel && (
+             <div className="absolute top-4 right-4 z-40 animate-in slide-in-from-right-5 duration-300 bg-neuro-surface border border-neuro-primary shadow-hard p-0 flex flex-col w-[200px]">
+                <div className="bg-neuro-bg p-2 text-[10px] font-bold border-b border-neuro-dim flex justify-between">
+                   <span>VIRTUAL I/O BOARD</span>
+                   <Monitor size={12}/>
+                </div>
+                <div className="p-3 grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                   {Object.keys(simContext || {}).filter(k=>k.startsWith('led_')||k.startsWith('btn_')||k.startsWith('dsp_')).length === 0 && (
+                      <div className="col-span-2 text-center text-neuro-secondary italic text-[10px] py-4">
+                         No IO variables (led_*, btn_*, dsp_*) detected.
+                      </div>
+                   )}
+                   {Object.entries(simContext || {}).filter(([k]) => k.startsWith('led_')).map(([k, v]) => (
+                      <VirtualLED key={k} label={k.replace('led_','')} active={!!v} color={k.includes('red')?'red':k.includes('green')?'green':k.includes('blue')?'blue':'yellow'} />
+                   ))}
+                   {Object.entries(simContext || {}).filter(([k]) => k.startsWith('btn_')).map(([k, v]) => (
+                      <VirtualSwitch key={k} label={k.replace('btn_','')} active={!!v} onChange={(val) => {
+                         setSimContext(prev => ({...prev, [k]: val}));
+                         if(executorRef.current) executorRef.current.triggerEvent(val ? 'BTN_PRESS' : 'BTN_RELEASE');
+                      }} />
+                   ))}
+                   {Object.entries(simContext || {}).filter(([k]) => k.startsWith('dsp_')).map(([k, v]) => (
+                      <VirtualDisplay key={k} label={k.replace('dsp_','')} value={v as any} />
+                   ))}
+                </div>
+             </div>
+          )}
+          {showLayoutMenu && <LayoutMenu active={activeLayout} onClose={() => setShowLayoutMenu(false)} onSelect={applyLayout} />}
+          {contextMenu && (
+             <ContextMenu 
+                top={contextMenu.top} 
+                left={contextMenu.left} 
+                onClose={() => setContextMenu(null)} 
+                onAddNode={handleAddNodeFromContext} 
+                onGroupSelected={selectedNodeIds.length > 1 ? handleGroupSelection : undefined}
+                onAiDefine={selectedNodeIds.length === 1 ? () => {
+                   setRightPanelTab('PROPS');
+                   setShowRightPanel(true);
+                   setContextMenu(null);
+                   setTimeout(() => smartPromptInputRef.current?.focus(), 100);
+                } : undefined}
+             />
+          )}
         </div>
 
         {showRightPanel && (
           <div className="w-80 border-l border-neuro-dim bg-neuro-surface flex flex-col z-20 shadow-xl shrink-0">
              <div className="flex border-b border-neuro-dim bg-neuro-bg">
-               <button onClick={() => setRightPanelTab('PROPS')} className={clsx("flex-1 py-2 text-[10px] font-bold border-r border-neuro-dim hover:bg-neuro-surface transition-colors flex justify-center items-center gap-2", rightPanelTab === 'PROPS' ? "bg-neuro-surface border-b-2 border-b-neuro-primary text-neuro-primary" : "text-neuro-secondary")}>PROPS</button>
-               <button onClick={() => setRightPanelTab('DEBUG')} className={clsx("flex-1 py-2 text-[10px] font-bold border-r border-neuro-dim hover:bg-neuro-surface transition-colors flex justify-center items-center gap-2", rightPanelTab === 'DEBUG' ? "bg-neuro-surface border-b-2 border-b-neuro-primary text-neuro-primary" : "text-neuro-secondary")}>DEBUG</button>
-               <button onClick={() => setRightPanelTab('CHAT')} className={clsx("flex-1 py-2 text-[10px] font-bold hover:bg-neuro-surface transition-colors flex justify-center items-center gap-2", rightPanelTab === 'CHAT' ? "bg-neuro-surface border-b-2 border-b-neuro-primary text-neuro-primary" : "text-neuro-secondary")}>NEO AI</button>
+               <button 
+                  onClick={() => setRightPanelTab('PROPS')} 
+                  className={clsx("flex-1 py-2 text-[10px] font-bold border-r border-neuro-dim hover:bg-neuro-surface transition-colors flex justify-center items-center gap-2", rightPanelTab === 'PROPS' ? "bg-neuro-surface border-b-2 border-b-neuro-primary text-neuro-primary" : "text-neuro-secondary")}
+                  title="Properties"
+               >
+                  <Edit3 size={12}/> PROPS
+               </button>
+               <button 
+                  onClick={() => setRightPanelTab('DEBUG')} 
+                  className={clsx("flex-1 py-2 text-[10px] font-bold border-r border-neuro-dim hover:bg-neuro-surface transition-colors flex justify-center items-center gap-2", rightPanelTab === 'DEBUG' ? "bg-neuro-surface border-b-2 border-b-neuro-primary text-neuro-primary" : "text-neuro-secondary")}
+                  title="Debugger"
+               >
+                  <Cpu size={12}/> DEBUG
+               </button>
+               <button 
+                  onClick={() => setRightPanelTab('CHAT')} 
+                  className={clsx("flex-1 py-2 text-[10px] font-bold hover:bg-neuro-surface transition-colors flex justify-center items-center gap-2", rightPanelTab === 'CHAT' ? "bg-neuro-surface border-b-2 border-b-neuro-primary text-neuro-primary" : "text-neuro-secondary", isCompanionMode && "animate-pulse text-purple-600")}
+                  title="Neo AI Chat"
+               >
+                  <Waves size={12}/> NEO AI
+               </button>
              </div>
 
              <div className="flex-1 overflow-hidden relative">
+               {rightPanelTab === 'DEBUG' && (
+                  <Panel title="SIMULATION DEBUGGER" className="h-full border-0">
+                     <div className="p-4 space-y-6">
+                        {simStatus === SimulationStatus.IDLE && (
+                           <div className="text-center text-neuro-secondary p-4 border border-dashed border-neuro-dim rounded-sm">
+                              <Play size={24} className="mx-auto mb-2 opacity-50"/>
+                              <div className="text-xs">Simulation Idle</div>
+                              <Button onClick={startSimulation} className="mt-2 w-full text-[10px]">START SIM</Button>
+                           </div>
+                        )}
+                        {simStatus !== SimulationStatus.IDLE && (
+                           <>
+                              <div className={clsx("p-3 border rounded-sm", isShadowMode ? "bg-purple-50 border-purple-200" : "bg-green-50 border-green-200")}>
+                                 <div className={clsx("text-[10px] font-bold mb-1", isShadowMode ? "text-purple-800" : "text-green-800")}>
+                                    {isShadowMode ? "DIGITAL TWIN (HIL)" : "CURRENT STATE"}
+                                 </div>
+                                 <div className={clsx("text-xl font-bold font-mono", isShadowMode ? "text-purple-700" : "text-green-700")}>
+                                    {nodes.find(n=>n.id===activeStateId)?.data.label || 'Unknown'}
+                                 </div>
+                                 <div className={clsx("text-[10px] mt-1 flex gap-2", isShadowMode ? "text-purple-600" : "text-green-600")}>
+                                    <span>Transitions: {simHistory.length}</span>
+                                    <span>Time: {((Date.now() - (executorRef.current as any)?.startTime)/1000).toFixed(1)}s</span>
+                                 </div>
+                              </div>
+                              
+                              {simTelemetry && (
+                                 <div className="grid grid-cols-2 gap-2">
+                                    <MetricCard label="CPU Load" value={Math.round(simTelemetry.cpuLoad)} unit="%" />
+                                    <MetricCard label="Power" value={Math.round(simTelemetry.powerDrawMW)} unit="mW" />
+                                    <div className="col-span-2">
+                                       <ProgressBar value={simTelemetry.ramUsageBytes} max={8192} label="RAM Usage (8KB)" color="bg-purple-500"/>
+                                    </div>
+                                 </div>
+                              )}
+                              
+                              <div>
+                                 <Label>Active Variables (Context)</Label>
+                                 <div className="border border-neuro-dim rounded-sm overflow-hidden text-xs">
+                                    <table className="w-full">
+                                       <tbody className="bg-neuro-bg">
+                                          {Object.entries(simContext || {}).length === 0 && <tr><td className="p-2 text-neuro-secondary italic text-center">No variables</td></tr>}
+                                          {Object.entries(simContext || {}).map(([k, v]) => (
+                                             <tr key={k} className="border-b border-neuro-dim last:border-0">
+                                                <td className="p-2 font-bold text-neuro-secondary border-r border-neuro-dim w-1/3">{k}</td>
+                                                <td className="p-2 font-mono text-neuro-primary bg-neuro-surface">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</td>
+                                             </tr>
+                                          ))}
+                                       </tbody>
+                                    </table>
+                                 </div>
+                              </div>
+                              <div className="p-3 bg-neuro-bg border border-neuro-dim rounded-sm">
+                                 <div className="flex justify-between items-center mb-2">
+                                    <Label>Simulation Control</Label>
+                                    <span className="text-[9px] font-bold text-neuro-accent">{autoSimMode ? 'AUTO' : 'MANUAL'}</span>
+                                 </div>
+                                 <div className="flex gap-2 mb-3">
+                                    <Button className="flex-1" onClick={() => { setAutoSimMode(!autoSimMode); }} variant={autoSimMode ? 'primary' : 'ghost'} tooltip="Toggle Auto-Step">
+                                       {autoSimMode ? <Pause size={12}/> : <FastForward size={12}/>} {autoSimMode ? 'PAUSE' : 'AUTO-RUN'}
+                                    </Button>
+                                    <Button onClick={() => { if(executorRef.current) executorRef.current.triggerEvent('TICK'); }} tooltip="Manual Tick"><Clock size={12}/></Button>
+                                 </div>
+                                 {autoSimMode && (
+                                    <div className="px-1">
+                                       <input type="range" min="100" max="2000" step="100" value={simSpeed} onChange={(e) => setSimSpeed(Number(e.target.value))} className="w-full accent-neuro-primary h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer"/>
+                                       <div className="flex justify-between text-[9px] text-neuro-secondary mt-1"><span>Fast (100ms)</span><span>Slow (2s)</span></div>
+                                    </div>
+                                 )}
+                              </div>
+                           </>
+                        )}
+                     </div>
+                  </Panel>
+               )}
+
                {rightPanelTab === 'PROPS' && (
                   <Panel title="NODE PROPERTIES" className="h-full border-0">
-                     <div className="flex flex-col h-full">
+                     <div className="p-4 space-y-4">
                         {!selectedNode && (
                            <div className="text-center text-neuro-secondary p-8">
                               <MousePointerClick size={32} className="mx-auto mb-2 opacity-30"/>
@@ -1143,142 +1831,138 @@ function AppContent() {
                            </div>
                         )}
                         {selectedNode && (
-                           <div className="flex flex-col h-full">
-                              {/* --- NODE SETTINGS SUB-TABS --- */}
-                              <div className="flex border-b border-neuro-dim bg-neuro-bg text-[9px] font-bold">
-                                 <button onClick={() => setPropsSubTab('SETTINGS')} className={clsx("flex-1 py-1.5 hover:bg-neuro-surface", propsSubTab==='SETTINGS' ? "bg-neuro-surface text-neuro-primary border-b border-neuro-primary" : "text-neuro-secondary")}>SETTINGS</button>
-                                 <button onClick={() => setPropsSubTab('LOGIC')} className={clsx("flex-1 py-1.5 hover:bg-neuro-surface", propsSubTab==='LOGIC' ? "bg-neuro-surface text-neuro-primary border-b border-neuro-primary" : "text-neuro-secondary")}>LOGIC</button>
-                                 <button onClick={() => setPropsSubTab('AI')} className={clsx("flex-1 py-1.5 hover:bg-neuro-surface", propsSubTab==='AI' ? "bg-neuro-surface text-indigo-600 border-b border-indigo-600" : "text-neuro-secondary")}>AI ASSIST</button>
+                           <>
+                              <div>
+                                 <Label>Label</Label>
+                                 <Input value={selectedNode.data.label} onChange={(e) => {
+                                    const val = e.target.value;
+                                    setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: val } } : n));
+                                 }} />
+                              </div>
+                              
+                              <div>
+                                 <Label>Type</Label>
+                                 <select className="w-full bg-neuro-surface border border-neuro-dim text-xs px-2 py-2 outline-none font-mono text-neuro-primary" value={selectedNode.data.type} onChange={(e) => {
+                                    const val = e.target.value;
+                                    setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, type: val as any, data: { ...n.data, type: val as any } } : n));
+                                 }}>
+                                    {['input', 'process', 'decision', 'output', 'error', 'listener', 'hardware', 'uart', 'interrupt', 'timer', 'peripheral'].map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                                 </select>
                               </div>
 
-                              <div className="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-4">
-                                 {propsSubTab === 'SETTINGS' && (
-                                    <>
-                                       <div>
-                                          <Label>Node Label</Label>
-                                          <Input value={selectedNode.data.label} onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, label: e.target.value } } : n))} className="text-sm font-bold"/>
-                                       </div>
-                                       <div>
-                                          <Label>Type</Label>
-                                          <select className="w-full bg-neuro-surface border border-neuro-dim text-xs px-2 py-2 outline-none font-mono text-neuro-primary" value={selectedNode.data.type} onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, type: e.target.value as any, data: { ...n.data, type: e.target.value as any } } : n))}>
-                                             {['input', 'process', 'decision', 'output', 'error', 'listener', 'hardware', 'uart', 'interrupt', 'timer', 'peripheral'].map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
-                                          </select>
-                                       </div>
-                                       <div>
-                                          <Label>Tags</Label>
-                                          <Input 
-                                             placeholder="comma, separated, tags"
-                                             value={(selectedNode.data.tags || []).join(', ')} 
-                                             onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, tags: e.target.value.split(',').map(s=>s.trim()).filter(Boolean) } } : n))} 
-                                          />
-                                          <div className="flex gap-1 mt-2 flex-wrap">
-                                             {(selectedNode.data.tags || []).map(t => <span key={t} className="bg-neuro-bg border border-neuro-dim px-2 py-0.5 rounded text-[9px] text-neuro-secondary flex items-center gap-1"><Tag size={8}/> {t}</span>)}
-                                          </div>
-                                       </div>
-                                       <div>
-                                          <Label>Description</Label>
-                                          <textarea 
-                                             className="w-full h-20 bg-neuro-surface border border-neuro-dim p-2 text-xs text-neuro-secondary outline-none resize-none focus:border-neuro-primary"
-                                             value={selectedNode.data.description || ''}
-                                             onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, description: e.target.value } } : n))}
-                                             placeholder="Node documentation..."
-                                          />
-                                       </div>
-                                    </>
-                                 )}
-
-                                 {propsSubTab === 'LOGIC' && (
-                                    <>
-                                       <div className="space-y-2">
-                                          <Label>Entry Action (JavaScript)</Label>
-                                          <div className="relative group">
-                                             <div className="absolute top-2 right-2 text-[9px] text-neuro-secondary opacity-0 group-hover:opacity-100 bg-neuro-surface px-1 border border-neuro-dim rounded">JS</div>
-                                             <textarea className="w-full h-40 bg-[#1e1e1e] text-gray-300 border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y leading-relaxed" 
-                                                value={selectedNode.data.entryAction || ''}
-                                                onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, entryAction: e.target.value } } : n))}
-                                                placeholder="// e.g. ctx.count++; HAL.writePin(1, true);"
-                                                spellCheck={false}
-                                             />
-                                          </div>
-                                       </div>
-                                       <div className="space-y-2">
-                                          <Label>Exit Action (JavaScript)</Label>
-                                          <textarea className="w-full h-24 bg-[#1e1e1e] text-gray-300 border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y leading-relaxed" 
-                                             value={selectedNode.data.exitAction || ''}
-                                             onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, exitAction: e.target.value } } : n))}
-                                             placeholder="// Cleanup code"
-                                             spellCheck={false}
-                                          />
-                                       </div>
-                                       <div className="bg-neuro-bg p-2 text-[9px] text-neuro-secondary border border-neuro-dim rounded">
-                                          <strong>Available Globals:</strong> <code>ctx</code> (state), <code>HAL</code> (hardware), <code>dispatch(event, delay)</code>, <code>console</code>.
-                                       </div>
-                                    </>
-                                 )}
-
-                                 {propsSubTab === 'AI' && (
-                                    <div className="space-y-4">
-                                       <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-sm shadow-sm relative">
-                                          <div className="flex justify-between items-center mb-2">
-                                             <div className="text-[10px] font-bold text-indigo-800 flex items-center gap-1"><Sparkles size={10}/> DEFINE NODE LOGIC</div>
-                                          </div>
-                                          <textarea 
-                                             ref={smartPromptInputRef}
-                                             className="w-full h-24 text-xs p-2 border border-indigo-200 rounded-sm outline-none resize-none mb-2 font-mono text-indigo-900 placeholder:text-indigo-300 focus:border-indigo-400 transition-colors bg-white/50" 
-                                             placeholder="Describe logic... e.g. 'Read ADC channel 1, if value > 2000, dispatch HIGH_VAL event, else LOW_VAL'"
-                                             value={smartPrompt}
-                                             onChange={(e) => setSmartPrompt(e.target.value)}
-                                          />
-                                          <div className="flex gap-2 mb-2 overflow-x-auto pb-1">
-                                             {['Blink LED', 'Read Sensor', 'Wait Timer', 'Serial Print'].map(p => (
-                                                <button key={p} onClick={() => setSmartPrompt(p)} className="text-[9px] bg-white border border-indigo-200 px-2 py-1 rounded text-indigo-600 hover:bg-indigo-50 whitespace-nowrap">
-                                                   {p}
-                                                </button>
-                                             ))}
-                                          </div>
-                                          <Button onClick={handleSmartLogicGenerate} disabled={isAiLoading || !smartPrompt} className="w-full border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 shadow-sm">
-                                             {isAiLoading ? <><Loader2 size={10} className="animate-spin"/> GENERATING...</> : 'GENERATE SCRIPT'}
-                                          </Button>
-                                       </div>
-
-                                       {selectedNode.data.aiReasoning && (
-                                          <div className="bg-yellow-50 border border-yellow-200 p-2 text-[10px] text-yellow-800 rounded-sm leading-relaxed animate-in fade-in slide-in-from-top-2">
-                                             <strong className="block mb-1 opacity-70 flex items-center gap-1"><Bot size={10}/> AI EXPLANATION:</strong>
-                                             {selectedNode.data.aiReasoning}
-                                          </div>
-                                       )}
-                                       
-                                       <div className="text-[9px] text-gray-400 text-center italic">
-                                          AI will generate JavaScript for the 'Entry Action' based on your prompt and existing context variables.
-                                       </div>
-                                    </div>
-                                 )}
+                              <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-sm shadow-sm relative">
+                                 <div className="flex justify-between items-center mb-2">
+                                    <div className="text-[10px] font-bold text-indigo-800 flex items-center gap-1"><Sparkles size={10}/> DEFINE NODE LOGIC</div>
+                                 </div>
+                                 <textarea 
+                                    ref={smartPromptInputRef}
+                                    className="w-full h-20 text-xs p-2 border border-indigo-200 rounded-sm outline-none resize-none mb-2 font-mono text-indigo-900 placeholder:text-indigo-300 focus:border-indigo-400 transition-colors" 
+                                    placeholder="e.g. 'Read ADC on pin 1, check if > 2000, then switch to High State'"
+                                    value={smartPrompt}
+                                    onChange={(e) => setSmartPrompt(e.target.value)}
+                                 />
+                                 <Button onClick={handleSmartLogicGenerate} disabled={isAiLoading || !smartPrompt} className="w-full border-indigo-300 text-indigo-700 bg-white hover:bg-indigo-50 shadow-sm">
+                                    {isAiLoading ? <><Loader2 size={10} className="animate-spin"/> GENERATING...</> : 'GENERATE SCRIPT'}
+                                 </Button>
                               </div>
-                           </div>
+
+                              {selectedNode.data.aiReasoning && (
+                                 <div className="bg-yellow-50 border border-yellow-200 p-2 text-[10px] text-yellow-800 rounded-sm leading-relaxed">
+                                    <strong className="block mb-1 opacity-70">AI REASONING:</strong>
+                                    {selectedNode.data.aiReasoning}
+                                 </div>
+                              )}
+
+                              <div className="space-y-2">
+                                 <Label>Entry Action (JS)</Label>
+                                 <textarea className="w-full h-24 bg-neuro-bg border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y text-neuro-primary" 
+                                    value={selectedNode.data.entryAction || ''}
+                                    onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, entryAction: e.target.value } } : n))}
+                                    placeholder="// e.g. ctx.count++"
+                                 />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                 <Label>Exit Action (JS)</Label>
+                                 <textarea className="w-full h-24 bg-neuro-bg border border-neuro-dim text-[10px] font-mono p-2 outline-none focus:border-neuro-primary resize-y text-neuro-primary" 
+                                    value={selectedNode.data.exitAction || ''}
+                                    onChange={(e) => setNodes(nds => nds.map(n => n.id === selectedNodeId ? { ...n, data: { ...n.data, exitAction: e.target.value } } : n))}
+                                    placeholder="// Cleanup code"
+                                 />
+                              </div>
+
+                              <div className="pt-4 border-t border-neuro-dim">
+                                 <Button onClick={handleGenerateRegisterMap} className="w-full mb-2">Generate registers.h</Button>
+                                 <div className="text-[9px] text-neuro-secondary text-center">AI analyzes 'ctx' variables</div>
+                              </div>
+                           </>
                         )}
                      </div>
                   </Panel>
                )}
-               {/* ... Other Tabs (DEBUG, CHAT) ... */}
-               {rightPanelTab === 'DEBUG' && (
-                  <Panel title="SIMULATION DEBUGGER" className="h-full border-0">
-                     {/* ... Debugger Content (same as before) ... */}
-                     <div className="p-4 space-y-6">
-                        {/* Placeholder for brevity, existing logic is fine */}
-                        {simStatus === SimulationStatus.IDLE ? <div className="text-center text-neuro-secondary p-4 border border-dashed border-neuro-dim rounded-sm"><Play size={24} className="mx-auto mb-2 opacity-50"/><div className="text-xs">Simulation Idle</div><Button onClick={startSimulation} className="mt-2 w-full text-[10px]">START SIM</Button></div> : <div><div className={clsx("p-3 border rounded-sm", isShadowMode ? "bg-purple-50 border-purple-200" : "bg-green-50 border-green-200")}><div className={clsx("text-[10px] font-bold mb-1", isShadowMode ? "text-purple-800" : "text-green-800")}>{isShadowMode ? "DIGITAL TWIN (HIL)" : "CURRENT STATE"}</div><div className={clsx("text-xl font-bold font-mono", isShadowMode ? "text-purple-700" : "text-green-700")}>{nodes.find(n=>n.id===activeStateId)?.data.label || 'Unknown'}</div><div className={clsx("text-[10px] mt-1 flex gap-2", isShadowMode ? "text-purple-600" : "text-green-600")}><span>Transitions: {simHistory.length}</span></div></div></div>}
-                     </div>
-                  </Panel>
-               )}
+
                {rightPanelTab === 'CHAT' && (
                   <Panel title="AI ASSISTANT (NEO)" className="h-full border-0 flex flex-col">
                      <div className="flex flex-col h-full relative">
-                        {isCompanionMode && <div className="absolute top-0 left-0 right-0 bg-purple-50 text-purple-700 text-[10px] p-2 text-center border-b border-purple-100 flex items-center justify-center gap-2 animate-in slide-in-from-top-2 z-10"><Waves size={12} className="animate-pulse"/> Voice Agent Active</div>}
+                        {isCompanionMode && (
+                           <div className="absolute top-0 left-0 right-0 bg-purple-50 text-purple-700 text-[10px] p-2 text-center border-b border-purple-100 flex items-center justify-center gap-2 animate-in slide-in-from-top-2 z-10">
+                              <Waves size={12} className="animate-pulse"/> Voice Agent Active. You can also text below.
+                           </div>
+                        )}
                         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar pb-20" ref={chatScrollRef}>
-                           {activeProject.chatHistory.map(msg => (<div key={msg.id} className={clsx("p-3 rounded-lg text-xs leading-relaxed break-words shadow-sm", msg.role === 'user' ? "bg-neuro-primary text-neuro-surface ml-8" : msg.role === 'system' ? "bg-neuro-bg text-neuro-secondary mx-8 italic border border-neuro-dim text-center" : "bg-neuro-surface text-neuro-primary mr-8 border border-neuro-dim")}>{msg.role !== 'system' && <div className="font-bold mb-1 opacity-70 text-[9px] uppercase tracking-wider">{msg.role}</div>}{msg.role === 'system' ? <span className="flex items-center justify-center gap-2"><Sparkles size={10}/> {msg.content}</span> : renderMessageContent(msg.content)}</div>))}
-                           {isAiLoading && <div className="flex justify-center p-4"><div className="flex items-center gap-2 text-neuro-secondary text-xs animate-pulse"><Loader2 size={14} className="animate-spin"/> Thinking...</div></div>}
+                           {activeProject.chatHistory.length === 0 && <div className="text-neuro-secondary text-center italic mt-10">Ask me anything or attach an image to build a graph...</div>}
+                           {activeProject.chatHistory.map(msg => (
+                              <div key={msg.id} className={clsx("p-3 rounded-lg text-xs leading-relaxed break-words shadow-sm", 
+                                 msg.role === 'user' ? "bg-neuro-primary text-neuro-surface ml-8" : 
+                                 msg.role === 'system' ? "bg-neuro-bg text-neuro-secondary mx-8 italic border border-neuro-dim text-center" :
+                                 "bg-neuro-surface text-neuro-primary mr-8 border border-neuro-dim"
+                              )}>
+                                 {msg.role !== 'system' && <div className="font-bold mb-1 opacity-70 text-[9px] uppercase tracking-wider">{msg.role}</div>}
+                                 {msg.role === 'system' ? <span className="flex items-center justify-center gap-2"><Sparkles size={10}/> {msg.content}</span> : renderMessageContent(msg.content)}
+                              </div>
+                           ))}
+                           {isAiLoading && (
+                              <div className="flex justify-center p-4">
+                                 <div className="flex items-center gap-2 text-neuro-secondary text-xs animate-pulse">
+                                    <Loader2 size={14} className="animate-spin"/> Thinking...
+                                 </div>
+                              </div>
+                           )}
                         </div>
                         <div className="p-3 border-t border-neuro-dim bg-neuro-bg absolute bottom-0 left-0 right-0">
-                           <div className="flex gap-2"><textarea className="flex-1 min-h-[40px] max-h-[100px] border border-neuro-dim bg-neuro-surface text-neuro-primary p-2 text-xs outline-none focus:border-neuro-primary rounded-sm resize-none placeholder:text-neuro-secondary/50" placeholder={isCompanionMode ? "Type to Neo..." : "Type query..."} value={aiQuery} onChange={e => setAiQuery(e.target.value)} onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }} /><Button onClick={handleChatSend} disabled={isAiLoading || !aiQuery.trim()}><Send size={14}/></Button></div>
+                           {chatAttachment && (
+                              <div className="mb-2 p-2 bg-neuro-surface border border-neuro-dim rounded flex items-center justify-between">
+                                 <div className="flex items-center gap-2">
+                                    {chatAttachment.mimeType.startsWith('image/') ? 
+                                       <img src={chatAttachment.preview} className="w-8 h-8 object-cover rounded border" alt="attachment" /> : 
+                                       <div className="w-8 h-8 bg-neuro-dim flex items-center justify-center rounded"><FileCode size={16}/></div>
+                                    }
+                                    <div className="text-[10px] text-neuro-secondary truncate max-w-[150px]">{chatAttachment.mimeType}</div>
+                                 </div>
+                                 <button onClick={() => setChatAttachment(null)} className="text-neuro-secondary hover:text-red-500"><X size={14}/></button>
+                              </div>
+                           )}
+                           
+                           <div className="flex gap-2">
+                              <button onClick={() => chatFileRef.current?.click()} className="p-2 text-neuro-secondary hover:text-neuro-primary hover:bg-neuro-surface rounded border border-transparent hover:border-neuro-dim transition-all" title="Attach Image/Video">
+                                 <Paperclip size={14}/>
+                              </button>
+                              <textarea 
+                                 className="flex-1 min-h-[40px] max-h-[100px] border border-neuro-dim bg-neuro-surface text-neuro-primary p-2 text-xs outline-none focus:border-neuro-primary rounded-sm resize-none placeholder:text-neuro-secondary/50"
+                                 placeholder={isCompanionMode ? "Type to Neo..." : "Type query or attach flowchart..."}
+                                 value={aiQuery}
+                                 onChange={e => setAiQuery(e.target.value)}
+                                 onKeyDown={e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); } }}
+                              />
+                              <Button onClick={handleChatSend} disabled={isAiLoading || (!aiQuery.trim() && !chatAttachment)}><Send size={14}/></Button>
+                           </div>
+                           <div className="mt-2 flex justify-between">
+                              <div className="text-[9px] text-neuro-secondary flex gap-2">
+                                 <button className="hover:text-neuro-primary underline decoration-dotted" onClick={() => setAiQuery("Find dead ends in the graph.")}>Find Issues</button>
+                                 <button className="hover:text-neuro-primary underline decoration-dotted" onClick={() => setAiQuery("Optimize this for low power.")}>Optimize</button>
+                              </div>
+                              <button className="text-[9px] text-neuro-primary font-bold hover:underline" onClick={handlePowerAnalysis}>POWER REPORT</button>
+                           </div>
                         </div>
                      </div>
                   </Panel>
@@ -1287,13 +1971,224 @@ function AppContent() {
           </div>
         )}
       </div>
-      {/* ... [Bottom Panel & Modals] ... */}
-      {showBottomPanel && <div className="h-48 border-t border-neuro-dim bg-neuro-surface flex flex-col shrink-0"><div className="flex border-b border-neuro-dim">{['OUTPUT', 'PROBLEMS'].map(tab => (<button key={tab} onClick={() => setActiveBottomTab(tab as any)} className={clsx("px-4 py-1.5 text-[10px] font-bold tracking-wider hover:bg-neuro-bg border-r border-neuro-dim", activeBottomTab === tab ? "bg-neuro-bg text-neuro-primary border-b-2 border-b-neuro-primary" : "text-neuro-secondary")}>{tab}</button>))}<div className="flex-1 bg-neuro-bg"></div><button onClick={() => setShowBottomPanel(false)} className="px-3 hover:bg-red-50 hover:text-red-500 text-neuro-secondary"><X size={14}/></button></div><div className="flex-1 overflow-auto p-0 custom-scrollbar font-mono">{activeBottomTab === 'OUTPUT' && <div className="p-2 space-y-1">{logs.map(log => (<div key={log.id} className="text-[11px] flex gap-2 font-mono border-b border-neuro-dim pb-0.5"><span className="text-neuro-secondary/70 w-16 shrink-0">{log.timestamp}</span><span className="font-bold w-12 shrink-0">[{log.source}]</span><span>{log.message}</span></div>))}</div>}</div></div>}
+
+      {showBottomPanel && (
+        <div className="h-48 border-t border-neuro-dim bg-neuro-surface flex flex-col shrink-0">
+           <div className="flex border-b border-neuro-dim">
+              {['OUTPUT', 'PROBLEMS', 'VALIDATION', 'RESOURCES', 'SERIAL', 'LOGIC'].map(tab => (
+                 <button key={tab} onClick={() => setActiveBottomTab(tab as any)} className={clsx("px-4 py-1.5 text-[10px] font-bold tracking-wider hover:bg-neuro-bg border-r border-neuro-dim", activeBottomTab === tab ? "bg-neuro-bg text-neuro-primary border-b-2 border-b-neuro-primary" : "text-neuro-secondary")}>
+                    {tab} {tab==='PROBLEMS' && ghostIssues.length > 0 && `(${ghostIssues.length})`}
+                 </button>
+              ))}
+              <div className="flex-1 bg-neuro-bg"></div>
+              <button onClick={() => setShowBottomPanel(false)} className="px-3 hover:bg-red-50 hover:text-red-500 text-neuro-secondary"><X size={14}/></button>
+           </div>
+           
+           <div className="flex-1 overflow-auto p-0 custom-scrollbar font-mono">
+              {activeBottomTab === 'OUTPUT' && (
+                 <div className="p-2 space-y-1">
+                    {logs.length === 0 && <div className="text-neuro-secondary italic p-2">System logs will appear here...</div>}
+                    {logs.map(log => (
+                       <div key={log.id} className={clsx("text-[11px] flex gap-2 font-mono border-b border-neuro-dim pb-0.5", log.type === 'error' ? "text-red-600" : log.type === 'warning' ? "text-orange-600" : log.type === 'success' ? "text-green-600" : "text-neuro-secondary")}>
+                          <span className="text-neuro-secondary/70 w-16 shrink-0">{log.timestamp}</span>
+                          <span className="font-bold w-12 shrink-0">[{log.source}]</span>
+                          <span>{log.message}</span>
+                       </div>
+                    ))}
+                 </div>
+              )}
+              {activeBottomTab === 'PROBLEMS' && (
+                 <div className="p-0">
+                    <table className="w-full text-left border-collapse">
+                       <thead className="bg-neuro-bg text-neuro-secondary font-bold sticky top-0">
+                          <tr><th className="p-2 border-b border-neuro-dim">Severity</th><th className="p-2 border-b border-neuro-dim">Issue</th><th className="p-2 border-b border-neuro-dim">Location</th></tr>
+                       </thead>
+                       <tbody>
+                          {ghostIssues.map(issue => (
+                             <tr key={issue.id} className="hover:bg-neuro-bg border-b border-neuro-dim cursor-pointer" onClick={() => { if(issue.nodeId) { setSelectedNodeId(issue.nodeId); reactFlowInstance.fitView({ nodes: [{id: issue.nodeId} as any], duration: 500, minZoom: 1 }); } }}>
+                                <td className="p-2"><span className={clsx("px-1.5 py-0.5 rounded text-[9px] font-bold border", issue.severity === 'CRITICAL' ? "bg-red-50 text-red-600 border-red-200" : "bg-yellow-50 text-yellow-600 border-yellow-200")}>{issue.severity}</span></td>
+                                <td className="p-2">
+                                   <div className="font-bold text-neuro-primary">{issue.title}</div>
+                                   <div className="text-neuro-secondary">{issue.description}</div>
+                                </td>
+                                <td className="p-2 text-neuro-secondary font-mono">{issue.nodeId || 'Graph'}</td>
+                             </tr>
+                          ))}
+                          {ghostIssues.length === 0 && <tr><td colSpan={3} className="p-8 text-center text-neuro-secondary italic">No design issues detected. Good job!</td></tr>}
+                       </tbody>
+                    </table>
+                    {ghostIssues.length > 0 && (
+                       <div className="p-2 flex justify-end">
+                          <Button onClick={handleAutoFix} variant="primary" className="text-xs">
+                             <Wand2 size={12}/> Auto-Fix All Issues
+                          </Button>
+                       </div>
+                    )}
+                 </div>
+              )}
+              {activeBottomTab === 'VALIDATION' && (
+                 <div className="p-4">
+                    {!validationReport && (
+                       <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50 text-neuro-secondary">
+                          <Shield size={32}/>
+                          <Button onClick={handleRunValidationWrapper} disabled={isValidating}>{isValidating ? 'ANALYZING...' : 'RUN DEEP ANALYSIS'}</Button>
+                       </div>
+                    )}
+                    {validationReport && (
+                       <div className="grid grid-cols-2 gap-6">
+                          <div>
+                             <h4 className="font-bold text-neuro-primary mb-2 flex items-center gap-2"><Bug size={14}/> AI CRITIQUE</h4>
+                             <ul className="list-disc pl-4 space-y-1 text-neuro-secondary">
+                                {validationReport.critique.map((c, i) => <li key={i}>{c}</li>)}
+                             </ul>
+                             <h4 className="font-bold text-neuro-primary mt-4 mb-2 flex items-center gap-2"><Sparkles size={14}/> SUGGESTIONS</h4>
+                             <ul className="list-disc pl-4 space-y-1 text-green-700">
+                                {validationReport.suggestions.map((s, i) => <li key={i}>{s}</li>)}
+                             </ul>
+                          </div>
+                          <div>
+                             <h4 className="font-bold text-neuro-primary mb-2 flex items-center gap-2"><FlaskConical size={14}/> GENERATED TEST CASES</h4>
+                             <div className="space-y-2">
+                                {validationReport.testCases.map((tc, i) => (
+                                   <div key={i} className="bg-neuro-bg border border-neuro-dim p-2 rounded-sm">
+                                      <div className="font-bold text-xs text-neuro-primary">{tc.name}</div>
+                                      <div className="text-[10px] text-neuro-secondary mt-1">Seq: {(tc.sequence || []).join(' -> ')}</div>
+                                      <div className="text-[10px] text-neuro-secondary">Expect: {tc.expectedState}</div>
+                                      <Button className="w-full mt-2 h-6 text-[9px]" onClick={() => { showToast('Auto-running test case...', 'info'); }}>RUN TEST</Button>
+                                   </div>
+                                ))}
+                             </div>
+                          </div>
+                       </div>
+                    )}
+                 </div>
+              )}
+              {activeBottomTab === 'RESOURCES' && (
+                 <div className="p-4">
+                    {!resourceMetrics && (
+                       <div className="flex flex-col items-center justify-center h-full gap-3 opacity-50 text-neuro-secondary">
+                          <Gauge size={32}/>
+                          <Button onClick={handleEstimateResourcesWrapper} disabled={isEstimating}>{isEstimating ? 'CALCULATING...' : 'ESTIMATE HARDWARE USAGE'}</Button>
+                       </div>
+                    )}
+                    {resourceMetrics && (
+                       <div>
+                          <div className="grid grid-cols-4 gap-4 mb-6">
+                             <MetricCard label="Logic Cells (LUT)" value={resourceMetrics.lutUsage} unit="%" />
+                             <MetricCard label="Flip-Flops" value={resourceMetrics.ffUsage} />
+                             <MetricCard label="Memory" value={resourceMetrics.memoryKB} unit="KB" />
+                             <MetricCard label="Est. Power" value={resourceMetrics.powermW} unit="mW" />
+                          </div>
+                          <div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-sm">
+                             <div className="font-bold mb-1">AI SUMMARY</div>
+                             {resourceMetrics.summary}
+                          </div>
+                       </div>
+                    )}
+                 </div>
+              )}
+              {activeBottomTab === 'SERIAL' && (
+                 <SerialMonitor state={halSnapshot} />
+              )}
+              {activeBottomTab === 'LOGIC' && (
+                 <div className="w-full h-full p-2 bg-[#111] overflow-hidden">
+                    <LogicAnalyzer 
+                       history={halHistory} 
+                       channels={[
+                          ...Object.keys(halHistory[halHistory.length-1]?.signals || {}).filter(k=>k.includes('GPIO')),
+                          ...Object.keys(halHistory[halHistory.length-1]?.signals || {}).filter(k=>k.includes('PWM')),
+                          'ADC_0',
+                          'ADC_1'
+                       ]} 
+                       height={160}
+                    />
+                 </div>
+              )}
+           </div>
+        </div>
+      )}
+
+      <div className="h-7 bg-[#111827] text-gray-400 text-[10px] flex items-center px-2 justify-between select-none shrink-0 border-t border-gray-800 z-50 font-medium">
+         <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 hover:text-white cursor-pointer transition-colors" title="Git Branch">
+                <GitBranch size={12}/> 
+                <span>main*</span>
+            </div>
+            <div className="flex items-center gap-1.5 hover:text-white cursor-pointer transition-colors" title="Device Target">
+                <CircuitBoard size={12}/> 
+                <span>{targetMcu.name}</span>
+            </div>
+            <div className={clsx("flex items-center gap-1.5 transition-colors", isDeviceConnected ? "text-green-500" : "text-gray-500")} title="Connection Status">
+                <div className={clsx("w-1.5 h-1.5 rounded-full", isDeviceConnected ? "bg-green-500 animate-pulse" : "bg-gray-500")}></div>
+                {isDeviceConnected ? "CONNECTED" : "OFFLINE"}
+            </div>
+         </div>
+
+         <div className="flex items-center gap-4">
+             <div className={clsx("flex items-center gap-1.5 px-2 py-0.5 rounded", simStatus === SimulationStatus.RUNNING ? "bg-green-900/30 text-green-400" : "")}>
+                <Activity size={12}/>
+                <span>{isShadowMode ? "SHADOW LINK" : simStatus}</span>
+             </div>
+         </div>
+
+         <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+                <span title="Total Nodes">N: {nodes.length}</span>
+                <span title="Total Edges">E: {edges.length}</span>
+                {simStatus === SimulationStatus.RUNNING && (
+                    <span className="text-blue-400" title="Active Nodes">
+                        Active: {nodes.filter(n => n.data.executionState === 'entry' || n.data.executionState === 'exit').length}
+                    </span>
+                )}
+            </div>
+            
+            <div className={clsx("flex items-center gap-1.5 px-2 py-0.5 rounded transition-all", isWakeWordActive ? "bg-green-500/20 text-green-400 animate-pulse" : "text-gray-500")}>
+                <Ear size={12} className={isWakeWordActive ? "animate-bounce" : ""} />
+                <span>{isWakeWordActive ? 'LISTENING' : 'STANDBY'}</span>
+            </div>
+
+            <div className={clsx("flex items-center gap-1.5 px-2 py-0.5 rounded transition-all", agentState !== 'IDLE' ? "bg-neuro-accent text-white" : "text-gray-500")}>
+                {agentState !== 'IDLE' ? <Waves size={12} className="animate-pulse"/> : <Bot size={12}/>}
+                <span>{agentState === 'IDLE' ? 'AI READY' : agentState}</span>
+            </div>
+
+            <div className="pl-2 border-l border-gray-700">
+                {activeLayout.replace('_', ' ')}
+            </div>
+         </div>
+      </div>
+
+      <div className="fixed top-12 right-4 z-[100] flex flex-col items-end pointer-events-none">
+         {toasts.map(t => (
+            <div key={t.id} className="pointer-events-auto">
+               <Toast {...t} onClose={closeToast} />
+            </div>
+         ))}
+      </div>
+
       {showTemplateBrowser && <TemplateBrowser onSelect={handleCreateProjectFromTemplate} onClose={() => setShowTemplateBrowser(false)} />}
       {showDeviceManager && <DeviceManagerModal onClose={() => setShowDeviceManager(false)} onConnect={handleConnectDevice} isConnected={isDeviceConnected} />}
       {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
       {showDocsModal && <DocumentationModal onClose={() => setShowDocsModal(false)} />}
       {showVeoModal && <VeoModal onClose={() => setShowVeoModal(false)} />}
+      {showDatasheetModal && (
+         <div className="fixed inset-0 z-[100] bg-neuro-primary/50 backdrop-blur-sm flex items-center justify-center p-8">
+            <div className="bg-neuro-surface border border-neuro-primary shadow-hard w-full max-w-lg flex flex-col animate-in zoom-in-95 duration-150">
+               <div className="bg-neuro-primary text-white p-3 font-bold flex justify-between items-center">
+                  <span>DATASHEET ANALYSIS</span>
+                  <button onClick={() => setShowDatasheetModal(false)}><X size={16}/></button>
+               </div>
+               <div className="p-4">
+                  <p className="text-neuro-secondary mb-2">Paste relevant section from PDF (Timings, Registers, Constraints):</p>
+                  <textarea className="w-full h-40 border border-neuro-dim p-2 text-xs font-mono mb-4 outline-none focus:border-neuro-primary bg-neuro-surface text-neuro-primary" placeholder="Paste text here..." value={datasheetInput} onChange={e => setDatasheetInput(e.target.value)} />
+                  <div className="flex justify-end gap-2">
+                     <Button variant="ghost" onClick={() => setShowDatasheetModal(false)}>Cancel</Button>
+                     <Button onClick={handleAnalyzeDatasheet} disabled={!datasheetInput || isAiLoading}>{isAiLoading ? 'ANALYZING...' : 'EXTRACT RULES'}</Button>
+                  </div>
+               </div>
+            </div>
+         </div>
+      )}
     </div>
   );
 }
