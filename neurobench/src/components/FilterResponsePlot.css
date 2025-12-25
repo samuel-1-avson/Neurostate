@@ -1,0 +1,114 @@
+.filter-response {
+  background: var(--surface-alt, #1a1a2e);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #333);
+}
+
+.plot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.plot-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.plot-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.plot-controls button {
+  padding: 0.375rem 0.75rem;
+  background: var(--surface, #252540);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 4px;
+  color: var(--text-secondary, #999);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plot-controls button:hover {
+  background: var(--surface-hover, #2a2a4a);
+}
+
+.plot-controls button.active {
+  background: var(--primary, #00d4ff);
+  color: #000;
+  border-color: var(--primary, #00d4ff);
+}
+
+.plot-info {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #999);
+}
+
+.filter-badge {
+  background: var(--primary, #00d4ff);
+  color: #000;
+  padding: 0.125rem 0.5rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.plot-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.plot-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.y-axis {
+  position: absolute;
+  left: -50px;
+  top: 0;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  color: var(--text-secondary, #666);
+  text-align: right;
+  padding-right: 8px;
+}
+
+.x-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding: 0 0.5rem;
+  font-size: 0.625rem;
+  color: var(--text-secondary, #666);
+}
+
+.plot-svg {
+  width: 100%;
+  height: 200px;
+  background: var(--surface, #0a0a1a);
+  border-radius: 4px;
+  border: 1px solid var(--border-color, #333);
+}
+
+.plot-label {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #999);
+}

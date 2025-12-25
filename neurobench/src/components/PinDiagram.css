@@ -1,0 +1,256 @@
+/* Visual Pin Diagram Styles */
+
+.pin-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: #1a1a2e;
+  border-radius: 8px;
+  min-height: 300px;
+}
+
+.pin-diagram-loading,
+.pin-diagram-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+  font-size: 12px;
+}
+
+.pin-diagram-error {
+  color: #ff6b6b;
+}
+
+.pin-diagram-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.pin-diagram-mcu-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #00d4ff;
+}
+
+.pin-diagram-package {
+  font-size: 11px;
+  color: #666;
+  background: #2a2a4a;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.pin-diagram-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.mcu-chip {
+  display: flex;
+  position: relative;
+  background: linear-gradient(135deg, #1f1f3a 0%, #16162b 100%);
+  border: 2px solid #3a3a5a;
+  border-radius: 8px;
+  padding: 40px 60px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.mcu-chip-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: #4a4a6a;
+  writing-mode: horizontal-tb;
+}
+
+.pin-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pin-column.left {
+  margin-right: 40px;
+}
+
+.pin-column.right {
+  margin-left: 40px;
+}
+
+.pin {
+  width: 60px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #444;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.pin:hover {
+  transform: scale(1.05);
+  border-color: #fff;
+  z-index: 10;
+}
+
+.pin.selected {
+  border-color: #00d4ff;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+}
+
+.pin-label {
+  font-size: 8px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pin Function Popup */
+.pin-function-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1f1f3a;
+  border: 1px solid #3a3a5a;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.pin-function-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #16162b;
+  font-weight: 600;
+  font-size: 12px;
+  color: #00d4ff;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+
+.close-btn:hover {
+  color: #ff6b6b;
+}
+
+.pin-function-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.pin-function-btn {
+  background: none;
+  border: none;
+  padding: 10px 12px;
+  text-align: left;
+  color: #eaeaea;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pin-function-btn:hover {
+  background: #2a2a4a;
+}
+
+/* Legend */
+.pin-legend {
+  padding: 8px;
+  background: #16162b;
+  border-radius: 6px;
+}
+
+.legend-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #aaa;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* Configured Pins Summary */
+.pin-config-summary {
+  padding: 8px;
+  background: #16162b;
+  border-radius: 6px;
+  border: 1px solid #00d4ff33;
+}
+
+.summary-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #00d4ff;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.config-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  padding: 4px 0;
+}
+
+.config-pin {
+  font-weight: 600;
+  color: #eaeaea;
+}
+
+.config-arrow {
+  color: #666;
+}
+
+.config-func {
+  font-weight: 500;
+}

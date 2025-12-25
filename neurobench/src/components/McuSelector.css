@@ -1,0 +1,199 @@
+.mcu-selector {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mcu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mcu-header h3 {
+  margin: 0;
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+}
+
+.selected-badge {
+  background: var(--primary, #4a9eff);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.vendor-filter {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.vendor-btn {
+  background: var(--code-bg, #1a1a1a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  color: var(--text-secondary, #888);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vendor-btn:hover {
+  background: var(--hover-bg, #2a2a2a);
+  color: var(--text-primary, #fff);
+}
+
+.vendor-btn.active {
+  color: #fff;
+  border-color: transparent;
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-secondary, #888);
+  padding: 20px;
+}
+
+.mcu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.mcu-card {
+  background: var(--code-bg, #0d0d0d);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mcu-card:hover {
+  border-color: var(--primary, #4a9eff);
+  transform: translateY(-1px);
+}
+
+.mcu-card.selected {
+  border-color: var(--primary, #4a9eff);
+  background: rgba(74, 158, 255, 0.1);
+}
+
+.mcu-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 3px solid var(--primary);
+  padding-left: 8px;
+  margin-bottom: 6px;
+}
+
+.mcu-family {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.mcu-arch {
+  font-size: 9px;
+  color: var(--text-secondary, #888);
+}
+
+.mcu-card-body {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.mcu-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 8px;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.mcu-features {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.feature-badge {
+  font-size: 8px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.feature-badge.fpu {
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ade80;
+}
+
+.feature-badge.dsp {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.feature-badge.ble {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.feature-badge.wifi {
+  background: rgba(168, 85, 247, 0.2);
+  color: #a855f7;
+}
+
+.mcu-details {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 1px solid var(--primary, #4a9eff);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.mcu-details h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: var(--text-primary, #fff);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 9px;
+  color: var(--text-secondary, #888);
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-size: 11px;
+  color: var(--text-primary, #fff);
+}

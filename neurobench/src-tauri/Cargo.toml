@@ -1,0 +1,84 @@
+[package]
+name = "neurobench"
+version = "0.1.0"
+description = "NeuroBench - Industrial-Grade Embedded Systems Workbench"
+authors = ["NeuroBench Team"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "neurobench_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri core
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# UUID for node/edge IDs
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Lazy static for global HAL
+lazy_static = "1.4"
+
+# File system utilities
+dirs = "5"
+
+# HTTP client for AI APIs
+reqwest = { version = "0.12", features = ["json"] }
+
+# Serial port access (cross-platform)
+serialport = "4"
+
+# Async trait for agents
+async-trait = "0.1"
+
+# Regex for parsing tool calls
+regex = "1"
+
+# Temp files for code validation
+tempfile = "3"
+
+# Git integration for version control
+git2 = "0.19"
+sysinfo = "0.37.2"
+
+# Tool discovery
+which = "7"
+
+# ELF/DWARF parsing for HardFault symbolication
+object = { version = "0.36", features = ["read"] }
+addr2line = "0.24"
+gimli = "0.31"
+
+# Job manager infrastructure
+tokio-util = "0.7"
+dashmap = "6"
+
+# Hardware debugging - requires driver setup (WinUSB via Zadig on Windows)
+probe-rs = { version = "=0.24.0", optional = true }
+
+[features]
+default = []
+hardware = ["probe-rs"]

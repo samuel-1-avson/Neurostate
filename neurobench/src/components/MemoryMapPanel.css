@@ -1,0 +1,265 @@
+.memory-map-panel {
+  padding: 1rem;
+  height: 100%;
+  overflow-y: auto;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.memory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.memory-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-primary, #fff);
+}
+
+.memory-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #999);
+  min-width: 40px;
+}
+
+.stat-bar {
+  width: 100px;
+  height: 8px;
+  background: var(--surface-alt, #222);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.stat-fill.flash {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.stat-fill.ram {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.stat-value {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #999);
+  min-width: 60px;
+}
+
+.memory-content {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.memory-visual {
+  background: var(--surface-alt, #1a1a2e);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #333);
+}
+
+.memory-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #999);
+}
+
+.memory-bars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 100px;
+}
+
+.memory-region {
+  position: relative;
+  height: 80px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.memory-region:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.memory-region.selected {
+  outline: 2px solid var(--primary, #00d4ff);
+  outline-offset: 2px;
+}
+
+.region-name {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.usage-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
+  transition: height 0.3s ease;
+}
+
+.memory-details {
+  background: var(--surface-alt, #1a1a2e);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #333);
+}
+
+.region-info h3 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  color: var(--text-primary, #fff);
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #999);
+}
+
+.info-value {
+  font-size: 0.875rem;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.info-value.type {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.no-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary, #666);
+  font-size: 0.875rem;
+}
+
+.memory-table {
+  background: var(--surface-alt, #1a1a2e);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #333);
+  overflow: hidden;
+}
+
+.memory-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.memory-table th,
+.memory-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.memory-table th {
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.memory-table td {
+  font-size: 0.875rem;
+  color: var(--text-primary, #e0e0e0);
+}
+
+.memory-table tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.memory-table tr.selected {
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.memory-table tr:last-child td {
+  border-bottom: none;
+}
+
+.mono {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.8rem;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+}
