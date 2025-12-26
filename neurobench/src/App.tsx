@@ -26,6 +26,24 @@ import "./components/DSPPanel.css";
 import { SecurityPanel } from "./components/SecurityPanel";
 import "./components/SecurityPanel.css";
 import { SettingsPanel } from "./components/SettingsPanel";
+import UnifiedCanvas from "./components/UnifiedCanvas";
+
+// NEW: Import additional panels that exist but were not accessible
+import { SimulatorPanel } from "./components/SimulatorPanel";
+import DebugPanel from "./components/DebugPanel";
+import { PerformancePanel } from "./components/PerformancePanel";
+import { BuildPanel } from "./components/BuildPanel";
+import { GitPanel } from "./components/GitPanel";
+import { ValidationPanel } from "./components/ValidationPanel";
+import { PowerPanel } from "./components/PowerPanel";
+import { SerialPanel } from "./components/SerialPanel";
+import { MemoryPanel } from "./components/MemoryPanel";
+import { ProfilerPanel } from "./components/ProfilerPanel";
+import WorkflowPanel from "./components/WorkflowPanel";
+import { HistoryPanel } from "./components/HistoryPanel";
+import "./components/HistoryPanel.css";
+import { SchedulerPanel } from "./components/SchedulerPanel";
+import "./components/SchedulerPanel.css";
 
 // --- Icons (inline SVG for simplicity) ---
 const Icons = {
@@ -193,6 +211,107 @@ const Icons = {
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   ),
+  grid: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+    </svg>
+  ),
+  minimap: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <rect x="14" y="14" width="5" height="5" fill="currentColor" opacity="0.5" />
+      <circle cx="8" cy="8" r="2" fill="currentColor" />
+      <circle cx="13" cy="10" r="1.5" fill="currentColor" />
+    </svg>
+  ),
+  layout: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="6" height="5" rx="1" />
+      <rect x="15" y="3" width="6" height="5" rx="1" />
+      <rect x="9" y="16" width="6" height="5" rx="1" />
+      <path d="M6 8v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V8" />
+      <path d="M12 14v2" />
+    </svg>
+  ),
+  validate: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M9 12l2 2 4-4" />
+      <circle cx="12" cy="12" r="10" />
+    </svg>
+  ),
+  // NEW ICONS for additional panels
+  debug: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2a3 3 0 0 0-3 3v2a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+      <path d="M18 12h-3M9 12H6M18 8h-3M9 8H6M18 16h-3M9 16H6" />
+      <rect x="9" y="9" width="6" height="13" rx="2" />
+    </svg>
+  ),
+  performance: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  build: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </svg>
+  ),
+  gitBranch: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="6" y1="3" x2="6" y2="15" />
+      <circle cx="18" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M18 9a9 9 0 0 1-9 9" />
+    </svg>
+  ),
+  power: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+      <line x1="12" y1="2" x2="12" y2="12" />
+    </svg>
+  ),
+  serial: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="4" y="4" width="16" height="6" rx="1" />
+      <rect x="4" y="14" width="16" height="6" rx="1" />
+      <path d="M8 10v4M12 10v4M16 10v4" />
+    </svg>
+  ),
+  memory: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <path d="M6 6V4M10 6V4M14 6V4M18 6V4M6 18v2M10 18v2M14 18v2M18 18v2" />
+      <line x1="6" y1="10" x2="6" y2="14" />
+      <line x1="18" y1="10" x2="18" y2="14" />
+    </svg>
+  ),
+  profiler: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  workflow: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="4" width="6" height="6" rx="1" />
+      <rect x="15" y="4" width="6" height="6" rx="1" />
+      <rect x="9" y="14" width="6" height="6" rx="1" />
+      <path d="M6 10v2a2 2 0 0 0 2 2h2M18 10v2a2 2 0 0 1-2 2h-2" />
+    </svg>
+  ),
+  simulator: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  ),
 };
 
 // --- Types ---
@@ -224,9 +343,36 @@ interface ChatMessage {
   content: string;
 }
 
+// Context menu state
+interface ContextMenuState {
+  visible: boolean;
+  x: number;
+  y: number;
+  type: "canvas" | "node" | "edge";
+  targetId?: string;
+}
+
+// Selection box for marquee selection
+interface SelectionBox {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
+// Connection state for edge creation
+interface ConnectionState {
+  sourceId: string;
+  sourcePort: "input" | "output";
+  mouseX: number;
+  mouseY: number;
+}
+
 // Node dimensions for edge calculations
 const NODE_WIDTH = 140;
 const NODE_HEIGHT = 50;
+const GRID_SIZE = 24;
+const SNAP_THRESHOLD = 12;
 
 // --- App Component ---
 function App() {
@@ -265,6 +411,24 @@ function App() {
   const [draggingNode, setDraggingNode] = createSignal<string | null>(null);
   const [dragOffset, setDragOffset] = createSignal({ x: 0, y: 0 });
   
+  // Multi-selection state
+  const [selectedNodes, setSelectedNodes] = createSignal<Set<string>>(new Set());
+  const [isMarqueeSelecting, setIsMarqueeSelecting] = createSignal(false);
+  const [selectionBox, setSelectionBox] = createSignal<SelectionBox | null>(null);
+  
+  // Context menu state
+  const [contextMenu, setContextMenu] = createSignal<ContextMenuState>({ 
+    visible: false, x: 0, y: 0, type: "canvas" 
+  });
+  
+  // Edge creation state (drag from port to port)
+  const [connecting, setConnecting] = createSignal<ConnectionState | null>(null);
+  
+  // Canvas options
+  const [snapToGrid, setSnapToGrid] = createSignal(true);
+  const [showMinimap, setShowMinimap] = createSignal(true);
+  const [useEnhancedCanvas, setUseEnhancedCanvas] = createSignal(false); // Toggle for new FSMCanvas with node palette
+  
   // Panel state
   const [activePanel, setActivePanel] = createSignal("nodes");
   const [activeBottomTab, setActiveBottomTab] = createSignal("console");
@@ -290,6 +454,12 @@ function App() {
   
   // Settings modal state
   const [showSettingsModal, setShowSettingsModal] = createSignal(false);
+  
+  // Enhanced Editor modal state
+  const [showEnhancedEditor, setShowEnhancedEditor] = createSignal(false);
+  
+  // Unified Canvas mode (default true - shows new unified canvas)
+  const [useUnifiedCanvas, setUseUnifiedCanvas] = createSignal(true);
   
   // Driver generation state
   const [driverType, setDriverType] = createSignal<"GPIO" | "UART" | "SPI" | "I2C" | "CAN" | "Modbus">("GPIO");
@@ -422,26 +592,82 @@ function App() {
 
   // Keyboard shortcuts
   function handleKeyDown(e: KeyboardEvent) {
+    // Don't handle shortcuts when typing in inputs
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+    
     if (e.ctrlKey || e.metaKey) {
+      // Ctrl+Z - Undo
       if (e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         undo();
-      } else if ((e.key === "z" && e.shiftKey) || e.key === "y") {
+      }
+      // Ctrl+Shift+Z or Ctrl+Y - Redo
+      else if ((e.key === "z" && e.shiftKey) || e.key === "y") {
         e.preventDefault();
         redo();
-      } else if (e.key === "s") {
+      }
+      // Ctrl+S - Save
+      else if (e.key === "s") {
         e.preventDefault();
         saveProject();
       }
+      // Ctrl+A - Select All Nodes
+      else if (e.key === "a") {
+        e.preventDefault();
+        const allIds = new Set<string>(nodes().map(n => n.id));
+        setSelectedNodes(allIds);
+        addLog("CANVAS", `Selected all ${nodes().length} nodes`, "info");
+      }
+      // Ctrl+D - Duplicate selected node
+      else if (e.key === "d" && selectedNode()) {
+        e.preventDefault();
+        const node = getNodeById(selectedNode()!);
+        if (node) {
+          pushHistory();
+          const newNode: FSMNode = {
+            ...node,
+            id: `node_${Date.now()}`,
+            x: node.x + 50,
+            y: node.y + 50,
+          };
+          setNodes([...nodes(), newNode]);
+          setSelectedNode(newNode.id);
+          addLog("CANVAS", `Duplicated node: ${node.label}`, "success");
+        }
+      }
     }
-    if (e.key === "Delete" && selectedNode()) {
-      const nodeId = selectedNode();
-      if (nodeId) {
+    
+    // Escape - Deselect all
+    if (e.key === "Escape") {
+      setSelectedNode(null);
+      setSelectedNodes(new Set<string>());
+      setConnecting(null);
+      setContextMenu({ visible: false, x: 0, y: 0, type: "canvas" });
+    }
+    
+    // Delete - Delete selected node(s)
+    if (e.key === "Delete") {
+      const multiSelected = selectedNodes();
+      
+      // Delete multiple selected nodes
+      if (multiSelected.size > 0) {
+        pushHistory();
+        setNodes(nodes().filter(n => !multiSelected.has(n.id)));
+        setEdges(edges().filter(e => !multiSelected.has(e.source) && !multiSelected.has(e.target)));
+        setSelectedNodes(new Set<string>());
+        setSelectedNode(null);
+        addLog("CANVAS", `Deleted ${multiSelected.size} nodes`, "info");
+      }
+      // Delete single selected node
+      else if (selectedNode()) {
+        const nodeId = selectedNode()!;
+        const node = getNodeById(nodeId);
         pushHistory();
         setNodes(nodes().filter(n => n.id !== nodeId));
         setEdges(edges().filter(e => e.source !== nodeId && e.target !== nodeId));
         setSelectedNode(null);
-        addLog("FSM", "Deleted selected node", "info");
+        addLog("CANVAS", `Deleted node: ${node?.label || nodeId}`, "info");
       }
     }
   }
@@ -475,6 +701,46 @@ function App() {
   };
 
   const getNodeById = (id: string) => nodes().find(n => n.id === id);
+  
+  // Snap position to grid
+  const snapPosition = (x: number, y: number): { x: number; y: number } => {
+    if (!snapToGrid()) return { x, y };
+    return {
+      x: Math.round(x / GRID_SIZE) * GRID_SIZE,
+      y: Math.round(y / GRID_SIZE) * GRID_SIZE,
+    };
+  };
+  
+  // Get connection preview line path
+  const getConnectionPreviewPath = () => {
+    const conn = connecting();
+    if (!conn) return "";
+    const sourceNode = getNodeById(conn.sourceId);
+    if (!sourceNode) return "";
+    
+    const sx = sourceNode.x + NODE_WIDTH / 2;
+    const sy = conn.sourcePort === "output" ? sourceNode.y + NODE_HEIGHT : sourceNode.y;
+    const tx = (conn.mouseX - panX()) / zoom();
+    const ty = (conn.mouseY - panY()) / zoom();
+    
+    const midY = (sy + ty) / 2;
+    return `M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+  };
+  
+  // Check if a node is within marquee selection box
+  const isNodeInSelectionBox = (node: FSMNode, box: SelectionBox) => {
+    const boxLeft = Math.min(box.startX, box.endX);
+    const boxRight = Math.max(box.startX, box.endX);
+    const boxTop = Math.min(box.startY, box.endY);
+    const boxBottom = Math.max(box.startY, box.endY);
+    
+    return (
+      node.x < boxRight &&
+      node.x + NODE_WIDTH > boxLeft &&
+      node.y < boxBottom &&
+      node.y + NODE_HEIGHT > boxTop
+    );
+  };
   
   // Get edge path between two nodes
   const getEdgePath = (edge: FSMEdge) => {
@@ -513,11 +779,29 @@ function App() {
   };
   
   const handleCanvasMouseDown = (e: MouseEvent) => {
+    // Close context menu on any click
+    if (contextMenu().visible) {
+      setContextMenu({ visible: false, x: 0, y: 0, type: "canvas" });
+    }
+    
     if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
       // Middle click or Shift+Left click for panning
       setIsPanning(true);
       setPanStart({ x: e.clientX - panX(), y: e.clientY - panY() });
       e.preventDefault();
+    } else if (e.button === 0 && !e.ctrlKey) {
+      // Left click - start marquee selection if not on a node
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('canvas-grid') || target.classList.contains('fsm-canvas')) {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const startX = (e.clientX - rect.left - panX()) / zoom();
+        const startY = (e.clientY - rect.top - panY()) / zoom();
+        setIsMarqueeSelecting(true);
+        setSelectionBox({ startX, startY, endX: startX, endY: startY });
+        // Clear selection if not holding Ctrl
+        setSelectedNode(null);
+        setSelectedNodes(new Set<string>());
+      }
     }
   };
   
@@ -525,25 +809,331 @@ function App() {
     if (isPanning()) {
       setPanX(e.clientX - panStart().x);
       setPanY(e.clientY - panStart().y);
+    } else if (isMarqueeSelecting()) {
+      // Update marquee selection box
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const endX = (e.clientX - rect.left - panX()) / zoom();
+      const endY = (e.clientY - rect.top - panY()) / zoom();
+      setSelectionBox(prev => prev ? { ...prev, endX, endY } : null);
+      
+      // Update selected nodes within marquee
+      const box = selectionBox();
+      if (box) {
+        const newSelection = new Set<string>();
+        nodes().forEach(node => {
+          if (isNodeInSelectionBox(node, { ...box, endX, endY })) {
+            newSelection.add(node.id);
+          }
+        });
+        setSelectedNodes(newSelection);
+      }
+    } else if (connecting()) {
+      // Update connection preview line
+      setConnecting(prev => prev ? { ...prev, mouseX: e.clientX, mouseY: e.clientY } : null);
     } else if (draggingNode()) {
       const nodeId = draggingNode()!;
       const z = zoom();
+      const rawX = (e.clientX - dragOffset().x) / z - panX() / z;
+      const rawY = (e.clientY - dragOffset().y) / z - panY() / z;
+      const snapped = snapPosition(rawX, rawY);
+      
       setNodes(prev => prev.map(n => {
         if (n.id === nodeId) {
-          return {
-            ...n,
-            x: (e.clientX - dragOffset().x) / z - panX() / z,
-            y: (e.clientY - dragOffset().y) / z - panY() / z,
-          };
+          return { ...n, x: snapped.x, y: snapped.y };
         }
         return n;
       }));
     }
   };
   
-  const handleCanvasMouseUp = () => {
+  const handleCanvasMouseUp = (e: MouseEvent) => {
+    // Finalize marquee selection
+    if (isMarqueeSelecting()) {
+      const box = selectionBox();
+      if (box) {
+        const finalSelection = new Set<string>();
+        nodes().forEach(node => {
+          if (isNodeInSelectionBox(node, box)) {
+            finalSelection.add(node.id);
+          }
+        });
+        setSelectedNodes(finalSelection);
+        if (finalSelection.size === 1) {
+          setSelectedNode([...finalSelection][0]);
+        }
+      }
+    }
+    
+    // Finalize edge creation
+    if (connecting()) {
+      // Check if mouse is over a target node port
+      const conn = connecting()!;
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const mx = (e.clientX - rect.left - panX()) / zoom();
+      const my = (e.clientY - rect.top - panY()) / zoom();
+      
+      // Find target node at mouse position (expanded hit area for entire node)
+      const targetNode = nodes().find(n => 
+        mx >= n.x - 10 && mx <= n.x + NODE_WIDTH + 10 &&
+        my >= n.y - 20 && my <= n.y + NODE_HEIGHT + 20
+      );
+      
+      if (targetNode) {
+        // Prevent self-loops
+        if (targetNode.id === conn.sourceId) {
+          addLog("CANVAS", "Cannot create self-loop connection", "warning");
+        } else {
+          // Determine source and target based on port direction
+          const sourceId = conn.sourcePort === "output" ? conn.sourceId : targetNode.id;
+          const targetId = conn.sourcePort === "output" ? targetNode.id : conn.sourceId;
+          
+          // Check for duplicate edge
+          const isDuplicate = edges().some(e => e.source === sourceId && e.target === targetId);
+          if (isDuplicate) {
+            addLog("CANVAS", "Edge already exists between these nodes", "warning");
+          } else {
+            // Create new edge
+            const newEdge: FSMEdge = {
+              id: `e${Date.now()}`,
+              source: sourceId,
+              target: targetId,
+            };
+            pushHistory();
+            setEdges([...edges(), newEdge]);
+            addLog("CANVAS", `Created edge: ${getNodeById(sourceId)?.label || sourceId} → ${getNodeById(targetId)?.label || targetId}`, "success");
+          }
+        }
+      }
+    }
+    
     setIsPanning(false);
     setDraggingNode(null);
+    setIsMarqueeSelecting(false);
+    setSelectionBox(null);
+    setConnecting(null);
+  };
+  
+  // Context menu handler
+  const handleCanvasContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    const target = e.target as HTMLElement;
+    
+    // Check if right-clicking on a node
+    const nodeElement = target.closest('.fsm-node');
+    if (nodeElement) {
+      const nodeId = nodeElement.getAttribute('data-node-id');
+      if (nodeId) {
+        setContextMenu({ visible: true, x: e.clientX, y: e.clientY, type: "node", targetId: nodeId });
+        return;
+      }
+    }
+    
+    // Check if right-clicking on an edge (check nearby edges)
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const mx = (e.clientX - rect.left - panX()) / zoom();
+    const my = (e.clientY - rect.top - panY()) / zoom();
+    
+    // Find nearest edge to click position
+    const nearestEdge = edges().find(edge => {
+      const source = getNodeById(edge.source);
+      const target = getNodeById(edge.target);
+      if (!source || !target) return false;
+      
+      const sx = source.x + NODE_WIDTH / 2;
+      const sy = source.y + NODE_HEIGHT;
+      const tx = target.x + NODE_WIDTH / 2;
+      const ty = target.y;
+      
+      // Simple distance check to the line midpoint and path
+      const midX = (sx + tx) / 2;
+      const midY = (sy + ty) / 2;
+      const dist = Math.sqrt((mx - midX) ** 2 + (my - midY) ** 2);
+      
+      return dist < 30; // Click within 30px of midpoint
+    });
+    
+    if (nearestEdge) {
+      setContextMenu({ visible: true, x: e.clientX, y: e.clientY, type: "edge", targetId: nearestEdge.id });
+      return;
+    }
+    
+    // Right-click on canvas
+    setContextMenu({ visible: true, x: e.clientX, y: e.clientY, type: "canvas" });
+  };
+  
+  // Context menu actions
+  const handleContextMenuAction = (action: string) => {
+    const menu = contextMenu();
+    setContextMenu({ visible: false, x: 0, y: 0, type: "canvas" });
+    
+    if (menu.type === "node" && menu.targetId) {
+      const node = getNodeById(menu.targetId);
+      if (!node) return;
+      
+      switch (action) {
+        case "delete":
+          pushHistory();
+          setNodes(nodes().filter(n => n.id !== menu.targetId));
+          setEdges(edges().filter(e => e.source !== menu.targetId && e.target !== menu.targetId));
+          setSelectedNode(null);
+          addLog("CANVAS", `Deleted node: ${node.label}`, "info");
+          break;
+        case "duplicate":
+          pushHistory();
+          const newNode: FSMNode = {
+            ...node,
+            id: `node_${Date.now()}`,
+            x: node.x + 50,
+            y: node.y + 50,
+          };
+          setNodes([...nodes(), newNode]);
+          setSelectedNode(newNode.id);
+          addLog("CANVAS", `Duplicated node: ${node.label}`, "success");
+          break;
+      }
+    } else if (menu.type === "canvas") {
+      switch (action) {
+        case "add_input":
+          handleAddNode("input");
+          break;
+        case "add_process":
+          handleAddNode("process");
+          break;
+        case "add_output":
+          handleAddNode("output");
+          break;
+        case "add_decision":
+          handleAddNode("decision");
+          break;
+      }
+    } else if (menu.type === "edge" && menu.targetId) {
+      const edge = edges().find(e => e.id === menu.targetId);
+      if (!edge) return;
+      
+      switch (action) {
+        case "delete":
+          pushHistory();
+          setEdges(edges().filter(e => e.id !== menu.targetId));
+          const sourceNode = getNodeById(edge.source);
+          const targetNode = getNodeById(edge.target);
+          addLog("CANVAS", `Deleted edge: ${sourceNode?.label || edge.source} → ${targetNode?.label || edge.target}`, "info");
+          break;
+      }
+    }
+  };
+  
+  // Add node at a position
+  const handleAddNode = (type: FSMNode["type"]) => {
+    pushHistory();
+    const existingCount = nodes().filter(n => n.type === type).length;
+    const labels: Record<FSMNode["type"], string> = {
+      input: "START",
+      process: "STATE",
+      output: "END",
+      decision: "CHECK",
+      error: "ERROR",
+      hardware: "HW",
+      delay: "DELAY",
+      interrupt: "IRQ",
+    };
+    const snapped = snapPosition(300 + existingCount * 50, 100 + nodes().length * 100);
+    const newNode: FSMNode = {
+      id: `node_${Date.now()}`,
+      label: `${labels[type]}${existingCount > 0 ? existingCount + 1 : ""}`,
+      type,
+      x: snapped.x,
+      y: snapped.y,
+    };
+    setNodes([...nodes(), newNode]);
+    setSelectedNode(newNode.id);
+    addLog("CANVAS", `Added ${type} node: ${newNode.label}`, "success");
+  };
+  
+  // Auto-layout using Rust engine
+  const handleAutoLayout = async (algorithm: "hierarchical" | "force_directed" | "grid" = "hierarchical") => {
+    try {
+      addLog("CANVAS", `Applying ${algorithm} layout...`, "info");
+      
+      // Convert nodes to Rust format and initialize engine
+      const canvasNodes = nodes().map(n => ({
+        id: n.id,
+        label: n.label,
+        node_type: n.type,
+        x: n.x,
+        y: n.y,
+        width: 160,
+        height: 80,
+        entry_action: n.entryAction || undefined,
+        exit_action: (n as any).exitAction || undefined,
+      }));
+      
+      const canvasEdges = edges().map(e => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        label: e.label || undefined,
+        condition: (e as any).condition || undefined,
+      }));
+      
+      // Initialize Rust engine with current state
+      await invoke("canvas_init", { nodes: canvasNodes, edges: canvasEdges });
+      
+      // Apply layout
+      const newState = await invoke<{ nodes: any[], edges: any[] }>("canvas_auto_layout", { algorithm });
+      
+      // Update local state with new positions
+      pushHistory();
+      const updatedNodes = nodes().map(node => {
+        const newNode = newState.nodes.find((n: any) => n.id === node.id);
+        if (newNode) {
+          return { ...node, x: newNode.x, y: newNode.y };
+        }
+        return node;
+      });
+      setNodes(updatedNodes);
+      
+      addLog("CANVAS", `Applied ${algorithm} layout successfully!`, "success");
+    } catch (e) {
+      addLog("ERROR", `Auto-layout failed: ${e}`, "error");
+    }
+  };
+  
+  // Validate graph using Rust engine
+  const handleValidate = async () => {
+    try {
+      const canvasNodes = nodes().map(n => ({
+        id: n.id,
+        label: n.label,
+        node_type: n.type,
+        x: n.x,
+        y: n.y,
+        width: 160,
+        height: 80,
+      }));
+      
+      const canvasEdges = edges().map(e => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+      }));
+      
+      await invoke("canvas_init", { nodes: canvasNodes, edges: canvasEdges });
+      const result = await invoke<{ valid: boolean, errors: any[], warnings: any[] }>("canvas_validate");
+      
+      if (result.valid) {
+        addLog("VALIDATE", `✓ Graph is valid (${result.warnings.length} warnings)`, "success");
+      } else {
+        addLog("VALIDATE", `✗ ${result.errors.length} errors found`, "error");
+        result.errors.forEach((err: any) => {
+          addLog("VALIDATE", `  ${err.message}`, "error");
+        });
+      }
+      result.warnings.forEach((warn: any) => {
+        addLog("VALIDATE", `  ⚠ ${warn.message}`, "warning");
+      });
+    } catch (e) {
+      addLog("ERROR", `Validation failed: ${e}`, "error");
+    }
   };
   
   // Node drag handlers
@@ -973,6 +1563,33 @@ function App() {
           <button class="toolbar-btn success" onClick={() => setShowDescriptionModal(true)}><Icons.brain /><span>AI Magic</span></button>
         </div>
         
+        <div class="header-divider" />
+        
+        {/* Canvas Tools */}
+        <div class="header-toolbar">
+          <div class="toolbar-dropdown">
+            <button class="toolbar-btn" title="Auto-Layout">
+              <Icons.layout />
+              <span>Layout</span>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" onClick={() => handleAutoLayout("hierarchical")}>
+                Hierarchical (Top-Down)
+              </button>
+              <button class="dropdown-item" onClick={() => handleAutoLayout("force_directed")}>
+                Force-Directed (Spring)
+              </button>
+              <button class="dropdown-item" onClick={() => handleAutoLayout("grid")}>
+                Grid Layout
+              </button>
+            </div>
+          </div>
+          <button class="toolbar-btn" onClick={handleValidate} title="Validate Graph">
+            <Icons.validate />
+            <span>Validate</span>
+          </button>
+        </div>
+        
         <div class="header-spacer" />
         
         <div class="header-status">
@@ -1019,233 +1636,32 @@ function App() {
           <button class={`sidebar-btn ${activePanel() === "dsp" ? "active" : ""}`} onClick={() => setActivePanel("dsp")} title="DSP"><Icons.activity /></button>
           <button class={`sidebar-btn ${activePanel() === "security" ? "active" : ""}`} onClick={() => setActivePanel("security")} title="Security"><Icons.lock /></button>
           <button class={`sidebar-btn ${activePanel() === "agents" ? "active" : ""}`} onClick={() => setActivePanel("agents")} title="AI Agents"><Icons.brain /></button>
+          {/* NEW: Additional panel buttons */}
+          <button class={`sidebar-btn ${activePanel() === "simulator" ? "active" : ""}`} onClick={() => setActivePanel("simulator")} title="Simulator"><Icons.simulator /></button>
+          <button class={`sidebar-btn ${activePanel() === "debug" ? "active" : ""}`} onClick={() => setActivePanel("debug")} title="Debug"><Icons.debug /></button>
+          <button class={`sidebar-btn ${activePanel() === "performance" ? "active" : ""}`} onClick={() => setActivePanel("performance")} title="Performance"><Icons.performance /></button>
+          <button class={`sidebar-btn ${activePanel() === "build" ? "active" : ""}`} onClick={() => setActivePanel("build")} title="Build"><Icons.build /></button>
+          <button class={`sidebar-btn ${activePanel() === "workflow" ? "active" : ""}`} onClick={() => setActivePanel("workflow")} title="Workflow"><Icons.workflow /></button>
+          <button class={`sidebar-btn ${activePanel() === "git" ? "active" : ""}`} onClick={() => setActivePanel("git")} title="Git"><Icons.gitBranch /></button>
+          <button class={`sidebar-btn ${activePanel() === "serial" ? "active" : ""}`} onClick={() => setActivePanel("serial")} title="Serial"><Icons.serial /></button>
+          <button class={`sidebar-btn ${activePanel() === "memory" ? "active" : ""}`} onClick={() => setActivePanel("memory")} title="Memory"><Icons.memory /></button>
+          <button class={`sidebar-btn ${activePanel() === "profiler" ? "active" : ""}`} onClick={() => setActivePanel("profiler")} title="Profiler"><Icons.profiler /></button>
+          <button class={`sidebar-btn ${activePanel() === "power" ? "active" : ""}`} onClick={() => setActivePanel("power")} title="Power"><Icons.power /></button>
+          <button class={`sidebar-btn ${activePanel() === "validation" ? "active" : ""}`} onClick={() => setActivePanel("validation")} title="Validation"><Icons.validate /></button>
+          <button class={`sidebar-btn ${activePanel() === "history" ? "active" : ""}`} onClick={() => setActivePanel("history")} title="History">📜</button>
+          <button class={`sidebar-btn ${activePanel() === "scheduler" ? "active" : ""}`} onClick={() => setActivePanel("scheduler")} title="Scheduler">⚡</button>
           <div class="sidebar-spacer" />
           <button class="sidebar-btn" onClick={() => setShowSettingsModal(true)} title="Settings"><Icons.settings /></button>
         </nav>
         
-        {/* Canvas Area */}
-        <div class="canvas-container">
-          <div class="canvas-tabs">
-            <button class="canvas-tab active">
-              {projectName()}
-              <span class="canvas-tab-close"><Icons.x /></span>
-            </button>
-            <div style="flex:1" />
-            <button class="toolbar-btn" onClick={() => handleZoom(0.1)}><Icons.zoomIn /></button>
-            <button class="toolbar-btn" onClick={() => handleZoom(-0.1)}><Icons.zoomOut /></button>
-            <button class="toolbar-btn" onClick={handleFitView}><Icons.fitView /></button>
-            <span style="font-size:11px;color:#666;margin-left:8px">{Math.round(zoom() * 100)}%</span>
-          </div>
-          
-          <div 
-            class="fsm-canvas"
-            onWheel={handleCanvasWheel}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={handleCanvasMouseUp}
-            style={{ cursor: isPanning() ? "grabbing" : draggingNode() ? "move" : "default" }}
-          >
-            <div class="canvas-grid" />
-            <div 
-              class="canvas-content"
-              style={{
-                transform: `translate(${panX()}px, ${panY()}px) scale(${zoom()})`,
-                "transform-origin": "0 0",
-              }}
-            >
-              {/* SVG for edges */}
-              <svg class="edges-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;">
-                <defs>
-                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                    <polygon points="0 0, 10 3.5, 0 7" fill="#00d4ff" />
-                  </marker>
-                </defs>
-                <For each={edges()}>
-                  {(edge) => (
-                    <g>
-                      <path 
-                        d={getEdgePath(edge)} 
-                        fill="none" 
-                        stroke="#00d4ff" 
-                        stroke-width="2"
-                        marker-end="url(#arrowhead)"
-                      />
-                      <Show when={edge.label}>
-                        <text 
-                          x={getEdgeLabelPos(edge).x} 
-                          y={getEdgeLabelPos(edge).y} 
-                          fill="#a0a0a0" 
-                          font-size="11" 
-                          text-anchor="middle"
-                          style="background:#1a1a2e"
-                        >
-                          {edge.label}
-                        </text>
-                      </Show>
-                    </g>
-                  )}
-                </For>
-              </svg>
-              
-              {/* Nodes */}
-              <For each={nodes()}>
-                {(node) => (
-                  <div 
-                    class={`fsm-node ${selectedNode() === node.id ? "selected" : ""}`}
-                    style={{ left: `${node.x}px`, top: `${node.y}px` }}
-                    onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
-                  >
-                    <div class="fsm-node-header">
-                      <div class={`fsm-node-icon ${node.type}`}>
-                        {node.type === "input" ? "▶" : node.type === "output" ? "◼" : node.type === "decision" ? "◆" : "●"}
-                      </div>
-                      <span class="fsm-node-title">{node.label}</span>
-                      <span class="fsm-node-type">{node.type}</span>
-                    </div>
-                    <Show when={node.entryAction}>
-                      <div class="fsm-node-body">{node.entryAction}</div>
-                    </Show>
-                  </div>
-                )}
-              </For>
-            </div>
-          </div>
-        </div>
-        
+        {/* Canvas Area - Unified Canvas */}
+        <UnifiedCanvas 
+          projectName={projectName()} 
+        />
+
         {/* Right Panel */}
         <aside class="right-panel">
-          {/* Nodes/Properties Panel */}
-          <Show when={activePanel() === "nodes"}>
-            <div class="panel-header"><Icons.settings /><span>PROPERTIES</span></div>
-            <div class="panel-content">
-              <Show when={selectedNode()} fallback={
-                <div class="empty-state">
-                  <div class="empty-state-icon"><Icons.layers /></div>
-                  <h3>Select a node to edit</h3>
-                  <p>Click on any node in the canvas to view and modify its properties</p>
-                </div>
-              }>
-                {/* Node Info Header */}
-                <div class="properties-node-info">
-                  <div class={`properties-node-icon ${getNodeById(selectedNode()!)?.type}`}>
-                    {getNodeById(selectedNode()!)?.type === "input" ? "▶" : 
-                     getNodeById(selectedNode()!)?.type === "output" ? "◼" : 
-                     getNodeById(selectedNode()!)?.type === "decision" ? "◆" : "●"}
-                  </div>
-                  <div class="properties-node-meta">
-                    <div class="properties-node-name">{getNodeById(selectedNode()!)?.label}</div>
-                    <div class="properties-node-type-badge">{getNodeById(selectedNode()!)?.type}</div>
-                  </div>
-                </div>
-
-                {/* Properties Tabs */}
-                <div class="properties-tabs">
-                  <button class="properties-tab active">General</button>
-                  <button class="properties-tab">Code</button>
-                  <button class="properties-tab">Style</button>
-                </div>
-
-                {/* General Tab Content */}
-                <div class="panel-section">
-                  <div class="panel-section-title">Label</div>
-                  <input 
-                    class="panel-input" 
-                    value={getNodeById(selectedNode()!)?.label} 
-                    onInput={(e) => {
-                      const node = getNodeById(selectedNode()!);
-                      if (node) {
-                        setNodes(nodes().map(n => n.id === node.id ? {...n, label: e.currentTarget.value} : n));
-                      }
-                    }}
-                  />
-                </div>
-                
-                <div class="panel-section">
-                  <div class="panel-section-title">Type</div>
-                  <select class="panel-input" value={getNodeById(selectedNode()!)?.type} onChange={(e) => {
-                    const node = getNodeById(selectedNode()!);
-                    if (node) {
-                      setNodes(nodes().map(n => n.id === node.id ? {...n, type: e.currentTarget.value as any} : n));
-                    }
-                  }}>
-                    <option value="input">Input (Start)</option>
-                    <option value="process">Process (State)</option>
-                    <option value="output">Output (End)</option>
-                    <option value="decision">Decision (Branch)</option>
-                    <option value="hardware">Hardware (I/O)</option>
-                    <option value="delay">Delay (Timer)</option>
-                    <option value="interrupt">Interrupt (ISR)</option>
-                  </select>
-                </div>
-                
-                <div class="panel-section">
-                  <div class="panel-section-title">Entry Action</div>
-                  <textarea 
-                    class="panel-textarea" 
-                    value={getNodeById(selectedNode()!)?.entryAction || ""} 
-                    placeholder="// Code to run on state entry
-HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);"
-                    onInput={(e) => {
-                      const node = getNodeById(selectedNode()!);
-                      if (node) {
-                        setNodes(nodes().map(n => n.id === node.id ? {...n, entryAction: e.currentTarget.value} : n));
-                      }
-                    }}
-                  />
-                </div>
-
-                <div class="panel-section">
-                  <div class="panel-section-title">Connections</div>
-                  <div class="connections-list">
-                    <For each={edges().filter(e => e.source === selectedNode())}>
-                      {(edge) => (
-                        <div class="connection-item">
-                          <span class="connection-arrow">→</span>
-                          <span class="connection-target">{getNodeById(edge.target)?.label}</span>
-                          <input class="connection-label" value={edge.label || ""} placeholder="label" />
-                        </div>
-                      )}
-                    </For>
-                    <button class="btn-add-connection" onClick={() => {
-                      addLog("INFO", "Click on a target node to create connection", "info");
-                    }}>
-                      + Add Connection
-                    </button>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div class="panel-section">
-                  <div class="panel-section-title">Actions</div>
-                  <div style="display:flex;gap:8px;">
-                    <button class="btn-secondary" style="flex:1;" onClick={() => {
-                      // Duplicate node
-                      const node = getNodeById(selectedNode()!);
-                      if (node) {
-                        const newNode = {...node, id: `node_${Date.now()}`, x: node.x + 40, y: node.y + 40, label: `${node.label}_copy`};
-                        setNodes([...nodes(), newNode]);
-                        addLog("INFO", `Duplicated node: ${node.label}`, "success");
-                      }
-                    }}>
-                      Duplicate
-                    </button>
-                    <button class="btn-danger" style="flex:1;" onClick={() => {
-                      const nodeId = selectedNode();
-                      if (nodeId) {
-                        setNodes(nodes().filter(n => n.id !== nodeId));
-                        setEdges(edges().filter(e => e.source !== nodeId && e.target !== nodeId));
-                        setSelectedNode(null);
-                        addLog("INFO", "Deleted node", "warning");
-                      }
-                    }}>
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </Show>
-            </div>
-          </Show>
+          {/* NOTE: Properties Panel removed - handled by UnifiedCanvas */}
           
           {/* AI Chat Panel */}
           <Show when={activePanel() === "chat"}>
@@ -1666,6 +2082,59 @@ HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);"
           <Show when={activePanel() === "security"}>
             <SecurityPanel onLog={addLog} />
           </Show>
+          
+          {/* NEW: Additional Panels */}
+          <Show when={activePanel() === "simulator"}>
+            <SimulatorPanel onLog={addLog} />
+          </Show>
+          
+          <Show when={activePanel() === "debug"}>
+            <DebugPanel />
+          </Show>
+          
+          <Show when={activePanel() === "performance"}>
+            <PerformancePanel onLog={addLog} />
+          </Show>
+          
+          <Show when={activePanel() === "build"}>
+            <BuildPanel />
+          </Show>
+          
+          <Show when={activePanel() === "workflow"}>
+            <WorkflowPanel />
+          </Show>
+          
+          <Show when={activePanel() === "git"}>
+            <GitPanel projectPath="." onLog={addLog} />
+          </Show>
+          
+          <Show when={activePanel() === "serial"}>
+            <SerialPanel onLog={addLog} />
+          </Show>
+          
+          <Show when={activePanel() === "memory"}>
+            <MemoryPanel />
+          </Show>
+          
+          <Show when={activePanel() === "profiler"}>
+            <ProfilerPanel />
+          </Show>
+          
+          <Show when={activePanel() === "power"}>
+            <PowerPanel onLog={addLog} />
+          </Show>
+          
+          <Show when={activePanel() === "validation"}>
+            <ValidationPanel code={generatedCode() || ""} language={codeLanguage()} onLog={addLog} />
+          </Show>
+          
+          <Show when={activePanel() === "history"}>
+            <HistoryPanel />
+          </Show>
+          
+          <Show when={activePanel() === "scheduler"}>
+            <SchedulerPanel />
+          </Show>
         </aside>
       </div>
       
@@ -1756,6 +2225,8 @@ HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);"
           onLog={addLog}
         />
       </Show>
+      
+
     </div>
   );
 }

@@ -1,8 +1,11 @@
+/* RTOS Panel - Industrial Retro */
+
 .rtos-panel {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
 }
 
 .rtos-header {
@@ -13,166 +16,184 @@
 
 .rtos-header h3 {
   margin: 0;
-  color: var(--text-primary, #fff);
-  font-size: 14px;
+  color: var(--accent, #e49b0f);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .rtos-selector {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .rtos-btn {
-  background: var(--code-bg, #1a1a1a);
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-secondary, #888);
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 11px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-secondary, #a0a0a0);
+  padding: 8px 14px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .rtos-btn:hover {
-  background: var(--hover-bg, #2a2a2a);
+  background: var(--bg-elevated, #222);
+  border-color: var(--border-strong, #3a3a3a);
 }
 
 .rtos-btn.active {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  border-color: #3b82f6;
+  background: var(--accent, #e49b0f);
+  color: #000;
+  border-color: var(--accent, #e49b0f);
 }
 
 .rtos-tabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .rtos-tabs .tab {
-  background: var(--code-bg, #0d0d0d);
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-secondary, #888);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 11px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-secondary, #a0a0a0);
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .rtos-tabs .tab:hover {
-  background: var(--hover-bg, #2a2a2a);
-  color: var(--text-primary, #fff);
+  background: var(--bg-elevated, #222);
+  color: var(--text-primary, #e8e8e8);
 }
 
 .rtos-tabs .tab.active {
-  background: var(--primary, #4a9eff);
-  color: #fff;
-  border-color: var(--primary);
+  background: var(--accent, #e49b0f);
+  color: #000;
+  border-color: var(--accent, #e49b0f);
 }
 
 .config-section {
-  background: var(--code-bg, #0d0d0d);
-  border: 1px solid var(--border-color, #3a3a3a);
-  border-radius: 8px;
-  padding: 12px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 4px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .config-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .config-row label {
-  font-size: 11px;
-  color: var(--text-secondary, #888);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #606060);
 }
 
 .config-row input[type="text"],
 .config-row input[type="number"],
 .config-row select {
-  background: var(--input-bg, #1a1a1a);
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-primary, #fff);
-  padding: 8px 10px;
-  border-radius: 4px;
-  font-size: 12px;
+  background: var(--bg-input, #0f0f0f);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-primary, #e8e8e8);
+  padding: 10px 12px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: inherit;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s;
 }
 
 .config-row input:focus,
 .config-row select:focus {
-  border-color: var(--primary, #4a9eff);
+  border-color: var(--accent, #e49b0f);
 }
 
 .config-row.checkbox label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
 }
 
 .config-row.checkbox input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: var(--primary, #4a9eff);
+  accent-color: var(--accent, #e49b0f);
 }
 
 .generate-btn {
-  background: linear-gradient(135deg, var(--primary, #4a9eff), #2563eb);
+  background: var(--accent, #e49b0f);
   border: none;
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 12px;
+  color: #000;
+  padding: 12px 18px;
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 8px;
+  transition: all 0.15s;
+  margin-top: 10px;
 }
 
 .generate-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+  box-shadow: 0 0 12px var(--accent-glow, rgba(228, 155, 15, 0.4));
 }
 
 .generate-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
+  box-shadow: none;
 }
 
 .config-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .config-btn {
   flex: 1;
-  background: var(--code-bg, #1a1a1a);
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-primary, #fff);
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-primary, #e8e8e8);
   padding: 10px;
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .config-btn:hover {
-  background: var(--hover-bg, #2a2a2a);
-  border-color: var(--primary, #4a9eff);
+  background: var(--bg-elevated, #222);
+  border-color: var(--accent, #e49b0f);
 }
 
 .code-output {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  border: 1px solid var(--primary, #4a9eff);
-  border-radius: 8px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--accent, #e49b0f);
+  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -180,40 +201,44 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background: rgba(74, 158, 255, 0.1);
-  border-bottom: 1px solid var(--primary, #4a9eff);
+  padding: 10px 14px;
+  background: var(--accent-subtle, rgba(228, 155, 15, 0.1));
+  border-bottom: 1px solid var(--accent, #e49b0f);
 }
 
 .code-header span {
-  font-size: 11px;
-  color: var(--primary, #4a9eff);
+  font-size: 9px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent, #e49b0f);
 }
 
 .copy-btn {
-  background: rgba(74, 158, 255, 0.2);
-  border: 1px solid var(--primary, #4a9eff);
-  color: var(--primary, #4a9eff);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 10px;
+  background: var(--accent-subtle, rgba(228, 155, 15, 0.2));
+  border: 1px solid var(--accent, #e49b0f);
+  color: var(--accent, #e49b0f);
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .copy-btn:hover {
-  background: var(--primary, #4a9eff);
-  color: #fff;
+  background: var(--accent, #e49b0f);
+  color: #000;
 }
 
 .code-block {
   margin: 0;
-  padding: 12px;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  padding: 14px;
   font-size: 11px;
-  line-height: 1.5;
-  color: #e0e0e0;
+  line-height: 1.6;
+  color: var(--text-primary, #e8e8e8);
   overflow-x: auto;
   max-height: 300px;
   overflow-y: auto;

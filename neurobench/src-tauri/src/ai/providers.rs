@@ -32,7 +32,7 @@ impl Default for ModelConfig {
 }
 
 /// Supported model providers
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum ModelProvider {
     Gemini,
@@ -96,6 +96,9 @@ pub enum Role {
 pub enum ModelError {
     #[error("Model not configured: {0}")]
     NotConfigured(String),
+    
+    #[error("Configuration error: {0}")]
+    ConfigError(String),
     
     #[error("API error: {0}")]
     ApiError(String),

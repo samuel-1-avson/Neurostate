@@ -6,11 +6,11 @@
 
 | Metric | Value |
 |--------|-------|
-| **Backend** | Rust (Tauri) ~1,200 KB |
-| **Frontend** | SolidJS/TypeScript ~130 KB |
-| **Total Modules** | 18 Rust modules, 15 components |
-| **IPC Commands** | 60+ commands |
-| **Target Platform** | STM32F4, extensible to other MCUs |
+| **Backend** | Rust (Tauri) ~1,400 KB |
+| **Frontend** | SolidJS/TypeScript ~150 KB |
+| **Total Modules** | 20 Rust modules, 18 components |
+| **IPC Commands** | 90+ commands |
+| **Target Platform** | STM32F4, nRF52, extensible to other MCUs |
 
 ---
 
@@ -155,6 +155,22 @@ graph TB
 - [x] **Embedded device metrics** (power, temperature, clock, memory)
 - [x] **Configurable refresh rate** (0.5s - 5s)
 - [x] **60-point history** for sparkline graphs
+
+### 8. IDE Loop - Build→Flash→RTT (NEW)
+- [x] **Unified Job Manager** with ring buffer logs, device lock, GC
+- [x] **Streaming Build** with live output, diagnostics, artifact tracking
+- [x] **Flash Pipeline** with progress events, cancellation, verify
+- [x] **RTT Streaming** with batching (100 lines/4KB/100ms), dropped_count
+- [x] **Device Status API** with lock_holder_kind, last_terminal
+- [x] **Workflow Panel** (Run/Stop buttons, status strip, chip selector)
+- [x] **Real Hardware Support** via probe-rs (ST-Link, J-Link, CMSIS-DAP)
+
+### 9. Project System (NEW)
+- [x] **Project Manifest** (UUID, name, mcu_target, config_hash, settings)
+- [x] **Project Browser** with create/open/delete
+- [x] **Git Status Strip** with branch, changes count, commit dialog
+- [x] **IPC Commands**: project_load, project_save, project_create, project_list
+- [x] **Git IPC**: git_status_get, git_diff_get
 
 ---
 

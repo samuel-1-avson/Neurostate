@@ -9,6 +9,9 @@
 
 pub mod flash;
 pub mod rtt;
+pub mod debug;
+pub mod scheduler;
+pub mod simulator;
 #[cfg(feature = "hardware")]
 pub mod probe_rs_backend;
 use serde::{Deserialize, Serialize};
@@ -40,6 +43,7 @@ pub enum JobKind {
     Build,
     Flash,
     Rtt,
+    Debug,
     Agent,
     Index,
 }
@@ -47,7 +51,7 @@ pub enum JobKind {
 impl JobKind {
     /// Returns true if this job requires exclusive device access
     pub fn requires_device(&self) -> bool {
-        matches!(self, JobKind::Flash | JobKind::Rtt)
+        matches!(self, JobKind::Flash | JobKind::Rtt | JobKind::Debug)
     }
     
     /// Event namespace prefix
@@ -56,6 +60,7 @@ impl JobKind {
             JobKind::Build => "build",
             JobKind::Flash => "flash",
             JobKind::Rtt => "rtt",
+            JobKind::Debug => "debug",
             JobKind::Agent => "agent",
             JobKind::Index => "index",
         }
@@ -130,11 +135,25 @@ pub struct JobStatus {
 pub struct DeviceStatus {
     pub device_locked: bool,
     pub lock_holder_id: Option<String>,
+    pub lock_holder_kind: Option<String>, // "flash" | "rtt" | null
     pub rtt_active: bool,
     pub active_rtt_id: Option<String>,
     pub active_flash_id: Option<String>,
     pub active_jobs_count: usize,
+    pub last_terminal: Option<LastTerminal>,
 }
+
+/// Last terminal event info for status strip
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LastTerminal {
+    pub kind: String,
+    pub id: String,
+    pub success: bool,
+    pub reason: Option<String>,      // "user_request", "superseded", etc.
+    pub error_code: Option<String>,  // "IO_ERROR", "FLASH_FAILED", etc.
+    pub timestamp_ms: u64,
+}
+
 
 // ==================== Ring Buffer ====================
 
@@ -369,6 +388,7 @@ pub struct JobManager {
     jobs: DashMap<JobId, Arc<JobRecord>>,
     completed_logs: Arc<RwLock<HashMap<JobId, RingBuffer>>>,
     device_lock: Arc<Mutex<Option<JobId>>>,  // Exclusive device access
+    last_terminal: Arc<RwLock<Option<LastTerminal>>>,  // Most recent terminal event
 }
 
 impl JobManager {
@@ -377,6 +397,7 @@ impl JobManager {
             jobs: DashMap::new(),
             completed_logs: Arc::new(RwLock::new(HashMap::new())),
             device_lock: Arc::new(Mutex::new(None)),
+            last_terminal: Arc::new(RwLock::new(None)),
         }
     }
     
@@ -405,10 +426,11 @@ impl JobManager {
         let lock_holder = lock.clone();
         drop(lock);
         
-        // Find active RTT job
+        // Find active RTT/Flash jobs and determine lock kind
         let mut rtt_active = false;
         let mut active_rtt_id = None;
         let mut active_flash_id = None;
+        let mut lock_holder_kind = None;
         
         for entry in self.jobs.iter() {
             let record = entry.value();
@@ -417,22 +439,33 @@ impl JobManager {
                     JobKind::Rtt => {
                         rtt_active = true;
                         active_rtt_id = Some(record.id.clone());
+                        if lock_holder.as_ref() == Some(&record.id) {
+                            lock_holder_kind = Some("rtt".to_string());
+                        }
                     }
                     JobKind::Flash => {
                         active_flash_id = Some(record.id.clone());
+                        if lock_holder.as_ref() == Some(&record.id) {
+                            lock_holder_kind = Some("flash".to_string());
+                        }
                     }
                     _ => {}
                 }
             }
         }
         
+        // Get last terminal from completed jobs (check most recent)
+        let last_terminal = self.get_last_terminal().await;
+        
         DeviceStatus {
             device_locked: lock_holder.is_some(),
             lock_holder_id: lock_holder,
+            lock_holder_kind,
             rtt_active,
             active_rtt_id,
             active_flash_id,
             active_jobs_count: self.jobs.len(),
+            last_terminal,
         }
     }
     
@@ -509,6 +542,29 @@ impl JobManager {
                 self.release_device(job_id).await;
             }
             
+            // Record terminal info for status strip
+            let status = record.status.read().await;
+            if let Some(ref terminal) = status.terminal {
+                let (success, reason, error_code) = match terminal {
+                    JobTerminal::Completed { success, .. } => (*success, None, None),
+                    JobTerminal::Cancelled { reason } => (false, Some(format!("{:?}", reason)), None),
+                    JobTerminal::InternalError { error_code, .. } => {
+                        (false, None, Some(format!("{:?}", error_code)))
+                    }
+                };
+                
+                let last = LastTerminal {
+                    kind: record.kind.event_prefix().to_string(),
+                    id: record.id.clone(),
+                    success,
+                    reason,
+                    error_code,
+                    timestamp_ms: record.elapsed_ms(),
+                };
+                *self.last_terminal.write().await = Some(last);
+            }
+            drop(status);
+            
             // Move log to completed
             let log = record.log.lock().await;
             self.completed_logs.write().await.insert(
@@ -524,6 +580,11 @@ impl JobManager {
         
         // Run GC periodically
         self.job_gc(20).await; // Keep last 20 completed jobs per kind
+    }
+    
+    /// Get last terminal event info
+    pub async fn get_last_terminal(&self) -> Option<LastTerminal> {
+        self.last_terminal.read().await.clone()
     }
     
     /// Garbage collect old completed job logs

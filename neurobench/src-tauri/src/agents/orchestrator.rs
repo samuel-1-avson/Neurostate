@@ -18,6 +18,9 @@ impl Orchestrator {
     pub fn new() -> Self {
         let mut registry = AgentRegistry::new();
         
+        // Register Director Agent (primary coordinator)
+        registry.register(Box::new(super::director::DirectorAgent::new()));
+        
         // Register built-in agents
         registry.register(Box::new(super::fsm_agent::FsmAgent::new()));
         registry.register(Box::new(super::code_agent::CodeAgent::new()));
@@ -25,11 +28,20 @@ impl Orchestrator {
         registry.register(Box::new(super::hardware_agent::HardwareAgent::new()));
         registry.register(Box::new(super::docs_agent::DocsAgent::new()));
         
+        // Register new specialized agents
+        registry.register(Box::new(super::canvas_agent::CanvasAgent::new()));
+        registry.register(Box::new(super::build_agent::BuildAgent::new()));
+        registry.register(Box::new(super::deploy_agent::DeployAgent::new()));
+        
+        // Register Voice Assistant (Grok) and Super Agent (Nexus)
+        registry.register(Box::new(super::voice_agent::VoiceAssistantAgent::new()));
+        registry.register(Box::new(super::super_agent::SuperAgent::new()));
+        
         Self {
             registry,
             context: Arc::new(RwLock::new(AgentContext::default())),
             ai_service: AIService::new(),
-            active_agent: Some("fsm".to_string()),
+            active_agent: Some("director".to_string()), // Default to Director
         }
     }
     

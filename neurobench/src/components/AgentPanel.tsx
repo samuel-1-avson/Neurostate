@@ -1,8 +1,9 @@
 // Agent Panel Component
 // UI for interacting with AI agents
 
-import { createSignal, For, Show, onMount } from "solid-js";
+import { createSignal, createEffect, For, Show, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import useVoice from "../hooks/useVoice";
 
 interface AgentInfo {
   id: string;
@@ -41,6 +42,32 @@ interface ToolResult {
   data?: any;
 }
 
+// Model configuration summary
+interface AgentModelSummary {
+  agent_id: string;
+  agent_name: string;
+  primary: string;
+  fallback: string | null;
+  purpose: string;
+}
+
+// Task planning
+interface Task {
+  id: string;
+  intent: string;
+  description: string;
+  agent_id: string;
+  status: "pending" | "in_progress" | "completed" | "failed";
+}
+
+interface TaskPlan {
+  id: string;
+  original_request: string;
+  tasks: Task[];
+  current_step: number;
+  status: string;
+}
+
 // Props for parent communication
 interface AgentPanelProps {
   onToolAction?: (action: any) => void;
@@ -54,9 +81,41 @@ export function AgentPanel(props: AgentPanelProps) {
   const [isLoading, setIsLoading] = createSignal(false);
   const [suggestions, setSuggestions] = createSignal<string[]>([]);
   const [executedTools, setExecutedTools] = createSignal<Set<string>>(new Set());
+  const [modelConfigs, setModelConfigs] = createSignal<AgentModelSummary[]>([]);
+  const [currentPlan, setCurrentPlan] = createSignal<TaskPlan | null>(null);
+  const [showModels, setShowModels] = createSignal(false);
 
   let chatContainerRef: HTMLDivElement | undefined;
   let inputRef: HTMLTextAreaElement | undefined;
+
+  // Voice integration
+  const voice = useVoice({ continuous: false, interimResults: true });
+  const [speakResponses, setSpeakResponses] = createSignal(false);
+
+  // Effect: Update input with interim transcript while listening
+  createEffect(() => {
+    if (voice.isListening()) {
+      const interim = voice.interimTranscript();
+      if (interim) {
+        setInput(interim);
+      }
+    }
+  });
+
+  // Effect: Auto-send when speech ends with final transcript
+  createEffect(() => {
+    const transcript = voice.transcript();
+    if (transcript && !voice.isListening()) {
+      setInput(transcript);
+      // Auto-send after a brief delay
+      setTimeout(() => {
+        if (input().trim()) {
+          sendMessage();
+          voice.clearTranscript();
+        }
+      }, 300);
+    }
+  });
 
   function getTime(): string {
     return new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" });
@@ -117,6 +176,14 @@ export function AgentPanel(props: AgentPanelProps) {
       } else if (agentList.length > 0) {
         await selectAgent(agentList[0].id);
       }
+      
+      // Load model configurations
+      try {
+        const configs = await invoke("agent_get_model_config") as AgentModelSummary[];
+        setModelConfigs(configs);
+      } catch {
+        console.log("Model config not available");
+      }
     } catch (e) {
       console.error("Failed to load agents:", e);
     }
@@ -174,6 +241,18 @@ export function AgentPanel(props: AgentPanelProps) {
       if (response.suggestions.length > 0) {
         setSuggestions(response.suggestions);
       }
+      
+      // Check for task planning delegation
+      const delegateTool = response.tool_calls.find(t => t.tool === "delegate");
+      if (delegateTool && delegateTool.params.intent === "Complex") {
+        // Create a task plan for complex requests
+        try {
+          const plan = await invoke("agent_create_plan", { request: msg }) as TaskPlan;
+          setCurrentPlan(plan);
+        } catch {
+          console.log("Task planning not available");
+        }
+      }
     } catch (e) {
       setMessages([...messages(), {
         role: "assistant",
@@ -183,6 +262,12 @@ export function AgentPanel(props: AgentPanelProps) {
     }
 
     setIsLoading(false);
+
+    // Speak response if TTS enabled
+    const lastMsg = messages()[messages().length - 1];
+    if (speakResponses() && lastMsg?.role === "assistant" && !lastMsg.content.startsWith("❌")) {
+      voice.speak(lastMsg.content);
+    }
 
     // Scroll to bottom
     setTimeout(() => {
@@ -196,6 +281,11 @@ export function AgentPanel(props: AgentPanelProps) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
+    }
+    // Voice shortcut: Ctrl+Shift+V
+    if (e.key === "v" && e.ctrlKey && e.shiftKey) {
+      e.preventDefault();
+      voice.toggleListening();
     }
   }
 
@@ -238,7 +328,63 @@ export function AgentPanel(props: AgentPanelProps) {
               <Show when={activeAgent()!.capabilities.can_execute_terminal}>
                 <span class="cap-badge">Terminal</span>
               </Show>
+              {/* Show model info for current agent */}
+              <Show when={modelConfigs().find(m => m.agent_id === activeAgent()!.id)}>
+                <span class="cap-badge model-badge">
+                  🤖 {modelConfigs().find(m => m.agent_id === activeAgent()!.id)?.primary}
+                </span>
+              </Show>
             </div>
+          </div>
+          <button 
+            class={`agent-header-btn ${showModels() ? 'active' : ''}`} 
+            onClick={() => setShowModels(!showModels())}
+            title="View AI model configuration"
+          >
+            ⚙️
+          </button>
+        </div>
+        
+        {/* Model Configuration Panel */}
+        <Show when={showModels()}>
+          <div class="model-config-panel">
+            <div class="model-config-title">🤖 AI Model Configuration</div>
+            <div class="model-config-grid">
+              <For each={modelConfigs()}>
+                {(config) => (
+                  <div class={`model-config-item ${config.agent_id === activeAgent()?.id ? 'active' : ''}`}>
+                    <div class="model-agent-name">{config.agent_name}</div>
+                    <div class="model-primary">
+                      <span class="model-label">Primary:</span> {config.primary}
+                    </div>
+                    <Show when={config.fallback}>
+                      <div class="model-fallback">
+                        <span class="model-label">Fallback:</span> {config.fallback}
+                      </div>
+                    </Show>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
+        </Show>
+      </Show>
+
+      {/* Task Plan Display */}
+      <Show when={currentPlan()}>
+        <div class="task-plan-panel">
+          <div class="task-plan-title">📋 Task Plan</div>
+          <div class="task-plan-request">{currentPlan()!.original_request}</div>
+          <div class="task-plan-steps">
+            <For each={currentPlan()!.tasks}>
+              {(task, index) => (
+                <div class={`task-step ${task.status} ${index() === currentPlan()!.current_step ? 'current' : ''}`}>
+                  <span class="task-step-num">{index() + 1}</span>
+                  <span class="task-step-agent">{task.agent_id}</span>
+                  <span class="task-step-desc">{task.description}</span>
+                </div>
+              )}
+            </For>
           </div>
         </div>
       </Show>
@@ -306,17 +452,45 @@ export function AgentPanel(props: AgentPanelProps) {
           value={input()}
           onInput={(e) => setInput(e.currentTarget.value)}
           onKeyDown={handleKeyDown}
-          placeholder={activeAgent() ? `Ask ${activeAgent()!.name}...` : "Select an agent..."}
+          placeholder={voice.isListening() ? "🎤 Listening..." : (activeAgent() ? `Ask ${activeAgent()!.name}...` : "Select an agent...")}
           disabled={!activeAgent() || isLoading()}
           rows={2}
         />
-        <button 
-          class="send-btn" 
-          onClick={sendMessage}
-          disabled={!input().trim() || isLoading()}
-        >
-          {isLoading() ? "..." : "Send"}
-        </button>
+        <div class="input-actions">
+          {/* Microphone Button */}
+          <Show when={voice.isSupported}>
+            <button
+              class={`voice-btn ${voice.isListening() ? "listening" : ""}`}
+              onClick={() => voice.toggleListening()}
+              title={voice.isListening() ? "Stop listening" : "Start voice input (Ctrl+Shift+V)"}
+              disabled={!activeAgent() || isLoading()}
+            >
+              {voice.isListening() ? (
+                <span class="voice-wave">
+                  <span></span><span></span><span></span>
+                </span>
+              ) : (
+                "🎤"
+              )}
+            </button>
+          </Show>
+          {/* TTS Toggle */}
+          <button
+            class={`tts-btn ${speakResponses() ? "active" : ""}`}
+            onClick={() => setSpeakResponses(!speakResponses())}
+            title={speakResponses() ? "Disable voice responses" : "Enable voice responses"}
+          >
+            {speakResponses() ? "🔊" : "🔇"}
+          </button>
+          {/* Send Button */}
+          <button 
+            class="send-btn" 
+            onClick={sendMessage}
+            disabled={!input().trim() || isLoading()}
+          >
+            {isLoading() ? "..." : "Send"}
+          </button>
+        </div>
       </div>
     </div>
   );

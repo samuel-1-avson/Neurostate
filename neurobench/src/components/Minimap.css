@@ -1,0 +1,38 @@
+/* Minimap - Industrial Retro */
+
+.minimap {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: var(--bg-elevated, #222);
+  border: 1px solid var(--border-strong, #3a3a3a);
+  border-radius: var(--radius-lg, 4px);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  cursor: crosshair;
+}
+
+.minimap-header {
+  padding: 6px 10px;
+  background: var(--bg-surface, #1a1a1a);
+  border-bottom: 1px solid var(--border, #2a2a2a);
+}
+
+.minimap-header span {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim, #606060);
+}
+
+.minimap-canvas {
+  display: block;
+  background: var(--bg-base, #0d0d0d);
+}
+
+.minimap:hover {
+  border-color: var(--accent-dim, #c48a0d);
+}

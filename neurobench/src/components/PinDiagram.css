@@ -1,13 +1,14 @@
-/* Visual Pin Diagram Styles */
+/* Visual Pin Diagram - Industrial Retro */
 
 .pin-diagram {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  background: #1a1a2e;
-  border-radius: 8px;
+  gap: 14px;
+  padding: 14px;
+  background: var(--bg-panel, #141414);
+  border-radius: 4px;
   min-height: 300px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
 }
 
 .pin-diagram-loading,
@@ -16,50 +17,58 @@
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: #666;
-  font-size: 12px;
+  color: var(--text-dim, #606060);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .pin-diagram-error {
-  color: #ff6b6b;
+  color: var(--status-error, #dc3545);
 }
 
 .pin-diagram-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #2a2a4a;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border, #2a2a2a);
 }
 
 .pin-diagram-mcu-name {
   font-weight: 600;
-  font-size: 14px;
-  color: #00d4ff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent, #e49b0f);
 }
 
 .pin-diagram-package {
-  font-size: 11px;
-  color: #666;
-  background: #2a2a4a;
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #606060);
+  background: var(--bg-surface, #1a1a1a);
+  padding: 4px 10px;
+  border-radius: 2px;
+  border: 1px solid var(--border, #2a2a2a);
 }
 
 .pin-diagram-container {
   display: flex;
   justify-content: center;
-  padding: 16px 0;
+  padding: 20px 0;
 }
 
 .mcu-chip {
   display: flex;
   position: relative;
-  background: linear-gradient(135deg, #1f1f3a 0%, #16162b 100%);
-  border: 2px solid #3a3a5a;
-  border-radius: 8px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 2px solid var(--border-strong, #3a3a3a);
+  border-radius: 6px;
   padding: 40px 60px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .mcu-chip-label {
@@ -67,10 +76,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  color: #4a4a6a;
-  writing-mode: horizontal-tb;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim, #606060);
 }
 
 .pin-column {
@@ -93,29 +103,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #444;
-  border-radius: 3px;
+  background: var(--bg-elevated, #222);
+  border-radius: 2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s;
   border: 1px solid transparent;
 }
 
 .pin:hover {
   transform: scale(1.05);
-  border-color: #fff;
+  border-color: var(--accent, #e49b0f);
   z-index: 10;
 }
 
 .pin.selected {
-  border-color: #00d4ff;
-  box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+  border-color: var(--accent, #e49b0f);
+  box-shadow: 0 0 8px var(--accent-glow, rgba(228, 155, 15, 0.4));
 }
 
 .pin-label {
   font-size: 8px;
   font-weight: 600;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: var(--text-primary, #e8e8e8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,12 +136,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #1f1f3a;
-  border: 1px solid #3a3a5a;
-  border-radius: 8px;
+  background: var(--bg-panel, #141414);
+  border: 1px solid var(--border-strong, #3a3a3a);
+  border-radius: 4px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   z-index: 100;
-  min-width: 180px;
+  min-width: 200px;
   overflow: hidden;
 }
 
@@ -140,25 +149,29 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background: #16162b;
+  padding: 12px 14px;
+  background: var(--bg-surface, #1a1a1a);
+  border-bottom: 1px solid var(--border, #2a2a2a);
   font-weight: 600;
-  font-size: 12px;
-  color: #00d4ff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent, #e49b0f);
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-dim, #606060);
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   padding: 0;
+  transition: color 0.15s;
 }
 
 .close-btn:hover {
-  color: #ff6b6b;
+  color: var(--status-error, #dc3545);
 }
 
 .pin-function-list {
@@ -171,45 +184,48 @@
 .pin-function-btn {
   background: none;
   border: none;
-  padding: 10px 12px;
+  padding: 10px 14px;
   text-align: left;
-  color: #eaeaea;
+  color: var(--text-secondary, #a0a0a0);
   font-size: 11px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.1s;
 }
 
 .pin-function-btn:hover {
-  background: #2a2a4a;
+  background: var(--bg-elevated, #222);
+  color: var(--accent, #e49b0f);
 }
 
 /* Legend */
 .pin-legend {
-  padding: 8px;
-  background: #16162b;
-  border-radius: 6px;
+  padding: 10px 12px;
+  background: var(--bg-surface, #1a1a1a);
+  border-radius: 4px;
+  border: 1px solid var(--border, #2a2a2a);
 }
 
 .legend-title {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  color: #666;
-  margin-bottom: 8px;
+  color: var(--text-dim, #606060);
+  margin-bottom: 10px;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .legend-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: #aaa;
+  gap: 6px;
+  font-size: 9px;
+  color: var(--text-secondary, #a0a0a0);
 }
 
 .legend-color {
@@ -220,37 +236,39 @@
 
 /* Configured Pins Summary */
 .pin-config-summary {
-  padding: 8px;
-  background: #16162b;
-  border-radius: 6px;
-  border: 1px solid #00d4ff33;
+  padding: 10px 12px;
+  background: var(--bg-surface, #1a1a1a);
+  border-radius: 4px;
+  border: 1px solid var(--accent-dim, #c4850d);
 }
 
 .summary-title {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  color: #00d4ff;
-  margin-bottom: 8px;
+  color: var(--accent, #e49b0f);
+  margin-bottom: 10px;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .config-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 11px;
+  gap: 10px;
+  font-size: 10px;
   padding: 4px 0;
 }
 
 .config-pin {
   font-weight: 600;
-  color: #eaeaea;
+  color: var(--text-primary, #e8e8e8);
 }
 
 .config-arrow {
-  color: #666;
+  color: var(--text-dim, #606060);
 }
 
 .config-func {
   font-weight: 500;
+  color: var(--accent, #e49b0f);
 }

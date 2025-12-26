@@ -1,79 +1,99 @@
+/* Timers Panel - Industrial Retro */
+
 .timers-panel {
   padding: 16px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
 }
 
 .timers-header h3 {
   margin: 0;
-  color: var(--text-primary, #fff);
-  font-size: 14px;
+  color: var(--accent, #e49b0f);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .timers-tabs {
   display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--border-color, #3a3a3a);
-  padding-bottom: 8px;
+  gap: 6px;
+  border-bottom: 1px solid var(--border, #2a2a2a);
+  padding-bottom: 10px;
 }
 
 .timers-tabs .tab {
   background: transparent;
-  border: none;
-  color: var(--text-secondary, #888);
-  padding: 6px 12px;
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-secondary, #a0a0a0);
+  padding: 8px 14px;
   cursor: pointer;
-  border-radius: 4px;
-  font-size: 12px;
-  transition: all 0.2s;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
 }
 
 .timers-tabs .tab:hover {
-  background: var(--hover-bg, #2a2a2a);
-  color: var(--text-primary, #fff);
+  background: var(--bg-elevated, #222);
+  color: var(--text-primary, #e8e8e8);
 }
 
 .timers-tabs .tab.active {
-  background: var(--primary, #4a9eff);
-  color: #fff;
+  background: var(--accent, #e49b0f);
+  border-color: var(--accent, #e49b0f);
+  color: #000;
 }
 
 .config-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .config-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .config-row label {
   width: 100px;
-  font-size: 12px;
-  color: var(--text-secondary, #888);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #606060);
 }
 
 .config-row input[type="text"],
 .config-row input[type="number"],
 .config-row select {
   flex: 1;
-  background: var(--input-bg, #1a1a1a);
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-primary, #fff);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 12px;
+  background: var(--bg-input, #0f0f0f);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-primary, #e8e8e8);
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.config-row input:focus,
+.config-row select:focus {
+  border-color: var(--accent, #e49b0f);
+  outline: none;
 }
 
 .config-row input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: var(--primary, #4a9eff);
+  accent-color: var(--accent, #e49b0f);
 }
 
 .config-row.full {
@@ -83,43 +103,49 @@
 
 .config-row.full label {
   width: auto;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .config-row textarea {
   width: 100%;
-  background: var(--input-bg, #1a1a1a);
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-primary, #fff);
-  padding: 8px;
-  border-radius: 4px;
-  font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 11px;
+  background: var(--bg-input, #0f0f0f);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-primary, #e8e8e8);
+  padding: 10px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 10px;
   resize: vertical;
+}
+
+.config-row textarea:focus {
+  border-color: var(--accent, #e49b0f);
+  outline: none;
 }
 
 .config-row .calc-value {
   flex: 1;
-  color: var(--success, #4ade80);
+  color: var(--status-success, #32cd32);
   font-weight: bold;
   font-size: 12px;
 }
 
 .generate-btn {
-  background: var(--primary, #4a9eff);
-  color: #fff;
+  background: var(--accent, #e49b0f);
+  color: #000;
   border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
+  padding: 12px 18px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
 }
 
 .generate-btn:hover:not(:disabled) {
-  background: var(--primary-hover, #3a8eef);
-  transform: translateY(-1px);
+  box-shadow: 0 0 12px var(--accent-glow, rgba(228, 155, 15, 0.4));
 }
 
 .generate-btn:disabled {
@@ -128,9 +154,9 @@
 }
 
 .code-output {
-  background: var(--code-bg, #0d0d0d);
-  border: 1px solid var(--border-color, #3a3a3a);
-  border-radius: 6px;
+  background: var(--bg-base, #0d0d0d);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 4px;
   flex: 1;
   overflow: hidden;
   display: flex;
@@ -141,43 +167,49 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background: var(--header-bg, #1a1a1a);
-  border-bottom: 1px solid var(--border-color, #3a3a3a);
+  padding: 10px 14px;
+  background: var(--bg-panel, #141414);
+  border-bottom: 1px solid var(--border, #2a2a2a);
 }
 
 .code-output .code-header span {
-  color: var(--text-secondary, #888);
-  font-size: 11px;
+  color: var(--text-dim, #606060);
+  font-size: 9px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .code-output .copy-btn {
   background: transparent;
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-primary, #fff);
-  padding: 4px 8px;
-  border-radius: 4px;
+  border: 1px solid var(--border-strong, #3a3a3a);
+  color: var(--text-secondary, #a0a0a0);
+  padding: 5px 10px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 11px;
-  transition: all 0.2s;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
 }
 
 .code-output .copy-btn:hover {
-  background: var(--hover-bg, #2a2a2a);
-  border-color: var(--primary, #4a9eff);
+  background: var(--bg-elevated, #222);
+  border-color: var(--accent, #e49b0f);
+  color: var(--accent, #e49b0f);
 }
 
 .code-output pre {
   margin: 0;
-  padding: 12px;
+  padding: 14px;
   overflow: auto;
   flex: 1;
 }
 
 .code-output code {
-  color: var(--code-color, #a5d6ff);
-  font-family: 'Consolas', 'Monaco', monospace;
+  color: var(--accent, #e49b0f);
+  font-family: inherit;
   font-size: 11px;
   white-space: pre;
 }

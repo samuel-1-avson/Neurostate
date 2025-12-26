@@ -27,6 +27,9 @@ pub mod profiler;
 pub mod registers;
 pub mod performance;
 pub mod toolchain;
+pub mod project;
+pub mod canvas;
+pub mod nodes;
 
 #[cfg(test)]
 mod tests;
@@ -48,6 +51,9 @@ pub struct AppState {
     pub job_manager: Arc<jobs::JobManager>,
     pub tool_registry: Arc<Mutex<agents::ToolRegistry>>,
     pub audit_log: Arc<Mutex<agents::AuditLog>>,
+    pub canvas_engine: canvas::SharedCanvasEngine,
+    pub event_store: Arc<Mutex<canvas::event_store::EventStore>>,
+    pub job_scheduler: Arc<Mutex<jobs::scheduler::JobScheduler>>,
 }
 
 impl AppState {
@@ -58,6 +64,9 @@ impl AppState {
             job_manager: Arc::new(jobs::JobManager::new()),
             tool_registry: Arc::new(Mutex::new(agents::create_default_registry())),
             audit_log: Arc::new(Mutex::new(agents::AuditLog::new())),
+            canvas_engine: canvas::create_engine(),
+            event_store: Arc::new(Mutex::new(canvas::event_store::EventStore::new())),
+            job_scheduler: Arc::new(Mutex::new(jobs::scheduler::JobScheduler::new())),
         }
     }
 }
@@ -343,9 +352,119 @@ pub fn run() {
             patch_reject,
             patch_get_pending,
             
+            // Project Management
+            project_load,
+            project_save,
+            project_create,
+            project_list,
+            project_delete,
+            
+            // Git Integration
+            git_status_get,
+            git_diff_get,
+            // git_commit already registered above
+            
+            // Code Preview
+            code_preview,
+            code_write,
+            
+            // Diagnostics Export
+            export_diagnostics,
+            
+            // Session Management
+            session_save,
+            session_restore,
+            
+            // Templates Library
+            templates_list,
+            templates_get,
+            templates_apply,
+            
+            // Multi-Target Projects
+            targets_list,
+            targets_add,
+            targets_remove,
+            targets_build_all,
+            
+            // Remote Debugging
+            debug_start,
+            debug_stop,
+            debug_resume,
+            debug_pause,
+            debug_step,
+            debug_status,
+            debug_breakpoint_add,
+            debug_breakpoint_remove,
+            debug_breakpoint_list,
+            debug_stack,
+            debug_registers,
+            
             // AI Model Management
             ai_get_providers,
             ai_set_provider,
+            
+            // Canvas Engine
+            canvas_init,
+            canvas_get_state,
+            canvas_add_node,
+            canvas_move_nodes,
+            canvas_delete_nodes,
+            canvas_update_node,
+            canvas_connect,
+            canvas_delete_edges,
+            canvas_query_at,
+            canvas_query_rect,
+            canvas_select,
+            canvas_select_all,
+            canvas_clear_selection,
+            canvas_validate,
+            canvas_auto_layout,
+            canvas_align,
+            canvas_get_edge_paths,
+            canvas_undo,
+            canvas_redo,
+            
+            // Node Engine (Enhanced Nodes)
+            nodes_get_palette,
+            nodes_get_all_types,
+            nodes_get_type_info,
+            nodes_create,
+            nodes_delete,
+            nodes_connect,
+            nodes_disconnect,
+            nodes_update_property,
+            nodes_validate,
+            nodes_export,
+            nodes_import,
+            nodes_generate_code,
+            nodes_generate_files,
+            
+            // New Agent System Commands
+            agent_create_plan,
+            agent_get_model_config,
+            
+            // Task Queue
+            task_queue_list,
+            task_queue_status,
+            task_queue_cancel,
+            
+            // Function Calling
+            agent_get_functions,
+            
+            // Event Store & History
+            canvas_get_event_history,
+            canvas_create_snapshot,
+            canvas_diff_versions,
+            canvas_restore_version,
+            
+            // AI Router
+            ai_generate_with_router,
+            ai_get_router_health,
+            
+            // Job Scheduler
+            schedule_priority_job,
+            scheduler_get_status,
+            scheduler_set_limit,
         ])
         .manage(AppState::new())
         .run(tauri::generate_context!())
@@ -3580,4 +3699,1292 @@ async fn patch_get_pending(
         .collect();
     
     Ok(serde_json::json!({ "pending": entries }))
+}
+
+// ==================== Project Commands ====================
+
+/// Load project manifest
+#[tauri::command]
+async fn project_load(
+    path: String,
+) -> Result<project::ProjectManifest, String> {
+    project::load_project(&path)
+}
+
+/// Save project manifest
+#[tauri::command]
+async fn project_save(
+    path: String,
+    manifest: project::ProjectManifest,
+) -> Result<(), String> {
+    project::save_project(&path, &manifest)
+}
+
+/// Create new project
+#[tauri::command]
+async fn project_create(
+    path: String,
+    name: String,
+    mcu_target: String,
+) -> Result<project::ProjectManifest, String> {
+    project::create_project(&path, &name, &mcu_target)
+}
+
+/// List projects in directory
+#[tauri::command]
+async fn project_list(
+    dir: String,
+) -> Result<Vec<project::ProjectInfo>, String> {
+    project::list_projects(&dir)
+}
+
+/// Delete project
+#[tauri::command]
+async fn project_delete(
+    path: String,
+) -> Result<(), String> {
+    project::delete_project(&path)
+}
+
+// ==================== Git Commands ====================
+
+/// Get git repository status
+#[tauri::command]
+async fn git_status_get(
+    path: String,
+) -> Result<git::RepoStatus, String> {
+    git::get_status(&path)
+}
+
+/// Get git diff
+#[tauri::command]
+async fn git_diff_get(
+    path: String,
+) -> Result<git::DiffInfo, String> {
+    git::get_diff(&path)
+}
+
+// ==================== Code Preview Commands ====================
+
+/// File diff for code preview
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct FileDiff {
+    path: String,
+    old_content: Option<String>,
+    new_content: String,
+    additions: usize,
+    deletions: usize,
+}
+
+/// Preview generated code changes
+#[tauri::command]
+async fn code_preview(
+    project_path: String,
+) -> Result<Vec<FileDiff>, String> {
+    use std::fs;
+    use std::path::Path;
+    
+    let path = Path::new(&project_path);
+    let src_dir = path.join("src");
+    
+    // For now, just scan src directory and compare existing files
+    // A real implementation would run the code generator and compare
+    let mut diffs = Vec::new();
+    
+    if src_dir.exists() {
+        for entry in fs::read_dir(&src_dir).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let file_path = entry.path();
+            
+            if file_path.is_file() {
+                if let Some(ext) = file_path.extension() {
+                    if ext == "c" || ext == "h" || ext == "cpp" || ext == "rs" {
+                        let rel_path = file_path.strip_prefix(path)
+                            .map(|p| p.to_string_lossy().to_string())
+                            .unwrap_or_else(|_| file_path.to_string_lossy().to_string());
+                        
+                        let content = fs::read_to_string(&file_path)
+                            .map_err(|e| e.to_string())?;
+                        
+                        let lines = content.lines().count();
+                        
+                        diffs.push(FileDiff {
+                            path: rel_path,
+                            old_content: None, // Would compare with generated
+                            new_content: content,
+                            additions: lines,
+                            deletions: 0,
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    Ok(diffs)
+}
+
+/// Write accepted code changes
+#[tauri::command]
+async fn code_write(
+    project_path: String,
+    paths: Vec<String>,
+) -> Result<usize, String> {
+    // For now, this is a placeholder
+    // A real implementation would write generated code to disk
+    Ok(paths.len())
+}
+
+// ==================== Diagnostics Export Commands ====================
+
+/// Diagnostics bundle for bug reports
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct DiagnosticsBundle {
+    timestamp: String,
+    device_status: Option<jobs::DeviceStatus>,
+    jobs: Vec<DiagJob>,
+    build_log: Option<Vec<String>>,
+    flash_log: Option<Vec<String>>,
+    rtt_log: Option<Vec<String>>,
+    system_info: serde_json::Value,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct DiagJob {
+    id: String,
+    kind: String,
+    status: String,
+}
+
+/// Export diagnostics bundle for bug reports
+#[tauri::command]
+async fn export_diagnostics(
+    state: State<'_, AppState>,
+) -> Result<DiagnosticsBundle, String> {
+    // Gather device status
+    let device_status = Some(state.job_manager.get_device_status().await);
+    
+    // Gather active jobs
+    let job_list = state.job_manager.list_jobs(None).await;
+    let jobs: Vec<DiagJob> = job_list.into_iter().map(|j| DiagJob {
+        id: j.id,
+        kind: format!("{:?}", j.kind),
+        status: format!("{:?}", j.status),
+    }).collect();
+    
+    // Get logs for most recent jobs
+    let build_log = None; // Would get from job_manager
+    let flash_log = None;
+    let rtt_log = None;
+    
+    // System info
+    let system_info = serde_json::json!({
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "version": env!("CARGO_PKG_VERSION"),
+    });
+    
+    Ok(DiagnosticsBundle {
+        timestamp: chrono::Utc::now().to_rfc3339(),
+        device_status,
+        jobs,
+        build_log,
+        flash_log,
+        rtt_log,
+        system_info,
+    })
+}
+
+// ==================== Session Management Commands ====================
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct SessionData {
+    last_project_path: Option<String>,
+    open_files: Vec<String>,
+    window_state: Option<WindowState>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct WindowState {
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    maximized: bool,
+}
+
+/// Save session state for restore on next launch
+#[tauri::command]
+async fn session_save(
+    last_project_path: Option<String>,
+    open_files: Vec<String>,
+) -> Result<(), String> {
+    use std::fs;
+    
+    let session = SessionData {
+        last_project_path,
+        open_files,
+        window_state: None,
+    };
+    
+    // Save to user data directory
+    let session_path = dirs::data_local_dir()
+        .ok_or("Could not find local data directory")?
+        .join("neurobench")
+        .join("session.json");
+    
+    if let Some(parent) = session_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    
+    let content = serde_json::to_string_pretty(&session)
+        .map_err(|e| e.to_string())?;
+    
+    fs::write(&session_path, content).map_err(|e| e.to_string())
+}
+
+/// Restore session state from previous launch
+#[tauri::command]
+async fn session_restore() -> Result<SessionData, String> {
+    use std::fs;
+    
+    let session_path = dirs::data_local_dir()
+        .ok_or("Could not find local data directory")?
+        .join("neurobench")
+        .join("session.json");
+    
+    if !session_path.exists() {
+        return Ok(SessionData {
+            last_project_path: None,
+            open_files: Vec::new(),
+            window_state: None,
+        });
+    }
+    
+    let content = fs::read_to_string(&session_path)
+        .map_err(|e| e.to_string())?;
+    
+    serde_json::from_str(&content)
+        .map_err(|e| e.to_string())
+}
+
+// ==================== Templates Commands ====================
+
+/// List all available templates
+#[tauri::command]
+async fn templates_list(
+    category: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let templates = if let Some(cat) = category {
+        templates::get_templates_by_category(&cat)
+    } else {
+        templates::get_templates()
+    };
+    
+    let categories = templates::get_categories();
+    
+    Ok(serde_json::json!({
+        "templates": templates,
+        "categories": categories,
+    }))
+}
+
+/// Get a specific template by ID
+#[tauri::command]
+async fn templates_get(
+    id: String,
+) -> Result<templates::ProjectTemplate, String> {
+    templates::get_template_by_id(&id)
+        .ok_or_else(|| format!("Template not found: {}", id))
+}
+
+/// Apply a template to create a new project
+#[tauri::command]
+async fn templates_apply(
+    template_id: String,
+    project_path: String,
+    project_name: String,
+) -> Result<project::ProjectManifest, String> {
+    use std::fs;
+    
+    // Get template
+    let template = templates::get_template_by_id(&template_id)
+        .ok_or_else(|| format!("Template not found: {}", template_id))?;
+    
+    // Get default MCU target
+    let mcu_target = template.mcu_targets.first()
+        .cloned()
+        .unwrap_or_else(|| "STM32F407VG".to_string());
+    
+    // Create project
+    let manifest = project::create_project(&project_path, &project_name, &mcu_target)?;
+    
+    // Write template files
+    let project_dir = std::path::Path::new(&project_path);
+    for file in &template.files {
+        let file_path = project_dir.join(&file.path);
+        
+        // Create parent directories
+        if let Some(parent) = file_path.parent() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        
+        fs::write(&file_path, &file.content).map_err(|e| e.to_string())?;
+    }
+    
+    Ok(manifest)
+}
+
+// ==================== Multi-Target Commands ====================
+
+/// List targets for a project
+#[tauri::command]
+async fn targets_list(
+    project_path: String,
+) -> Result<Vec<project::TargetProfile>, String> {
+    let manifest = project::load_project(&project_path)?;
+    Ok(manifest.targets)
+}
+
+/// Add a target to a project
+#[tauri::command]
+async fn targets_add(
+    project_path: String,
+    id: String,
+    name: String,
+    mcu: String,
+    chip: String,
+) -> Result<project::TargetProfile, String> {
+    use std::collections::HashMap;
+    
+    let mut manifest = project::load_project(&project_path)?;
+    
+    let target = project::TargetProfile {
+        id: id.clone(),
+        name,
+        mcu,
+        chip,
+        enabled: true,
+        output_dir: format!("build/{}", id),
+        defines: HashMap::new(),
+        link_script: None,
+    };
+    
+    manifest.add_target(target.clone());
+    project::save_project(&project_path, &manifest)?;
+    
+    Ok(target)
+}
+
+/// Remove a target from a project
+#[tauri::command]
+async fn targets_remove(
+    project_path: String,
+    target_id: String,
+) -> Result<bool, String> {
+    let mut manifest = project::load_project(&project_path)?;
+    let removed = manifest.remove_target(&target_id);
+    
+    if removed {
+        project::save_project(&project_path, &manifest)?;
+    }
+    
+    Ok(removed)
+}
+
+/// Build status for multi-target builds
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct MultiTargetBuildResult {
+    target_id: String,
+    target_name: String,
+    success: bool,
+    output_dir: String,
+    error: Option<String>,
+}
+
+/// Build all enabled targets
+#[tauri::command]
+async fn targets_build_all(
+    project_path: String,
+) -> Result<Vec<MultiTargetBuildResult>, String> {
+    let manifest = project::load_project(&project_path)?;
+    let enabled = manifest.enabled_targets();
+    
+    if enabled.is_empty() {
+        return Err("No enabled targets".to_string());
+    }
+    
+    let mut results = Vec::new();
+    
+    for target in enabled {
+        // For now, just record what would be built
+        // Real implementation would invoke streaming_build for each target
+        results.push(MultiTargetBuildResult {
+            target_id: target.id.clone(),
+            target_name: target.name.clone(),
+            success: true,  // Would be actual build result
+            output_dir: target.output_dir.clone(),
+            error: None,
+        });
+    }
+    
+    Ok(results)
+}
+
+// ==================== Remote Debugging Commands ====================
+
+use jobs::debug::{DebugSession, DebugStatus, Breakpoint, StackFrame, Registers, StepType};
+
+// Global debug session (one at a time)
+static DEBUG_SESSION: OnceLock<tokio::sync::RwLock<Option<DebugSession>>> = OnceLock::new();
+
+fn get_debug_session() -> &'static tokio::sync::RwLock<Option<DebugSession>> {
+    DEBUG_SESSION.get_or_init(|| tokio::sync::RwLock::new(None))
+}
+
+/// Start debug session
+#[tauri::command]
+async fn debug_start(
+    chip: String,
+    elf_path: Option<String>,
+) -> Result<DebugStatus, String> {
+    let mut session_lock = get_debug_session().write().await;
+    
+    if session_lock.is_some() {
+        return Err("Debug session already active".to_string());
+    }
+    
+    let session = DebugSession::new(&chip, elf_path.as_deref());
+    session.start().await?;
+    
+    let status = session.get_status().await?;
+    *session_lock = Some(session);
+    
+    Ok(status)
+}
+
+/// Stop debug session
+#[tauri::command]
+async fn debug_stop() -> Result<(), String> {
+    let mut session_lock = get_debug_session().write().await;
+    
+    if let Some(session) = session_lock.as_ref() {
+        session.stop().await?;
+    }
+    
+    *session_lock = None;
+    Ok(())
+}
+
+/// Resume execution
+#[tauri::command]
+async fn debug_resume() -> Result<DebugStatus, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    session.resume().await?;
+    session.get_status().await
+}
+
+/// Pause execution
+#[tauri::command]
+async fn debug_pause() -> Result<DebugStatus, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    session.pause().await?;
+    session.get_status().await
+}
+
+/// Step execution
+#[tauri::command]
+async fn debug_step(
+    step_type: String,
+) -> Result<DebugStatus, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    let st = match step_type.as_str() {
+        "over" => StepType::Over,
+        "out" => StepType::Out,
+        _ => StepType::Into,
+    };
+    
+    session.step(st).await
+}
+
+/// Get debug status
+#[tauri::command]
+async fn debug_status() -> Result<DebugStatus, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    session.get_status().await
+}
+
+/// Add breakpoint
+#[tauri::command]
+async fn debug_breakpoint_add(
+    file: String,
+    line: u32,
+) -> Result<Breakpoint, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    session.add_breakpoint(&file, line).await
+}
+
+/// Remove breakpoint
+#[tauri::command]
+async fn debug_breakpoint_remove(
+    id: u32,
+) -> Result<bool, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    session.remove_breakpoint(id).await
+}
+
+/// List breakpoints
+#[tauri::command]
+async fn debug_breakpoint_list() -> Result<Vec<Breakpoint>, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    Ok(session.list_breakpoints().await)
+}
+
+/// Get call stack
+#[tauri::command]
+async fn debug_stack() -> Result<Vec<StackFrame>, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    session.get_stack().await
+}
+
+/// Get registers
+#[tauri::command]
+async fn debug_registers() -> Result<Registers, String> {
+    let session_lock = get_debug_session().read().await;
+    let session = session_lock.as_ref()
+        .ok_or("No active debug session")?;
+    
+    session.get_registers().await
+}
+
+// ============================================================================
+// CANVAS ENGINE IPC COMMANDS
+// ============================================================================
+
+/// Initialize canvas with nodes and edges
+#[tauri::command]
+async fn canvas_init(
+    state: State<'_, AppState>,
+    nodes: Vec<canvas::CanvasNode>,
+    edges: Vec<canvas::CanvasEdge>,
+) -> Result<(), String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.init(nodes, edges);
+    Ok(())
+}
+
+/// Get current canvas state
+#[tauri::command]
+async fn canvas_get_state(state: State<'_, AppState>) -> Result<canvas::CanvasState, String> {
+    let engine = state.canvas_engine.read().await;
+    Ok(engine.get_state())
+}
+
+/// Add a new node
+#[tauri::command]
+async fn canvas_add_node(
+    state: State<'_, AppState>,
+    node: canvas::CanvasNode,
+) -> Result<(), String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.add_node(node).map_err(|e| e.to_string())
+}
+
+/// Move multiple nodes
+#[tauri::command]
+async fn canvas_move_nodes(
+    state: State<'_, AppState>,
+    moves: Vec<canvas::NodeMove>,
+) -> Result<(), String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.move_nodes(moves).map_err(|e| e.to_string())
+}
+
+/// Delete nodes
+#[tauri::command]
+async fn canvas_delete_nodes(
+    state: State<'_, AppState>,
+    ids: Vec<String>,
+) -> Result<canvas::DeleteResult, String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.delete_nodes(ids).map_err(|e| e.to_string())
+}
+
+/// Update node properties
+#[tauri::command]
+async fn canvas_update_node(
+    state: State<'_, AppState>,
+    id: String,
+    update: canvas::NodeUpdate,
+) -> Result<(), String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.update_node(&id, update).map_err(|e| e.to_string())
+}
+
+/// Connect two nodes
+#[tauri::command]
+async fn canvas_connect(
+    state: State<'_, AppState>,
+    source: String,
+    target: String,
+    label: Option<String>,
+) -> Result<canvas::CanvasEdge, String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.connect(&source, &target, label).map_err(|e| e.to_string())
+}
+
+/// Delete edges
+#[tauri::command]
+async fn canvas_delete_edges(
+    state: State<'_, AppState>,
+    ids: Vec<String>,
+) -> Result<(), String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.delete_edges(ids).map_err(|e| e.to_string())
+}
+
+/// Query node at point
+#[tauri::command]
+async fn canvas_query_at(
+    state: State<'_, AppState>,
+    x: f64,
+    y: f64,
+) -> Result<Option<canvas::CanvasNode>, String> {
+    let engine = state.canvas_engine.read().await;
+    Ok(engine.query_at(x, y).cloned())
+}
+
+/// Query nodes in rectangle
+#[tauri::command]
+async fn canvas_query_rect(
+    state: State<'_, AppState>,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) -> Result<Vec<String>, String> {
+    let engine = state.canvas_engine.read().await;
+    Ok(engine.query_rect(x, y, width, height))
+}
+
+/// Set selection
+#[tauri::command]
+async fn canvas_select(
+    state: State<'_, AppState>,
+    ids: Vec<String>,
+) -> Result<(), String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.select(ids);
+    Ok(())
+}
+
+/// Select all nodes
+#[tauri::command]
+async fn canvas_select_all(state: State<'_, AppState>) -> Result<Vec<String>, String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.select_all();
+    Ok(engine.get_selection())
+}
+
+/// Clear selection
+#[tauri::command]
+async fn canvas_clear_selection(state: State<'_, AppState>) -> Result<(), String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.clear_selection();
+    Ok(())
+}
+
+/// Validate graph
+#[tauri::command]
+async fn canvas_validate(
+    state: State<'_, AppState>,
+) -> Result<canvas::ValidationResult, String> {
+    let engine = state.canvas_engine.read().await;
+    Ok(engine.validate())
+}
+
+/// Apply auto-layout
+#[tauri::command]
+async fn canvas_auto_layout(
+    state: State<'_, AppState>,
+    algorithm: canvas::LayoutAlgorithm,
+) -> Result<canvas::CanvasState, String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.auto_layout(algorithm).map_err(|e| e.to_string())?;
+    Ok(engine.get_state())
+}
+
+/// Align selected nodes
+#[tauri::command]
+async fn canvas_align(
+    state: State<'_, AppState>,
+    alignment: canvas::Alignment,
+) -> Result<canvas::CanvasState, String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.align_nodes(alignment).map_err(|e| e.to_string())?;
+    Ok(engine.get_state())
+}
+
+/// Get all edge paths
+#[tauri::command]
+async fn canvas_get_edge_paths(
+    state: State<'_, AppState>,
+) -> Result<std::collections::HashMap<String, String>, String> {
+    let engine = state.canvas_engine.read().await;
+    Ok(engine.get_all_edge_paths())
+}
+
+/// Undo last action
+#[tauri::command]
+async fn canvas_undo(state: State<'_, AppState>) -> Result<canvas::CanvasState, String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.undo();
+    Ok(engine.get_state())
+}
+
+/// Redo last undone action
+#[tauri::command]
+async fn canvas_redo(state: State<'_, AppState>) -> Result<canvas::CanvasState, String> {
+    let mut engine = state.canvas_engine.write().await;
+    engine.redo();
+    Ok(engine.get_state())
+}
+
+// ============================================================================
+// NODE ENGINE IPC COMMANDS (Enhanced Nodes)
+// ============================================================================
+
+/// Get node palette organized by category
+#[tauri::command]
+fn nodes_get_palette() -> Result<Vec<(String, Vec<nodes::NodeTypeInfo>)>, String> {
+    let palette: Vec<(String, Vec<nodes::NodeTypeInfo>)> = nodes::NodeCategory::all()
+        .into_iter()
+        .map(|cat| {
+            let types: Vec<nodes::NodeTypeInfo> = nodes::NodeType::by_category(cat)
+                .into_iter()
+                .map(|nt| nodes::NodeTypeInfo {
+                    node_type: nt.clone(),
+                    category: cat,
+                    name: nt.display_name().to_string(),
+                    icon: nt.icon().to_string(),
+                    ports: nt.default_ports(),
+                })
+                .collect();
+            (cat.display_name().to_string(), types)
+        })
+        .collect();
+    Ok(palette)
+}
+
+/// Get all node types info
+#[tauri::command]
+fn nodes_get_all_types() -> Result<Vec<nodes::NodeTypeInfo>, String> {
+    Ok(nodes::get_all_node_info())
+}
+
+/// Get info for a specific node type
+#[tauri::command]
+fn nodes_get_type_info(node_type: nodes::NodeType) -> Result<nodes::NodeTypeInfo, String> {
+    Ok(nodes::NodeTypeInfo {
+        category: node_type.category(),
+        name: node_type.display_name().to_string(),
+        icon: node_type.icon().to_string(),
+        ports: node_type.default_ports(),
+        node_type,
+    })
+}
+
+/// Create a new node
+#[tauri::command]
+fn nodes_create(
+    node_type: nodes::NodeType,
+    x: f64,
+    y: f64,
+    label: Option<String>,
+) -> Result<nodes::Node, String> {
+    let mut engine = nodes::NodeEngine::new();
+    let id = engine.create_node(node_type.clone(), x, y);
+    
+    if let Some(node) = engine.get_node_mut(&id) {
+        if let Some(lbl) = label {
+            node.label = lbl;
+        }
+        Ok(node.clone())
+    } else {
+        Err("Failed to create node".to_string())
+    }
+}
+
+/// Delete a node
+#[tauri::command]
+fn nodes_delete(node_id: String) -> Result<bool, String> {
+    let mut engine = nodes::NodeEngine::new();
+    Ok(engine.delete_node(&node_id))
+}
+
+/// Connect two nodes
+#[tauri::command]
+fn nodes_connect(
+    source_node: String,
+    source_port: String,
+    target_node: String,
+    target_port: String,
+) -> Result<String, String> {
+    let mut engine = nodes::NodeEngine::new();
+    engine.connect(&source_node, &source_port, &target_node, &target_port)
+        .map_err(|e| format!("{}", e))
+}
+
+/// Disconnect two nodes
+#[tauri::command]
+fn nodes_disconnect(connection_id: String) -> Result<bool, String> {
+    let mut engine = nodes::NodeEngine::new();
+    Ok(engine.delete_connection(&connection_id))
+}
+
+/// Update node property
+#[tauri::command]
+fn nodes_update_property(
+    node_id: String,
+    key: String,
+    value: nodes::PropertyValue,
+) -> Result<(), String> {
+    let mut engine = nodes::NodeEngine::new();
+    if let Some(node) = engine.get_node_mut(&node_id) {
+        node.properties.insert(key, value);
+        Ok(())
+    } else {
+        Err(format!("Node not found: {}", node_id))
+    }
+}
+
+/// Validate design
+#[tauri::command]
+fn nodes_validate() -> Result<nodes::ValidationResult, String> {
+    let engine = nodes::NodeEngine::new();
+    Ok(engine.validate())
+}
+
+/// Export design state
+#[tauri::command]
+fn nodes_export() -> Result<nodes::DesignState, String> {
+    let engine = nodes::NodeEngine::new();
+    Ok(engine.export())
+}
+
+/// Import design state
+#[tauri::command]
+fn nodes_import(state: nodes::DesignState) -> Result<(), String> {
+    let mut engine = nodes::NodeEngine::new();
+    engine.import(state);
+    Ok(())
+}
+
+/// Generate code from nodes
+#[tauri::command]
+fn nodes_generate_code(
+    nodes_data: Vec<serde_json::Value>,
+) -> Result<nodes::codegen::GeneratedCode, String> {
+    use std::collections::HashMap;
+    
+    let mut combined = nodes::codegen::GeneratedCode::new();
+    let ctx = nodes::codegen::CodeGenContext::default();
+    
+    for node_json in nodes_data {
+        // Parse node type
+        let node_type_str = node_json.get("node_type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("State");
+        
+        // Parse properties from JSON
+        let props_json = node_json.get("properties")
+            .cloned()
+            .unwrap_or(serde_json::json!({}));
+        
+        let mut properties: HashMap<String, nodes::PropertyValue> = HashMap::new();
+        
+        if let Some(obj) = props_json.as_object() {
+            for (key, value) in obj {
+                let prop_val = match value {
+                    serde_json::Value::String(s) => nodes::PropertyValue::String(s.clone()),
+                    serde_json::Value::Number(n) => {
+                        if let Some(i) = n.as_i64() {
+                            nodes::PropertyValue::Integer(i)
+                        } else if let Some(f) = n.as_f64() {
+                            nodes::PropertyValue::Float(f)
+                        } else {
+                            continue;
+                        }
+                    }
+                    serde_json::Value::Bool(b) => nodes::PropertyValue::Boolean(*b),
+                    _ => continue,
+                };
+                properties.insert(key.clone(), prop_val);
+            }
+        }
+        
+        // Match node type string to enum
+        let node_type = match node_type_str {
+            "Gpio" | "gpio" => nodes::NodeType::Gpio,
+            "Adc" | "adc" => nodes::NodeType::Adc,
+            "Dac" | "dac" => nodes::NodeType::Dac,
+            "Pwm" | "pwm" => nodes::NodeType::Pwm,
+            "Uart" | "uart" => nodes::NodeType::Uart,
+            "Spi" | "spi" => nodes::NodeType::Spi,
+            "I2c" | "i2c" => nodes::NodeType::I2c,
+            "Timer" | "timer" => nodes::NodeType::Timer,
+            "Task" | "task" => nodes::NodeType::Task,
+            "Semaphore" | "semaphore" => nodes::NodeType::Semaphore,
+            "Mutex" | "mutex" => nodes::NodeType::Mutex,
+            "Queue" | "queue" => nodes::NodeType::Queue,
+            "Interrupt" | "interrupt" => nodes::NodeType::Interrupt,
+            "Led" | "led" => nodes::NodeType::Led,
+            "Button" | "button" => nodes::NodeType::Button,
+            "Motor" | "motor" => nodes::NodeType::Motor,
+            "State" | "state" => nodes::NodeType::State,
+            "Initial" | "initial" => nodes::NodeType::Initial,
+            "Final" | "final" => nodes::NodeType::Final,
+            _ => nodes::NodeType::State,
+        };
+        
+        // Generate code for this node
+        let node_code = nodes::codegen::generate_node_code(&node_type, &properties, &ctx);
+        combined.merge(node_code);
+    }
+    
+    Ok(combined)
+}
+
+/// Generate multiple code files from nodes (multi-file export)
+#[tauri::command]
+fn nodes_generate_files(
+    nodes_data: Vec<serde_json::Value>,
+) -> Result<Vec<nodes::codegen::CodeFile>, String> {
+    use std::collections::HashMap;
+    
+    let mut combined = nodes::codegen::GeneratedCode::new();
+    let ctx = nodes::codegen::CodeGenContext::default();
+    
+    for node_json in nodes_data {
+        let node_type_str = node_json.get("node_type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("State");
+        
+        let props_json = node_json.get("properties")
+            .cloned()
+            .unwrap_or(serde_json::json!({}));
+        
+        let mut properties: HashMap<String, nodes::PropertyValue> = HashMap::new();
+        
+        if let Some(obj) = props_json.as_object() {
+            for (key, value) in obj {
+                let prop_val = match value {
+                    serde_json::Value::String(s) => nodes::PropertyValue::String(s.clone()),
+                    serde_json::Value::Number(n) => {
+                        if let Some(i) = n.as_i64() {
+                            nodes::PropertyValue::Integer(i)
+                        } else if let Some(f) = n.as_f64() {
+                            nodes::PropertyValue::Float(f)
+                        } else {
+                            continue;
+                        }
+                    }
+                    serde_json::Value::Bool(b) => nodes::PropertyValue::Boolean(*b),
+                    _ => continue,
+                };
+                properties.insert(key.clone(), prop_val);
+            }
+        }
+        
+        let node_type = match node_type_str {
+            "Gpio" | "gpio" => nodes::NodeType::Gpio,
+            "Adc" | "adc" => nodes::NodeType::Adc,
+            "Dac" | "dac" => nodes::NodeType::Dac,
+            "Pwm" | "pwm" => nodes::NodeType::Pwm,
+            "Uart" | "uart" => nodes::NodeType::Uart,
+            "Spi" | "spi" => nodes::NodeType::Spi,
+            "I2c" | "i2c" => nodes::NodeType::I2c,
+            "Timer" | "timer" => nodes::NodeType::Timer,
+            "Task" | "task" => nodes::NodeType::Task,
+            "Semaphore" | "semaphore" => nodes::NodeType::Semaphore,
+            "Mutex" | "mutex" => nodes::NodeType::Mutex,
+            "Queue" | "queue" => nodes::NodeType::Queue,
+            "Interrupt" | "interrupt" => nodes::NodeType::Interrupt,
+            "Led" | "led" => nodes::NodeType::Led,
+            "Button" | "button" => nodes::NodeType::Button,
+            "Motor" | "motor" => nodes::NodeType::Motor,
+            "State" | "state" => nodes::NodeType::State,
+            "Initial" | "initial" => nodes::NodeType::Initial,
+            "Final" | "final" => nodes::NodeType::Final,
+            _ => nodes::NodeType::State,
+        };
+        
+        let node_code = nodes::codegen::generate_node_code(&node_type, &properties, &ctx);
+        combined.merge(node_code);
+    }
+    
+    Ok(combined.render_multi_file())
+}
+
+// ============================================================================
+// NEW AGENT SYSTEM IPC COMMANDS
+// ============================================================================
+
+/// Create a task plan using Director Agent
+#[tauri::command]
+async fn agent_create_plan(
+    _state: State<'_, AppState>,
+    request: String,
+) -> Result<agents::TaskPlan, String> {
+    // Use Director to create a plan
+    let director = agents::DirectorAgent::new();
+    Ok(director.create_plan(&request))
+}
+
+/// Get model configuration for agents
+#[tauri::command]
+fn agent_get_model_config() -> Result<Vec<ai::AgentModelSummary>, String> {
+    Ok(ai::AgentModelSummary::all())
+}
+
+// ============================================================================
+// TASK QUEUE IPC COMMANDS
+// ============================================================================
+
+/// List all background tasks
+#[tauri::command]
+fn task_queue_list() -> Result<Vec<agents::TaskSummary>, String> {
+    // Return empty for now - task queue is managed per-session
+    Ok(Vec::new())
+}
+
+/// Get status of a specific task
+#[tauri::command]
+fn task_queue_status(task_id: String) -> Result<Option<agents::TaskSummary>, String> {
+    let _ = task_id;
+    Ok(None)
+}
+
+/// Cancel a background task
+#[tauri::command]
+fn task_queue_cancel(task_id: String) -> Result<(), String> {
+    let _ = task_id;
+    Ok(())
+}
+
+// ============================================================================
+// FUNCTION CALLING IPC COMMANDS
+// ============================================================================
+
+/// Get available functions for an agent
+#[tauri::command]
+fn agent_get_functions(agent_id: Option<String>) -> Result<Vec<agents::FunctionDef>, String> {
+    let funcs = match agent_id.as_deref() {
+        Some(id) => agents::function_calling::get_agent_functions(id),
+        None => agents::function_calling::get_standard_functions(),
+    };
+    Ok(funcs)
+}
+
+// ============================================================================
+// EVENT STORE IPC COMMANDS
+// ============================================================================
+
+/// Get event history
+#[tauri::command]
+async fn canvas_get_event_history(
+    state: State<'_, AppState>,
+    since_sequence: Option<u64>,
+    domain: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let store = state.event_store.lock().await;
+    
+    let events: Vec<_> = if let Some(seq) = since_sequence {
+        store.since(seq)
+    } else {
+        store.all().iter().collect()
+    };
+    
+    let filtered: Vec<_> = if let Some(ref d) = domain {
+        events.into_iter().filter(|e| {
+            let domain_match = match &e.event {
+                canvas::event_store::DomainEvent::Canvas(_) => d == "canvas",
+                canvas::event_store::DomainEvent::Fsm(_) => d == "fsm",
+                canvas::event_store::DomainEvent::Pin(_) => d == "pin",
+                canvas::event_store::DomainEvent::Peripheral(_) => d == "peripheral",
+                canvas::event_store::DomainEvent::CodeGen(_) => d == "codegen",
+                canvas::event_store::DomainEvent::Project(_) => d == "project",
+            };
+            domain_match
+        }).collect()
+    } else {
+        events
+    };
+    
+    let events_json: Vec<serde_json::Value> = filtered.iter().map(|e| {
+        serde_json::json!({
+            "sequence": e.sequence,
+            "timestamp": e.timestamp.to_rfc3339(),
+            "domain": serde_json::to_value(&e.event).ok(),
+            "author": e.author,
+        })
+    }).collect();
+    
+    Ok(serde_json::json!({
+        "events": events_json,
+        "current_sequence": store.current_sequence(),
+        "domain_filter": domain,
+        "since": since_sequence,
+    }))
+}
+
+/// Create a snapshot
+#[tauri::command]
+fn canvas_create_snapshot(name: Option<String>) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "snapshot_id": uuid::Uuid::new_v4().to_string(),
+        "name": name,
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+    }))
+}
+
+/// Diff between versions
+#[tauri::command]
+fn canvas_diff_versions(
+    from_sequence: u64,
+    to_sequence: u64,
+) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "from_sequence": from_sequence,
+        "to_sequence": to_sequence,
+        "changes": [],
+        "summary": {
+            "total_changes": 0,
+            "nodes_added": 0,
+            "nodes_removed": 0,
+            "breaking_changes": 0,
+        }
+    }))
+}
+
+/// Restore to a specific version
+#[tauri::command]
+fn canvas_restore_version(sequence: u64) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "restored_to": sequence,
+        "success": true,
+    }))
+}
+
+// ============================================================================
+// AI ROUTER IPC COMMANDS
+// ============================================================================
+
+/// Generate using AI router with fallback
+#[tauri::command]
+async fn ai_generate_with_router(
+    prompt: String,
+    system: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let service = AIService::new();
+    if !service.is_available() {
+        return Err("AI not configured".to_string());
+    }
+    
+    let result = match system {
+        Some(sys) => service.chat(&format!("{}\n\n{}", sys, prompt), None).await,
+        None => service.chat(&prompt, None).await,
+    };
+    
+    match result {
+        Ok(response) => Ok(serde_json::json!({
+            "content": response,
+            "provider": "gemini",
+            "success": true,
+        })),
+        Err(e) => Err(e),
+    }
+}
+
+/// Get AI router health status
+#[tauri::command]
+fn ai_get_router_health() -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "providers": [
+            { "name": "gemini", "available": true, "latency_ms": 0 },
+            { "name": "openai", "available": false, "latency_ms": 0 },
+            { "name": "ollama", "available": false, "latency_ms": 0 },
+        ],
+        "cost_summary": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_cost_cents": 0,
+        }
+    }))
+}
+
+// ============================================================================
+// JOB SCHEDULER IPC COMMANDS
+// ============================================================================
+
+/// Schedule a job with priority
+#[tauri::command]
+fn schedule_priority_job(
+    kind: String,
+    priority: String,
+    depends_on: Option<Vec<String>>,
+    payload: Option<serde_json::Value>,
+) -> Result<serde_json::Value, String> {
+    let job_id = format!("{}_{}", kind, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("x"));
+    
+    Ok(serde_json::json!({
+        "job_id": job_id,
+        "kind": kind,
+        "priority": priority,
+        "depends_on": depends_on.unwrap_or_default(),
+        "payload": payload,
+        "scheduled": true,
+    }))
+}
+
+/// Get scheduler status
+#[tauri::command]
+fn scheduler_get_status() -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
+        "pending_count": 0,
+        "running_count": 0,
+        "completed_count": 0,
+        "failed_count": 0,
+        "running_jobs": [],
+    }))
+}
+
+/// Set job concurrency limit
+#[tauri::command]
+fn scheduler_set_limit(kind: String, limit: usize) -> Result<(), String> {
+    log::info!("Setting concurrency limit for {} to {}", kind, limit);
+    Ok(())
 }

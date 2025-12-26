@@ -1,0 +1,200 @@
+/* FSMCanvas Styles */
+
+.fsm-canvas-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: var(--canvas-bg, #0f0f1a);
+  outline: none;
+}
+
+.canvas-viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+}
+
+.canvas-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 4px;
+  background: var(--panel-bg, #1a1a2e);
+  border: 1px solid var(--border-color, #2a2a4a);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 100;
+}
+
+.canvas-toolbar button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-color, #e0e0e0);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.canvas-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border-color, #2a2a4a);
+}
+
+.zoom-controls span {
+  font-size: 11px;
+  color: var(--text-muted, #888);
+  min-width: 40px;
+  text-align: center;
+}
+
+.canvas-svg {
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+}
+
+/* Nodes */
+.node {
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.node:hover {
+  filter: brightness(1.1);
+}
+
+.node.selected rect:first-child {
+  stroke-width: 2;
+  stroke: white;
+  filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.5));
+}
+
+/* Ports */
+.port {
+  cursor: crosshair;
+  transition: r 0.2s, stroke-width 0.2s;
+}
+
+.port:hover {
+  r: 8;
+  stroke-width: 3;
+}
+
+/* Edges */
+.edge path {
+  transition: stroke-width 0.2s;
+}
+
+.edge:hover path {
+  stroke-width: 3;
+}
+
+.edge-label {
+  font-size: 10px;
+  fill: var(--text-muted, #888);
+}
+
+/* Validation */
+.validation-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 100;
+}
+
+.validation-badge.valid {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.validation-badge.invalid {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Drop zone highlight */
+.canvas-viewport.drag-over {
+  background: rgba(79, 70, 229, 0.05);
+  border: 2px dashed var(--primary, #4f46e5);
+}
+
+/* Minimap container */
+.minimap-container {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  width: 150px;
+  height: 100px;
+  background: var(--panel-bg, #1a1a2e);
+  border: 1px solid var(--border-color, #2a2a4a);
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+/* Selection marquee */
+.selection-marquee {
+  fill: rgba(79, 70, 229, 0.1);
+  stroke: var(--primary, #4f46e5);
+  stroke-width: 1;
+  stroke-dasharray: 4;
+}
+
+/* Connection line while dragging */
+.connection-line {
+  stroke: var(--primary, #4f46e5);
+  stroke-width: 2;
+  stroke-dasharray: 5;
+  fill: none;
+  pointer-events: none;
+}
+
+/* Empty state */
+.canvas-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--text-muted, #666);
+  pointer-events: none;
+}
+
+.canvas-empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.canvas-empty h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--text-color, #e0e0e0);
+}
+
+.canvas-empty p {
+  margin: 0;
+  font-size: 12px;
+}

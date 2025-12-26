@@ -361,3 +361,189 @@ invoke("get_mcu_list")
 invoke("list_serial_ports")
   -> Result<PortInfo[], string>
 ```
+
+---
+
+## IDE Loop - Build→Flash→RTT
+
+### Streaming Build
+
+```typescript
+// Start streaming build
+invoke("streaming_build_start", {
+  projectPath: string,
+  config: StreamingBuildConfig
+}) -> Result<string, string>  // returns build_id
+
+// Cancel build
+invoke("streaming_build_cancel", { buildId: string })
+  -> Result<boolean, string>
+
+// Events emitted:
+// - build:started { chip, project_id, header }
+// - build:output { line, stream, tool }
+// - build:diagnostic { file, line, severity, message }
+// - build:progress { phase, percent, message }
+// - build:completed { success, elf_path, duration_ms }
+```
+
+### Flash
+
+```typescript
+// Start flash
+invoke("flash_start", {
+  chip: string,
+  elfPath?: string,
+  useLatest?: boolean,
+  verify?: boolean
+}) -> Result<string, string>  // returns flash_id
+
+// Cancel flash
+invoke("flash_cancel", { flashId: string })
+  -> Result<boolean, string>
+
+// Events emitted:
+// - flash:started { chip, elf_path }
+// - flash:progress { phase, percent, message }
+// - flash:completed { success, bytes_written, duration_ms }
+```
+
+### RTT Streaming
+
+```typescript
+// Start RTT
+invoke("rtt_stream_start", {
+  chip: string,
+  channels?: number[],
+  pollIntervalMs?: number
+}) -> Result<string, string>  // returns rtt_id
+
+// Stop RTT
+invoke("rtt_stream_stop", { rttId: string })
+  -> Result<boolean, string>
+
+// Events emitted:
+// - rtt:started { chip, channels }
+// - rtt:message { messages: RttMessage[], dropped_count, message_count }
+// - rtt:stopped | rtt:cancelled
+```
+
+### Job Management
+
+```typescript
+// List jobs
+invoke("job_list", { kind?: string })
+  -> Result<JobInfo[], string>
+
+// Get job status
+invoke("job_get_status", { jobId: string })
+  -> Result<JobStatus, string>
+
+// Get job log
+invoke("job_get_log", { jobId: string, lastN?: number })
+  -> Result<string[], string>
+
+// Cancel job
+invoke("job_cancel", { jobId: string })
+  -> Result<boolean, string>
+```
+
+### Workflow Control
+
+```typescript
+// Get workflow guidance
+invoke("run_chain", {
+  projectPath: string,
+  chip: string,
+  startRtt?: boolean
+}) -> Result<WorkflowGuidance, string>
+
+// Get device status (for status strip)
+invoke("device_status_get")
+  -> Result<DeviceStatus, string>
+
+// DeviceStatus:
+// { device_locked, lock_holder_id, lock_holder_kind,
+//   rtt_active, active_rtt_id, active_flash_id,
+//   active_jobs_count, last_terminal }
+
+// Cancel all active jobs (single Stop button)
+invoke("workflow_cancel")
+  -> Result<{ cancelled: [string, string][], count: number }, string>
+```
+
+---
+
+## Project Management
+
+```typescript
+// Load project manifest
+invoke("project_load", { path: string })
+  -> Result<ProjectManifest, string>
+
+// Save project manifest
+invoke("project_save", { path: string, manifest: ProjectManifest })
+  -> Result<(), string>
+
+// Create new project
+invoke("project_create", { 
+  path: string, 
+  name: string, 
+  mcuTarget: string 
+}) -> Result<ProjectManifest, string>
+
+// List projects in directory
+invoke("project_list", { dir: string })
+  -> Result<ProjectInfo[], string>
+
+// Delete project
+invoke("project_delete", { path: string })
+  -> Result<(), string>
+```
+
+### ProjectManifest Type
+
+```typescript
+interface ProjectManifest {
+  id: string;           // UUID
+  name: string;
+  mcu_target: string;   // "STM32F407VG"
+  chip: string | null;
+  created_at: string;   // ISO 8601
+  modified_at: string;
+  config_hash: string;
+  settings: ProjectSettings;
+}
+```
+
+---
+
+## Git Integration
+
+```typescript
+// Get repository status
+invoke("git_status_get", { path: string })
+  -> Result<RepoStatus, string>
+
+// RepoStatus:
+// { is_repo, branch, clean, staged, modified, untracked, conflicts, ahead, behind }
+
+// Get diff
+invoke("git_diff_get", { path: string })
+  -> Result<DiffInfo, string>
+
+// Stage all changes
+invoke("git_stage_all", { path: string })
+  -> Result<number, string>
+
+// Commit
+invoke("git_commit", { 
+  path: string, 
+  message: string 
+}) -> Result<CommitInfo, string>
+
+// Get commit history
+invoke("git_history", { path: string, limit: number })
+  -> Result<CommitInfo[], string>
+```
+

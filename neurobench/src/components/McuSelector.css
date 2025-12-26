@@ -1,8 +1,11 @@
+/* MCU Selector - Industrial Retro */
+
 .mcu-selector {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
 }
 
 .mcu-header {
@@ -13,103 +16,119 @@
 
 .mcu-header h3 {
   margin: 0;
-  color: var(--text-primary, #fff);
-  font-size: 14px;
+  color: var(--accent, #e49b0f);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .selected-badge {
-  background: var(--primary, #4a9eff);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  background: var(--accent, #e49b0f);
+  color: #000;
+  padding: 4px 10px;
+  border-radius: 2px;
+  font-size: 10px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .vendor-filter {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .vendor-btn {
-  background: var(--code-bg, #1a1a1a);
-  border: 1px solid var(--border-color, #3a3a3a);
-  color: var(--text-secondary, #888);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 10px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-secondary, #a0a0a0);
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .vendor-btn:hover {
-  background: var(--hover-bg, #2a2a2a);
-  color: var(--text-primary, #fff);
+  background: var(--bg-elevated, #222);
+  border-color: var(--border-strong, #3a3a3a);
+  color: var(--text-primary, #e8e8e8);
 }
 
 .vendor-btn.active {
-  color: #fff;
-  border-color: transparent;
+  background: var(--accent, #e49b0f);
+  color: #000;
+  border-color: var(--accent, #e49b0f);
 }
 
 .loading {
   text-align: center;
-  color: var(--text-secondary, #888);
-  padding: 20px;
+  color: var(--text-dim, #606060);
+  padding: 24px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .mcu-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  max-height: 300px;
+  gap: 10px;
+  max-height: 320px;
   overflow-y: auto;
 }
 
 .mcu-card {
-  background: var(--code-bg, #0d0d0d);
-  border: 1px solid var(--border-color, #3a3a3a);
-  border-radius: 6px;
-  padding: 8px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 4px;
+  padding: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .mcu-card:hover {
-  border-color: var(--primary, #4a9eff);
-  transform: translateY(-1px);
+  border-color: var(--accent-dim, #c4850d);
+  background: var(--bg-elevated, #222);
 }
 
 .mcu-card.selected {
-  border-color: var(--primary, #4a9eff);
-  background: rgba(74, 158, 255, 0.1);
+  border-color: var(--accent, #e49b0f);
+  background: var(--accent-subtle, rgba(228, 155, 15, 0.1));
+  box-shadow: 0 0 0 1px var(--accent-subtle, rgba(228, 155, 15, 0.2));
 }
 
 .mcu-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-left: 3px solid var(--primary);
-  padding-left: 8px;
-  margin-bottom: 6px;
+  border-left: 3px solid var(--accent, #e49b0f);
+  padding-left: 10px;
+  margin-bottom: 8px;
 }
 
 .mcu-family {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--text-primary, #fff);
+  color: var(--text-primary, #e8e8e8);
 }
 
 .mcu-arch {
   font-size: 9px;
-  color: var(--text-secondary, #888);
+  color: var(--text-dim, #606060);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .mcu-card-body {
   display: flex;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .mcu-stat {
@@ -120,80 +139,88 @@
 
 .stat-label {
   font-size: 8px;
-  color: var(--text-secondary, #888);
+  color: var(--text-dim, #606060);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
   font-size: 10px;
   font-weight: 600;
-  color: var(--text-primary, #fff);
+  color: var(--accent, #e49b0f);
 }
 
 .mcu-features {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .feature-badge {
   font-size: 8px;
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 3px 6px;
+  border-radius: 2px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .feature-badge.fpu {
-  background: rgba(74, 222, 128, 0.2);
-  color: #4ade80;
+  background: rgba(50, 205, 50, 0.15);
+  color: var(--status-success, #32cd32);
 }
 
 .feature-badge.dsp {
-  background: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
+  background: var(--accent-subtle, rgba(228, 155, 15, 0.15));
+  color: var(--accent, #e49b0f);
 }
 
 .feature-badge.ble {
-  background: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
+  background: rgba(93, 173, 226, 0.15);
+  color: var(--status-info, #5dade2);
 }
 
 .feature-badge.wifi {
-  background: rgba(168, 85, 247, 0.2);
-  color: #a855f7;
+  background: rgba(155, 89, 182, 0.15);
+  color: #9b59b6;
 }
 
 .mcu-details {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  border: 1px solid var(--primary, #4a9eff);
-  border-radius: 8px;
-  padding: 12px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--accent, #e49b0f);
+  border-radius: 4px;
+  padding: 14px;
 }
 
 .mcu-details h4 {
-  margin: 0 0 10px 0;
-  font-size: 13px;
-  color: var(--text-primary, #fff);
+  margin: 0 0 12px 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent, #e49b0f);
 }
 
 .details-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 
 .detail-item {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .detail-label {
-  font-size: 9px;
-  color: var(--text-secondary, #888);
+  font-size: 8px;
+  color: var(--text-dim, #606060);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .detail-value {
-  font-size: 11px;
-  color: var(--text-primary, #fff);
+  font-size: 10px;
+  color: var(--text-primary, #e8e8e8);
 }

@@ -76,9 +76,12 @@ gimli = "0.31"
 tokio-util = "0.7"
 dashmap = "6"
 
+# R-tree spatial index for canvas
+rstar = "0.12"
+
 # Hardware debugging - requires driver setup (WinUSB via Zadig on Windows)
 probe-rs = { version = "=0.24.0", optional = true }
 
 [features]
-default = []
+default = ["hardware"]
 hardware = ["probe-rs"]
