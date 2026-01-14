@@ -2,6 +2,7 @@
 import { Component, createSignal, Show, For } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import FSMCanvas from "./FSMCanvas";
+import { Icons } from "./AppIcons";
 import "./EnhancedEditor.css";
 
 interface GeneratedCode {
@@ -146,7 +147,7 @@ const EnhancedEditor: Component<{
       {/* Header */}
       <header class="enhanced-editor-header">
         <div class="enhanced-editor-title">
-          <span class="title-icon">✨</span>
+          <span class="title-icon">{Icons.sparkles()}</span>
           <h1>Enhanced Node Editor</h1>
           <span class="badge">40+ Node Types</span>
         </div>
@@ -164,7 +165,7 @@ const EnhancedEditor: Component<{
               </>
             ) : (
               <>
-                <span class="icon">⚡</span>
+                <span class="icon">{Icons.flash()}</span>
                 Generate Code
               </>
             )}
@@ -178,7 +179,7 @@ const EnhancedEditor: Component<{
           
           <Show when={props.onClose}>
             <button class="close-btn" onClick={props.onClose}>
-              ✕
+              {Icons.x()}
             </button>
           </Show>
         </div>
@@ -215,11 +216,11 @@ const EnhancedEditor: Component<{
               
               <div class="code-actions">
                 <Show when={activeCodeTab() === "preview"}>
-                  <button onClick={() => copyToClipboard()} title="Copy to clipboard">📋</button>
-                  <button onClick={() => downloadFile("generated_code.c", renderFullCode())} title="Download">⬇️</button>
+                  <button onClick={() => copyToClipboard()} title="Copy to clipboard">{Icons.clipboard()}</button>
+                  <button onClick={() => downloadFile("generated_code.c", renderFullCode())} title="Download">{Icons.download()}</button>
                 </Show>
                 <Show when={activeCodeTab() === "files"}>
-                  <button onClick={downloadAllFiles} title="Download all files">📦</button>
+                  <button onClick={downloadAllFiles} title="Download all files">{Icons.package()}</button>
                 </Show>
               </div>
             </div>
@@ -250,7 +251,7 @@ const EnhancedEditor: Component<{
                               downloadFile(file.name, file.content);
                             }}
                           >
-                            ⬇️
+                            {Icons.download()}
                           </button>
                         </div>
                       )}
@@ -263,7 +264,7 @@ const EnhancedEditor: Component<{
                       <span>{selectedFile() || "No file selected"}</span>
                       <Show when={selectedFile()}>
                         <button onClick={() => copyToClipboard(getSelectedFileContent())}>
-                          📋 Copy
+                          {Icons.clipboard()} Copy
                         </button>
                       </Show>
                     </div>

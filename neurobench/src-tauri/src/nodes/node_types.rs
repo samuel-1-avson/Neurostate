@@ -9,7 +9,6 @@
 //! - Data: Variables and buffers
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // ============================================================================
 // NODE CATEGORIES
@@ -188,6 +187,38 @@ pub enum NodeType {
     RingBuffer,
     /// Watchpoint (debug)
     Watchpoint,
+    
+    // === Wireless Nodes ===
+    /// WiFi station/AP
+    Wifi,
+    /// Bluetooth Low Energy
+    Ble,
+    /// LoRa/LoRaWAN
+    Lora,
+    /// Zigbee/Thread
+    Zigbee,
+    
+    // === Protocol Nodes ===
+    /// MQTT client/broker
+    Mqtt,
+    /// HTTP client/server
+    Http,
+    /// WebSocket connection
+    WebSocket,
+    /// Modbus RTU/TCP
+    Modbus,
+    /// CANopen protocol
+    CanOpen,
+    
+    // === System Nodes ===
+    /// Watchdog timer
+    Watchdog,
+    /// Power management
+    PowerMgmt,
+    /// Clock configuration
+    ClockConfig,
+    /// Debug/logging
+    DebugLog,
 }
 
 impl NodeType {
@@ -212,13 +243,18 @@ impl NodeType {
             // Control
             Self::Interrupt | Self::Timer | Self::Event |
             Self::Semaphore | Self::Mutex | Self::Task |
-            Self::Critical | Self::MessageQueue | Self::EventFlags => NodeCategory::Control,
+            Self::Critical | Self::MessageQueue | Self::EventFlags |
+            Self::Watchdog | Self::PowerMgmt | Self::ClockConfig |
+            Self::DebugLog => NodeCategory::Control,
             
-            // I/O
+            // I/O (includes wireless and protocols)
             Self::Sensor | Self::Actuator | Self::Led |
             Self::Button | Self::Motor | Self::Display |
             Self::Encoder | Self::Buzzer | Self::Relay |
-            Self::TempSensor => NodeCategory::Io,
+            Self::TempSensor | Self::Wifi | Self::Ble |
+            Self::Lora | Self::Zigbee | Self::Mqtt |
+            Self::Http | Self::WebSocket | Self::Modbus |
+            Self::CanOpen => NodeCategory::Io,
             
             // Data
             Self::Variable | Self::Constant | Self::Array |
@@ -289,6 +325,25 @@ impl NodeType {
             Self::Queue => "Queue",
             Self::RingBuffer => "Ring Buffer",
             Self::Watchpoint => "Watchpoint",
+            
+            // Wireless
+            Self::Wifi => "WiFi",
+            Self::Ble => "Bluetooth LE",
+            Self::Lora => "LoRa/LoRaWAN",
+            Self::Zigbee => "Zigbee/Thread",
+            
+            // Protocols
+            Self::Mqtt => "MQTT",
+            Self::Http => "HTTP",
+            Self::WebSocket => "WebSocket",
+            Self::Modbus => "Modbus",
+            Self::CanOpen => "CANopen",
+            
+            // System
+            Self::Watchdog => "Watchdog Timer",
+            Self::PowerMgmt => "Power Management",
+            Self::ClockConfig => "Clock Config",
+            Self::DebugLog => "Debug Log",
         }
     }
     
@@ -354,6 +409,25 @@ impl NodeType {
             Self::Queue => "⤍",
             Self::RingBuffer => "⟳",
             Self::Watchpoint => "👁",
+            
+            // Wireless
+            Self::Wifi => "📶",
+            Self::Ble => "🔵",
+            Self::Lora => "📻",
+            Self::Zigbee => "🕸",
+            
+            // Protocols
+            Self::Mqtt => "📨",
+            Self::Http => "🌐",
+            Self::WebSocket => "🔗",
+            Self::Modbus => "🏭",
+            Self::CanOpen => "🔧",
+            
+            // System
+            Self::Watchdog => "🐕",
+            Self::PowerMgmt => "🔋",
+            Self::ClockConfig => "🕐",
+            Self::DebugLog => "📝",
         }
     }
     

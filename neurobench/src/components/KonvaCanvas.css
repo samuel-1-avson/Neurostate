@@ -1,0 +1,438 @@
+/* KonvaCanvas Styles - Industrial Retro Design */
+
+.konva-canvas-container {
+  display: flex;
+  flex: 1;
+  position: relative;
+  background: var(--bg-base, #0d0d0d);
+  overflow: hidden;
+}
+
+/* Konva Stage Container */
+.konva-stage-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.konva-stage-container:active {
+  cursor: grabbing;
+}
+
+/* === PALETTE - Industrial Tool Dock === */
+.canvas-palette {
+  /* width handled via inline style */
+  background: var(--bg-panel, #141414);
+  border-right: 1px solid var(--border, #2a2a2a);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  position: relative; /* Context for resize handle */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.canvas-palette::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, var(--accent-dim, #c4850d), transparent);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* Resize Handle */
+.palette-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+  transition: background 0.2s;
+}
+
+.palette-resize-handle:hover,
+.palette-resize-handle:active {
+  background: rgba(228, 155, 15, 0.1);
+}
+
+.palette-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 20px;
+  background: var(--accent, #e49b0f);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.palette-resize-handle:hover::after,
+.palette-resize-handle:active::after {
+  opacity: 1;
+}
+
+.palette-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px;
+  background: var(--bg-surface, #1a1a1a);
+  border-bottom: 1px solid var(--border, #2a2a2a);
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent, #e49b0f);
+}
+
+.palette-header::before {
+  content: '◆';
+  margin-right: 8px;
+  opacity: 0.6;
+}
+
+.palette-header .close-btn {
+  background: none;
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-dim, #606060);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 10px;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+
+.palette-header .close-btn:hover {
+  background: var(--bg-elevated, #222222);
+  color: var(--accent, #e49b0f);
+  border-color: var(--accent-dim, #c4850d);
+}
+
+.palette-search {
+  margin: 10px 12px;
+  padding: 10px 12px;
+  background: var(--bg-input, #0f0f0f);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 3px;
+  color: var(--text-primary, #e8e8e8);
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 11px;
+  transition: all 0.15s;
+  width: calc(100% - 24px); /* explicit width */
+  box-sizing: border-box;
+}
+
+.palette-search:focus {
+  outline: none;
+  border-color: var(--accent, #e49b0f);
+  box-shadow: 0 0 0 2px var(--accent-subtle, rgba(228, 155, 15, 0.1));
+}
+
+.palette-search::placeholder {
+  color: var(--text-dim, #606060);
+  font-style: italic;
+}
+
+.palette-nodes {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 12px 10px;
+}
+
+/* Category Headers */
+.palette-category {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent, #e49b0f);
+  padding: 16px 0 8px; /* Remove horizontal padding since parent has it? No, parent doesn't. */
+  /* Wait, palette-nodes has padding 4px 12px. Children .palette-category are inside .palette-nodes? */
+  /* Let's check KonvaCanvas.tsx structure. */
+  /* Structure: .palette-nodes > .palette-category, .palette-node */
+  /* So if .palette-nodes has padding 0 12px, then children don't need margin. */
+  /* Previously: .palette-nodes { padding: 4px 10px 10px; } */
+  /* I changed .palette-nodes to padding: 4px 12px 10px; */
+  /* So .palette-category padding should be 16px 0 8px ?? */
+  /* Let's check previous CSS: padding: 16px 8px 8px; */
+  /* If parent padding is 12px, then 0 padding on horizontal is correct for flush alignment. */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.palette-category::before {
+  content: '▸';
+  font-size: 8px;
+  opacity: 0.6;
+}
+
+.palette-category::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border, #2a2a2a), transparent);
+}
+
+/* Node Items */
+.palette-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-surface, #1a1a1a);
+  border: 1px solid var(--border, #2a2a2a);
+  border-left: 3px solid var(--status-success, #32cd32);
+  border-radius: 3px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.palette-node:hover {
+  background: var(--bg-elevated, #222222);
+  border-color: var(--border-strong, #3a3a3a);
+  transform: translateX(3px);
+  box-shadow: -3px 0 0 var(--accent-dim, #c4850d);
+}
+
+.palette-node.selected {
+  background: var(--accent-subtle, rgba(228, 155, 15, 0.1));
+  border-color: var(--accent, #e49b0f);
+  border-left-color: var(--accent, #e49b0f);
+  box-shadow: 0 0 12px var(--accent-glow, rgba(228, 155, 15, 0.4)), inset 0 0 20px rgba(228, 155, 15, 0.05);
+}
+
+.palette-node .node-icon {
+  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input, #0f0f0f);
+  border-radius: 4px;
+  border: 1px solid var(--border, #2a2a2a);
+}
+
+.palette-node .node-name {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 12px;
+  color: var(--text-primary, #e8e8e8);
+  flex: 1;
+}
+
+.palette-node:hover .node-name {
+  color: var(--accent, #e49b0f);
+}
+
+/* Palette Toggle */
+.palette-toggle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 80px;
+  background: var(--bg-panel, #141414);
+  border: 1px solid var(--border, #2a2a2a);
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  color: var(--text-dim, #606060);
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  transition: all 0.15s;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.palette-toggle::before {
+  content: 'NODES';
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-top: 8px;
+}
+
+.palette-toggle:hover {
+  background: var(--bg-elevated, #222222);
+  color: var(--accent, #e49b0f);
+  border-color: var(--accent-dim, #c4850d);
+  width: 28px;
+}
+
+/* === TOOLBAR === */
+.canvas-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-panel, #141414);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 4px;
+  padding: 4px;
+  z-index: 10;
+}
+
+.canvas-toolbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.canvas-toolbar button {
+  width: 32px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text-secondary, #a0a0a0);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.canvas-toolbar button:hover {
+  background: var(--bg-surface, #1a1a1a);
+  border-color: var(--border, #2a2a2a);
+  color: var(--accent, #e49b0f);
+}
+
+.canvas-toolbar button:active {
+  background: var(--bg-elevated, #222222);
+}
+
+.canvas-toolbar .zoom-level {
+  padding: 0 10px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--accent, #e49b0f);
+  min-width: 45px;
+  text-align: center;
+  border-left: 1px solid var(--border, #2a2a2a);
+  border-right: 1px solid var(--border, #2a2a2a);
+}
+
+/* === PLACEMENT HINT === */
+.placement-hint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent, #e49b0f);
+  color: var(--bg-base, #0d0d0d);
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 10;
+  box-shadow: 0 4px 20px var(--accent-glow, rgba(228, 155, 15, 0.4));
+  animation: hint-pulse 1.5s ease-in-out infinite;
+}
+
+.placement-hint::before {
+  content: '◆';
+  margin-right: 10px;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  50% { 
+    opacity: 0.9;
+    transform: translateX(-50%) scale(1.02);
+  }
+}
+
+/* === SCROLLBAR - Industrial === */
+.palette-nodes::-webkit-scrollbar {
+  width: 6px;
+}
+
+.palette-nodes::-webkit-scrollbar-track {
+  background: var(--bg-base, #0d0d0d);
+}
+
+.palette-nodes::-webkit-scrollbar-thumb {
+  background: var(--border-strong, #3a3a3a);
+  border-radius: 3px;
+}
+
+.palette-nodes::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dim, #c4850d);
+}
+
+/* === MINIMAP PLACEHOLDER === */
+.canvas-minimap {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 180px;
+  height: 120px;
+  background: var(--bg-panel, #141414);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 4px;
+  z-index: 10;
+  opacity: 0.9;
+}
+
+.canvas-minimap::before {
+  content: 'MINIMAP';
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 9px;
+  color: var(--text-dim, #606060);
+  letter-spacing: 1px;
+}
+
+/* === PROPERTIES OVERLAY === */
+.properties-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 12px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.properties-overlay > * {
+  pointer-events: auto;
+}

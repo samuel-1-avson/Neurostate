@@ -20,8 +20,8 @@ pub struct ModelConfig {
 impl Default for ModelConfig {
     fn default() -> Self {
         Self {
-            provider: ModelProvider::Gemini,
-            model_name: "gemini-1.5-flash".to_string(),
+            provider: ModelProvider::Claude,  // Claude is now the default
+            model_name: "claude-sonnet-4-20250514".to_string(),
             api_key: None,
             base_url: None,
             temperature: 0.7,
@@ -35,9 +35,10 @@ impl Default for ModelConfig {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum ModelProvider {
-    Gemini,
-    OpenAI,
-    Ollama,
+    Claude,   // Primary - Anthropic Claude
+    Gemini,   // Secondary - Google Gemini (image/video/voice)
+    OpenAI,   // Fallback
+    Ollama,   // Offline/Local
     Custom,
 }
 
@@ -114,6 +115,174 @@ pub enum ModelError {
     
     #[error("Timeout")]
     Timeout,
+}
+
+// ==================== Claude (Anthropic) Implementation ====================
+
+pub struct ClaudeModel {
+    config: ModelConfig,
+    client: reqwest::Client,
+}
+
+impl ClaudeModel {
+    pub fn new(config: ModelConfig) -> Self {
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(config.timeout_secs))
+            .build()
+            .unwrap_or_default();
+        
+        Self { config, client }
+    }
+    
+    pub fn with_api_key(api_key: String) -> Self {
+        Self::new(ModelConfig {
+            provider: ModelProvider::Claude,
+            model_name: "claude-sonnet-4-20250514".to_string(),
+            api_key: Some(api_key),
+            base_url: Some("https://api.anthropic.com".to_string()),
+            ..Default::default()
+        })
+    }
+    
+    /// Create with a specific model name
+    pub fn with_model(api_key: String, model_name: &str) -> Self {
+        Self::new(ModelConfig {
+            provider: ModelProvider::Claude,
+            model_name: model_name.to_string(),
+            api_key: Some(api_key),
+            base_url: Some("https://api.anthropic.com".to_string()),
+            ..Default::default()
+        })
+    }
+}
+
+#[async_trait]
+impl AIModel for ClaudeModel {
+    fn name(&self) -> &str {
+        &self.config.model_name
+    }
+    
+    fn is_configured(&self) -> bool {
+        self.config.api_key.is_some()
+    }
+    
+    async fn generate(&self, prompt: &str) -> Result<ModelResponse, ModelError> {
+        self.chat(&[ChatMessage {
+            role: Role::User,
+            content: prompt.to_string(),
+        }]).await
+    }
+    
+    async fn generate_with_system(
+        &self,
+        system: &str,
+        prompt: &str,
+    ) -> Result<ModelResponse, ModelError> {
+        // Claude uses a separate system parameter, not a message
+        self.chat_with_system(system, &[ChatMessage {
+            role: Role::User,
+            content: prompt.to_string(),
+        }]).await
+    }
+    
+    async fn chat(&self, messages: &[ChatMessage]) -> Result<ModelResponse, ModelError> {
+        self.chat_with_system("", messages).await
+    }
+}
+
+impl ClaudeModel {
+    async fn chat_with_system(
+        &self,
+        system: &str,
+        messages: &[ChatMessage],
+    ) -> Result<ModelResponse, ModelError> {
+        let api_key = self.config.api_key.as_ref()
+            .ok_or_else(|| ModelError::NotConfigured("Anthropic API key not set".to_string()))?;
+        
+        let base_url = self.config.base_url.as_deref()
+            .unwrap_or("https://api.anthropic.com");
+        
+        // Convert messages to Claude format (filter out system messages)
+        let claude_messages: Vec<serde_json::Value> = messages
+            .iter()
+            .filter(|m| !matches!(m.role, Role::System))
+            .map(|m| {
+                serde_json::json!({
+                    "role": match m.role {
+                        Role::User => "user",
+                        Role::Assistant => "assistant",
+                        Role::System => "user", // Shouldn't happen due to filter
+                    },
+                    "content": m.content
+                })
+            })
+            .collect();
+        
+        // Build request body
+        let mut request_body = serde_json::json!({
+            "model": self.config.model_name,
+            "messages": claude_messages,
+            "max_tokens": self.config.max_tokens,
+        });
+        
+        // Add system prompt if provided
+        if !system.is_empty() {
+            request_body["system"] = serde_json::Value::String(system.to_string());
+        } else {
+            // Check if first message is system and extract it
+            if let Some(first) = messages.first() {
+                if matches!(first.role, Role::System) {
+                    request_body["system"] = serde_json::Value::String(first.content.clone());
+                }
+            }
+        }
+        
+        let response = self.client
+            .post(format!("{}/v1/messages", base_url))
+            .header("x-api-key", api_key)
+            .header("anthropic-version", "2023-06-01")
+            .header("Content-Type", "application/json")
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(|e| ModelError::NetworkError(e.to_string()))?;
+        
+        if response.status() == 429 {
+            return Err(ModelError::RateLimited);
+        }
+        
+        if !response.status().is_success() {
+            let error_text = response.text().await.unwrap_or_default();
+            return Err(ModelError::ApiError(error_text));
+        }
+        
+        let json: serde_json::Value = response.json().await
+            .map_err(|e| ModelError::ParseError(e.to_string()))?;
+        
+        // Claude returns content as an array of content blocks
+        let content = json["content"]
+            .as_array()
+            .and_then(|arr| arr.first())
+            .and_then(|block| block["text"].as_str())
+            .unwrap_or("")
+            .to_string();
+        
+        let usage = json.get("usage").map(|u| TokenUsage {
+            prompt_tokens: u["input_tokens"].as_u64().unwrap_or(0) as u32,
+            completion_tokens: u["output_tokens"].as_u64().unwrap_or(0) as u32,
+            total_tokens: (u["input_tokens"].as_u64().unwrap_or(0) 
+                         + u["output_tokens"].as_u64().unwrap_or(0)) as u32,
+        });
+        
+        Ok(ModelResponse {
+            content,
+            model: self.config.model_name.clone(),
+            usage,
+            finish_reason: json["stop_reason"]
+                .as_str()
+                .map(|s| s.to_string()),
+        })
+    }
 }
 
 // ==================== OpenAI Implementation ====================

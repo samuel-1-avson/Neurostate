@@ -15,8 +15,12 @@ pub enum NodeType {
     State,
     /// Final state (termination)
     Final,
-    /// Choice/decision point
+    /// Choice/decision point (legacy name)
     Choice,
+    /// Decision point (same as choice, for compatibility with nodes module)
+    Decision,
+    /// Junction (merge paths)
+    Junction,
     /// Fork (parallel split)
     Fork,
     /// Join (parallel merge)
@@ -25,6 +29,8 @@ pub enum NodeType {
     History,
     /// Deep history state
     DeepHistory,
+    /// Composite/hierarchical state
+    Composite,
     
     // === GPIO & Digital I/O ===
     /// GPIO pin configuration
@@ -91,6 +97,14 @@ pub enum NodeType {
     SwTimer,
     /// Memory pool
     MemPool,
+    /// Software event
+    Event,
+    /// Critical section
+    Critical,
+    /// Message queue (alternative name)
+    MessageQueue,
+    /// Event flags
+    EventFlags,
     
     // === Analog ===
     /// ADC input
@@ -101,6 +115,26 @@ pub enum NodeType {
     Comparator,
     /// Op-amp configuration
     OpAmp,
+    
+    // === Processing ===
+    /// Digital filter
+    Filter,
+    /// Math operation
+    MathOp,
+    /// Comparison
+    Compare,
+    /// Multiplexer
+    Mux,
+    /// Demultiplexer
+    Demux,
+    /// Data buffer
+    Buffer,
+    /// Lookup table
+    Lut,
+    /// PID Controller
+    Pid,
+    /// Signal generator
+    SignalGen,
     
     // === Motor Control ===
     /// DC motor
@@ -113,22 +147,32 @@ pub enum NodeType {
     HBridge,
     /// Encoder input
     Encoder,
+    /// Generic motor
+    Motor,
     
     // === Power & System ===
     /// Power mode control
     PowerMode,
+    /// Power management
+    PowerMgmt,
     /// Clock configuration
     Clock,
+    /// Clock config (alternative)
+    ClockConfig,
     /// DMA transfer
     Dma,
     /// Flash memory operation
     Flash,
     /// Reset control
     Reset,
+    /// Debug logging
+    DebugLog,
     
     // === Sensors ===
     /// Temperature sensor
     SensorTemp,
+    /// Temperature sensor (alternative name)
+    TempSensor,
     /// Accelerometer/IMU
     SensorImu,
     /// Proximity sensor
@@ -136,15 +180,51 @@ pub enum NodeType {
     /// Generic sensor
     Sensor,
     
+    // === I/O Devices ===
+    /// Generic actuator
+    Actuator,
+    /// Display (LCD/OLED)
+    Display,
+    /// Buzzer/speaker
+    Buzzer,
+    
+    // === Data Storage ===
+    /// Runtime variable
+    Variable,
+    /// Compile-time constant
+    Constant,
+    /// Fixed-size array
+    Array,
+    /// Struct/record
+    Struct,
+    /// Ring buffer
+    RingBuffer,
+    /// Watchpoint (debug)
+    Watchpoint,
+    
     // === Wireless ===
     /// WiFi module
     Wifi,
     /// Bluetooth
     Bluetooth,
+    /// Bluetooth Low Energy
+    Ble,
     /// LoRa radio
     LoRa,
+    /// LoRa (lowercase variant)
+    Lora,
     /// Zigbee
     Zigbee,
+    
+    // === Protocols ===
+    /// MQTT client
+    Mqtt,
+    /// HTTP client/server
+    Http,
+    /// WebSocket
+    WebSocket,
+    /// CANopen
+    CanOpen,
     
     // === Legacy Compatibility ===
     /// Generic input (legacy)
@@ -153,8 +233,6 @@ pub enum NodeType {
     Output,
     /// Generic process (legacy)
     Process,
-    /// Decision point (legacy)
-    Decision,
     /// Error state
     Error,
     /// Generic hardware (legacy)
@@ -181,8 +259,9 @@ impl NodeType {
     pub fn category(&self) -> &'static str {
         match self {
             NodeType::Initial | NodeType::State | NodeType::Final | 
-            NodeType::Choice | NodeType::Fork | NodeType::Join |
-            NodeType::History | NodeType::DeepHistory => "FSM",
+            NodeType::Choice | NodeType::Decision | NodeType::Junction |
+            NodeType::Fork | NodeType::Join |
+            NodeType::History | NodeType::DeepHistory | NodeType::Composite => "FSM",
             
             NodeType::Gpio | NodeType::DigitalInput | NodeType::DigitalOutput |
             NodeType::Exti | NodeType::Button | NodeType::Led |
@@ -198,25 +277,39 @@ impl NodeType {
             
             NodeType::Task | NodeType::Semaphore | NodeType::Mutex |
             NodeType::Queue | NodeType::EventGroup | NodeType::SwTimer |
-            NodeType::MemPool => "RTOS",
+            NodeType::MemPool | NodeType::Event | NodeType::Critical |
+            NodeType::MessageQueue | NodeType::EventFlags => "RTOS",
             
             NodeType::Adc | NodeType::Dac | NodeType::Comparator |
             NodeType::OpAmp => "Analog",
             
+            NodeType::Filter | NodeType::MathOp | NodeType::Compare |
+            NodeType::Mux | NodeType::Demux | NodeType::Buffer |
+            NodeType::Lut | NodeType::Pid | NodeType::SignalGen => "Processing",
+            
             NodeType::MotorDc | NodeType::MotorStepper | NodeType::MotorServo |
-            NodeType::HBridge | NodeType::Encoder => "Motor",
+            NodeType::HBridge | NodeType::Encoder | NodeType::Motor => "Motor",
             
-            NodeType::PowerMode | NodeType::Clock | NodeType::Dma |
-            NodeType::Flash | NodeType::Reset => "System",
+            NodeType::PowerMode | NodeType::PowerMgmt | NodeType::Clock | 
+            NodeType::ClockConfig | NodeType::Dma |
+            NodeType::Flash | NodeType::Reset | NodeType::DebugLog => "System",
             
-            NodeType::SensorTemp | NodeType::SensorImu | NodeType::SensorProximity |
-            NodeType::Sensor => "Sensor",
+            NodeType::SensorTemp | NodeType::TempSensor | NodeType::SensorImu | 
+            NodeType::SensorProximity | NodeType::Sensor => "Sensor",
             
-            NodeType::Wifi | NodeType::Bluetooth | NodeType::LoRa |
-            NodeType::Zigbee => "Wireless",
+            NodeType::Actuator | NodeType::Display | NodeType::Buzzer => "IO",
+            
+            NodeType::Variable | NodeType::Constant | NodeType::Array |
+            NodeType::Struct | NodeType::RingBuffer | NodeType::Watchpoint => "Data",
+            
+            NodeType::Wifi | NodeType::Bluetooth | NodeType::Ble |
+            NodeType::LoRa | NodeType::Lora | NodeType::Zigbee => "Wireless",
+            
+            NodeType::Mqtt | NodeType::Http | NodeType::WebSocket |
+            NodeType::CanOpen => "Protocol",
             
             NodeType::Input | NodeType::Output | NodeType::Process |
-            NodeType::Decision | NodeType::Error | NodeType::Hardware |
+            NodeType::Error | NodeType::Hardware |
             NodeType::Interrupt => "General",
             
             NodeType::Custom { .. } => "Custom",
@@ -313,6 +406,15 @@ pub struct CanvasEdge {
     pub label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub condition: Option<String>,
+    /// Guard condition expression (e.g., "x > 10 && ready")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guard: Option<String>,
+    /// Action to execute on transition (e.g., "counter = 0; led_on()")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub action: Option<String>,
+    /// Priority for multiple valid transitions (lower = higher priority, 0 = highest)
+    #[serde(default)]
+    pub priority: u8,
     /// Manual waypoints for edge routing
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub waypoints: Vec<EdgeWaypoint>,
@@ -356,6 +458,9 @@ impl CanvasEdge {
             target,
             label,
             condition: None,
+            guard: None,
+            action: None,
+            priority: 0,
             waypoints: Vec::new(),
             routing: EdgeRoutingStyle::default(),
             z_order: 0,

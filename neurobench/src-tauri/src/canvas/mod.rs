@@ -32,6 +32,9 @@ pub mod connections;
 pub mod fsm;
 pub mod event_store;
 pub mod diff;
+pub mod selection;
+pub mod collaboration;
+pub mod node_integration;
 
 #[cfg(test)]
 mod benchmarks;
@@ -48,9 +51,12 @@ pub use spatial::SpatialIndex;
 pub use graph::GraphValidator;
 pub use path::PathCalculator;
 pub use path_cache::PathCache;
-pub use layout::LayoutEngine;
+pub use layout::{LayoutEngine, LayoutCache, LayoutCacheStats};
 pub use undo::{UndoManager, CanvasOp, NodeMoveOp, NodeSnapshot};
 pub use batch::{BatchOperation, BatchResult};
+pub use selection::{LassoSelection, SelectionUtils};
+pub use viewport::{Viewport, ViewportTransform, MinimapData, MinimapNode};
+pub use collaboration::{CollaborationState, UserCursor, UserPresence, PresenceStatus, CollaborationMessage};
 
 /// Canvas Engine - Core state manager for the design canvas
 pub struct CanvasEngine {
@@ -221,6 +227,7 @@ impl CanvasEngine {
         self.undo_manager.push(CanvasOp::AddNode { node: node.clone() });
         
         self.spatial.insert(&node);
+        self.graph.add_node(&node.id);
         self.nodes.insert(node.id.clone(), node);
         
         Ok(())
@@ -370,10 +377,11 @@ impl CanvasEngine {
         }
         
         let edge = CanvasEdge::new(
-            format!("e{}", std::time::SystemTime::now()
+            format!("e{}_{}", std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
-                .as_millis()),
+                .as_nanos(),
+                self.edges.len()),
             source.to_string(),
             target.to_string(),
             label,
@@ -407,18 +415,22 @@ impl CanvasEngine {
         
         Ok(())
     }
-    
     // === Spatial Queries ===
     
     /// Find node at point
+    /// 
+    /// DEPRECATED: Use `get_node_at()` instead
+    #[deprecated(since = "1.0.0", note = "Use get_node_at instead")]
     pub fn query_at(&self, x: f64, y: f64) -> Option<&CanvasNode> {
-        self.spatial.query_point(x, y)
-            .and_then(|id| self.nodes.get(&id))
+        self.get_node_at(x, y)
     }
     
     /// Find nodes in rectangle (marquee selection)
+    /// 
+    /// DEPRECATED: Use `get_nodes_in_rect()` instead
+    #[deprecated(since = "1.0.0", note = "Use get_nodes_in_rect instead")]
     pub fn query_rect(&self, x: f64, y: f64, width: f64, height: f64) -> Vec<String> {
-        self.spatial.query_rect(x, y, width, height)
+        self.get_nodes_in_rect(x, y, width, height)
     }
     
     /// Find nearest edge to point
@@ -463,6 +475,50 @@ impl CanvasEngine {
     
     pub fn get_selection(&self) -> Vec<String> {
         self.selection.iter().cloned().collect()
+    }
+    
+    // === Advanced Selection ===
+    
+    /// Select nodes within a lasso polygon
+    pub fn select_in_polygon(&mut self, lasso: &LassoSelection) -> Vec<String> {
+        let selected = SelectionUtils::select_in_lasso(lasso, &self.nodes);
+        self.selection = selected.iter().cloned().collect();
+        selected
+    }
+    
+    /// Select all nodes of a specific type
+    pub fn select_by_type(&mut self, node_type: NodeType) -> Vec<String> {
+        let selected = SelectionUtils::select_by_type(&self.nodes, node_type);
+        self.selection = selected.iter().cloned().collect();
+        selected
+    }
+    
+    /// Select all nodes connected to a given node
+    pub fn select_connected(&mut self, node_id: &str) -> Vec<String> {
+        let selected = SelectionUtils::select_connected(node_id, &self.nodes, &self.edges);
+        self.selection = selected.iter().cloned().collect();
+        selected
+    }
+    
+    /// Select all nodes downstream from a node
+    pub fn select_downstream(&mut self, node_id: &str) -> Vec<String> {
+        let selected = SelectionUtils::select_downstream(node_id, &self.nodes, &self.edges);
+        self.selection = selected.iter().cloned().collect();
+        selected
+    }
+    
+    /// Select all nodes upstream from a node
+    pub fn select_upstream(&mut self, node_id: &str) -> Vec<String> {
+        let selected = SelectionUtils::select_upstream(node_id, &self.nodes, &self.edges);
+        self.selection = selected.iter().cloned().collect();
+        selected
+    }
+    
+    /// Invert current selection
+    pub fn invert_selection(&mut self) -> Vec<String> {
+        let selected = SelectionUtils::invert_selection(&self.selection, &self.nodes);
+        self.selection = selected.iter().cloned().collect();
+        selected
     }
     
     // === Path Calculations ===
@@ -585,6 +641,66 @@ impl CanvasEngine {
         }
     }
     
+    // === Minimap ===
+    
+    /// Get minimap data for rendering the navigation overview
+    pub fn get_minimap_data(&self) -> MinimapData {
+        if self.nodes.is_empty() {
+            return MinimapData::default();
+        }
+        
+        // Calculate content bounds
+        let min_x = self.nodes.values().map(|n| n.x).fold(f64::MAX, f64::min);
+        let max_x = self.nodes.values().map(|n| n.x + n.width).fold(f64::MIN, f64::max);
+        let min_y = self.nodes.values().map(|n| n.y).fold(f64::MAX, f64::min);
+        let max_y = self.nodes.values().map(|n| n.y + n.height).fold(f64::MIN, f64::max);
+        
+        // Build minimap nodes
+        let node_positions: Vec<MinimapNode> = self.nodes.values()
+            .map(|n| MinimapNode::new(
+                n.id.clone(),
+                n.x,
+                n.y,
+                n.width,
+                n.height,
+                self.selection.contains(&n.id),
+                format!("{:?}", n.node_type),
+            ))
+            .collect();
+        
+        MinimapData {
+            content_bounds: (min_x, min_y, max_x, max_y),
+            viewport_rect: (min_x, min_y, max_x, max_y), // Will be set by frontend based on actual viewport
+            node_positions,
+        }
+    }
+    
+    /// Get content bounds (bounding box of all nodes)
+    pub fn get_content_bounds(&self) -> Option<(f64, f64, f64, f64)> {
+        if self.nodes.is_empty() {
+            return None;
+        }
+        
+        let min_x = self.nodes.values().map(|n| n.x).fold(f64::MAX, f64::min);
+        let max_x = self.nodes.values().map(|n| n.x + n.width).fold(f64::MIN, f64::max);
+        let min_y = self.nodes.values().map(|n| n.y).fold(f64::MAX, f64::min);
+        let max_y = self.nodes.values().map(|n| n.y + n.height).fold(f64::MIN, f64::max);
+        
+        Some((min_x, min_y, max_x, max_y))
+    }
+    
+    // === Accessors ===
+    
+    /// Get all nodes
+    pub fn nodes(&self) -> &HashMap<String, CanvasNode> {
+        &self.nodes
+    }
+    
+    /// Get all edges
+    pub fn edges(&self) -> &HashMap<String, CanvasEdge> {
+        &self.edges
+    }
+    
     /// Get node by ID
     pub fn get_node(&self, id: &str) -> Option<&CanvasNode> {
         self.nodes.get(id)
@@ -593,6 +709,65 @@ impl CanvasEngine {
     /// Get edge by ID
     pub fn get_edge(&self, id: &str) -> Option<&CanvasEdge> {
         self.edges.get(id)
+    }
+    
+    /// Find node at point
+    pub fn get_node_at(&self, x: f64, y: f64) -> Option<&CanvasNode> {
+        self.spatial.query_point(x, y)
+            .and_then(|id| self.nodes.get(&id))
+    }
+    
+    /// Find nodes in rectangle
+    pub fn get_nodes_in_rect(&self, x: f64, y: f64, width: f64, height: f64) -> Vec<String> {
+        self.spatial.query_rect(x, y, width, height)
+    }
+    
+    // === Convenience Methods ===
+    
+    /// Get all edges connected to a node (incoming and outgoing)
+    pub fn get_connected_edges(&self, node_id: &str) -> Vec<&CanvasEdge> {
+        self.edges.values()
+            .filter(|e| e.source == node_id || e.target == node_id)
+            .collect()
+    }
+    
+    /// Get edges where node is the source
+    pub fn get_outgoing_edges(&self, node_id: &str) -> Vec<&CanvasEdge> {
+        self.edges.values()
+            .filter(|e| e.source == node_id)
+            .collect()
+    }
+    
+    /// Get edges where node is the target
+    pub fn get_incoming_edges(&self, node_id: &str) -> Vec<&CanvasEdge> {
+        self.edges.values()
+            .filter(|e| e.target == node_id)
+            .collect()
+    }
+    
+    /// Get number of nodes
+    pub fn node_count(&self) -> usize {
+        self.nodes.len()
+    }
+    
+    /// Get number of edges
+    pub fn edge_count(&self) -> usize {
+        self.edges.len()
+    }
+    
+    /// Check if canvas is empty (no nodes)
+    pub fn is_empty(&self) -> bool {
+        self.nodes.is_empty()
+    }
+    
+    /// Check if node exists
+    pub fn contains_node(&self, id: &str) -> bool {
+        self.nodes.contains_key(id)
+    }
+    
+    /// Check if edge exists
+    pub fn contains_edge(&self, id: &str) -> bool {
+        self.edges.contains_key(id)
     }
     
     // === Batch Operations ===

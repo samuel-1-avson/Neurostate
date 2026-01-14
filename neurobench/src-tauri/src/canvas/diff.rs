@@ -3,7 +3,6 @@
 //! Provides semantic diffing between versions of embedded designs.
 
 use serde::{Serialize, Deserialize};
-use std::collections::{HashMap, HashSet};
 use crate::canvas::event_store::{DomainEvent, CanvasEvent, FsmEvent, EventEnvelope};
 
 // =============================================================================

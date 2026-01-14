@@ -1,246 +1,289 @@
-/* RTOS Panel - Industrial Retro */
+/* RTOSPanel Industrial Theme */
 
 .rtos-panel {
-  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  height: 100%;
+  background: var(--bg-base, #1e1e1e);
+  color: var(--text-primary, #e8e8e8);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 11px;
+  overflow: hidden;
+  border-right: 1px solid var(--border, #333);
 }
 
+/* === HEADER === */
 .rtos-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  height: 38px;
+  flex-shrink: 0;
 }
 
 .rtos-header h3 {
   margin: 0;
-  color: var(--accent, #e49b0f);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #888);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  color: var(--accent, #e49b0f);
+}
+
+.header-icon svg {
+  width: 14px;
+  height: 14px;
 }
 
 .rtos-selector {
   display: flex;
-  gap: 6px;
+  gap: 2px;
+  background: var(--bg-input, #111);
+  padding: 2px;
+  border-radius: 4px;
+  border: 1px solid var(--border, #333);
 }
 
 .rtos-btn {
-  background: var(--bg-surface, #1a1a1a);
-  border: 1px solid var(--border, #2a2a2a);
-  color: var(--text-secondary, #a0a0a0);
-  padding: 8px 14px;
-  border-radius: 3px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim, #666);
+  padding: 2px 8px;
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
   cursor: pointer;
+  border-radius: 3px;
   transition: all 0.15s;
 }
 
 .rtos-btn:hover {
-  background: var(--bg-elevated, #222);
-  border-color: var(--border-strong, #3a3a3a);
+  color: var(--text-primary, #ccc);
 }
 
 .rtos-btn.active {
   background: var(--accent, #e49b0f);
   color: #000;
-  border-color: var(--accent, #e49b0f);
 }
 
+/* === TABS === */
 .rtos-tabs {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  padding: 0 4px;
+  gap: 2px;
 }
 
-.rtos-tabs .tab {
-  background: var(--bg-surface, #1a1a1a);
-  border: 1px solid var(--border, #2a2a2a);
-  color: var(--text-secondary, #a0a0a0);
-  padding: 8px 12px;
-  border-radius: 3px;
-  font-size: 10px;
+.tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary, #888);
+  padding: 8px 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
   transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-.rtos-tabs .tab:hover {
-  background: var(--bg-elevated, #222);
+.tab svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.7;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary, #e8e8e8);
 }
 
-.rtos-tabs .tab.active {
-  background: var(--accent, #e49b0f);
-  color: #000;
-  border-color: var(--accent, #e49b0f);
+.tab.active {
+  color: var(--accent, #e49b0f);
+  border-bottom-color: var(--accent, #e49b0f);
+  background: rgba(228, 155, 15, 0.05);
 }
 
+.tab.active svg {
+  opacity: 1;
+}
+
+/* === CONFIG SECTION === */
 .config-section {
-  background: var(--bg-surface, #1a1a1a);
-  border: 1px solid var(--border, #2a2a2a);
-  border-radius: 4px;
-  padding: 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-y: auto;
 }
 
 .config-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+}
+
+.config-row.checkbox {
+  flex-direction: row;
+  align-items: center;
 }
 
 .config-row label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--text-dim, #888);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-dim, #606060);
-}
-
-.config-row input[type="text"],
-.config-row input[type="number"],
-.config-row select {
-  background: var(--bg-input, #0f0f0f);
-  border: 1px solid var(--border, #2a2a2a);
-  color: var(--text-primary, #e8e8e8);
-  padding: 10px 12px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.config-row input:focus,
-.config-row select:focus {
-  border-color: var(--accent, #e49b0f);
 }
 
 .config-row.checkbox label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  color: var(--text-primary, #e8e8e8);
   cursor: pointer;
 }
 
-.config-row.checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+.config-row input[type="text"],
+.config-row input[type="number"],
+.config-row select {
+  background: var(--bg-input, #111);
+  border: 1px solid var(--border, #333);
+  color: var(--text-primary, #e8e8e8);
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.config-row input:focus,
+.config-row select:focus {
+  border-color: var(--accent, #e49b0f);
+  outline: none;
+}
+
+.config-row input[type="checkbox"] {
   accent-color: var(--accent, #e49b0f);
+}
+
+/* === BUTTONS === */
+.generate-btn,
+.config-btn {
+  background: var(--bg-surface, #2d2d2d);
+  border: 1px solid var(--border, #3e3e3e);
+  color: var(--text-primary, #e8e8e8);
+  padding: 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .generate-btn {
   background: var(--accent, #e49b0f);
-  border: none;
   color: #000;
-  padding: 12px 18px;
-  border-radius: 3px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.15s;
-  margin-top: 10px;
-}
-
-.generate-btn:hover {
-  box-shadow: 0 0 12px var(--accent-glow, rgba(228, 155, 15, 0.4));
-}
-
-.generate-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.config-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.config-btn {
-  flex: 1;
-  background: var(--bg-surface, #1a1a1a);
-  border: 1px solid var(--border, #2a2a2a);
-  color: var(--text-primary, #e8e8e8);
-  padding: 10px;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.config-btn:hover {
-  background: var(--bg-elevated, #222);
   border-color: var(--accent, #e49b0f);
 }
 
+.generate-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 0 8px rgba(228, 155, 15, 0.4);
+}
+
+.config-btn:hover {
+  background: #3d3d3d;
+  color: #fff;
+  border-color: #555;
+}
+
+.generate-btn:disabled,
+.config-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* === CONFIG ACTIONS === */
+.config-actions {
+  padding: 0 16px 16px 16px;
+}
+
+/* === CODE OUTPUT === */
 .code-output {
-  background: var(--bg-surface, #1a1a1a);
-  border: 1px solid var(--accent, #e49b0f);
+  margin: 0 16px 16px 16px;
+  background: #111;
+  border: 1px solid var(--border, #333);
   border-radius: 4px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  flex: 1;
+  min-height: 150px;
 }
 
 .code-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  background: var(--accent-subtle, rgba(228, 155, 15, 0.1));
-  border-bottom: 1px solid var(--accent, #e49b0f);
-}
-
-.code-header span {
-  font-size: 9px;
-  font-weight: 600;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border, #333);
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--accent, #e49b0f);
+  color: var(--text-dim, #888);
 }
 
 .copy-btn {
-  background: var(--accent-subtle, rgba(228, 155, 15, 0.2));
-  border: 1px solid var(--accent, #e49b0f);
-  color: var(--accent, #e49b0f);
-  padding: 5px 10px;
-  border-radius: 3px;
-  font-size: 9px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim, #888);
   cursor: pointer;
-  transition: all 0.15s;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .copy-btn:hover {
-  background: var(--accent, #e49b0f);
-  color: #000;
+  color: var(--text-primary, #e8e8e8);
+}
+
+.copy-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 .code-block {
   margin: 0;
-  padding: 14px;
+  padding: 12px;
+  font-family: 'Fira Code', 'Consolas', monospace;
   font-size: 11px;
-  line-height: 1.6;
-  color: var(--text-primary, #e8e8e8);
-  overflow-x: auto;
-  max-height: 300px;
-  overflow-y: auto;
-  white-space: pre;
+  line-height: 1.5;
+  color: #a5d6ff;
+  overflow: auto;
+  flex: 1;
 }

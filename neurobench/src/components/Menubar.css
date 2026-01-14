@@ -1,0 +1,103 @@
+/* Menubar Styles - Application Menu */
+
+.menubar {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0 8px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+.menu-container {
+  position: relative;
+}
+
+.menu-trigger {
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.1s;
+}
+
+.menu-trigger:hover,
+.menu-trigger.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  padding: 4px;
+  margin-top: 2px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.1s;
+  gap: 12px;
+}
+
+.menu-item:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.menu-item.disabled {
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+.menu-item.disabled:hover {
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.menu-item-label {
+  flex: 1;
+}
+
+.menu-item-shortcut {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.menu-item-arrow {
+  font-size: 8px;
+  color: var(--text-dim);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 8px;
+}

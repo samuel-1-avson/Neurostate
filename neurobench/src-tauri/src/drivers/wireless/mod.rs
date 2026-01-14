@@ -218,3 +218,18 @@ pub mod ble;
 pub mod wifi;
 pub mod zigbee;
 pub mod lora;
+
+// New wireless protocols
+pub mod thread;   // Thread mesh networking (OpenThread)
+pub mod matter;   // Matter smart home protocol
+pub mod nfc;      // NFC/RFID contactless
+pub mod ltem;     // LTE-M/NB-IoT cellular
+pub mod uwb;      // Ultra-Wideband ranging
+
+// Re-exports
+pub use thread::{ThreadConfig, ThreadRole, generate_thread_driver};
+pub use matter::{MatterConfig, MatterDeviceType, generate_matter_driver};
+pub use nfc::{NfcConfig, NfcMode, generate_nfc_driver};
+pub use ltem::{LteMConfig, RadioAccessTech, generate_ltem_driver};
+pub use uwb::{UwbConfig, UwbRole, generate_uwb_driver};
+

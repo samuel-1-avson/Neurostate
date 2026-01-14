@@ -1,5 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import "./MemoryPanel.css";
 
 interface SectionSize {
   name: string;
@@ -153,107 +154,6 @@ export function MemoryPanel(props: MemoryPanelProps) {
         </div>
       </Show>
 
-      <style>{`
-        .memory-panel {
-          background: var(--bg-secondary, #1a1a2e);
-          border: 1px solid var(--border, #333);
-          border-radius: 8px;
-          padding: 12px;
-        }
-
-        .panel-header { margin-bottom: 12px; }
-        .panel-header h3 { margin: 0; font-size: 14px; }
-
-        .mcu-select { margin-bottom: 12px; }
-        .mcu-select label {
-          display: block;
-          color: #888;
-          font-size: 11px;
-          margin-bottom: 6px;
-        }
-
-        .mcu-select select {
-          width: 100%;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid #333;
-          color: #fff;
-          padding: 8px 12px;
-          border-radius: 6px;
-        }
-
-        .analyze-btn {
-          width: 100%;
-          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-          color: white;
-          border: none;
-          padding: 10px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-          margin-bottom: 12px;
-        }
-
-        .results {
-          background: rgba(0,0,0,0.2);
-          border-radius: 6px;
-          padding: 12px;
-        }
-
-        .usage-block { margin-bottom: 16px; }
-
-        .usage-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 6px;
-        }
-
-        .usage-label {
-          font-weight: 600;
-          font-size: 12px;
-        }
-
-        .usage-value {
-          font-size: 11px;
-          color: #888;
-        }
-
-        .usage-bar {
-          height: 12px;
-          background: rgba(255,255,255,0.1);
-          border-radius: 6px;
-          overflow: hidden;
-        }
-
-        .usage-fill {
-          height: 100%;
-          transition: width 0.3s;
-          border-radius: 6px;
-        }
-
-        .usage-percent {
-          display: block;
-          text-align: right;
-          font-size: 10px;
-          color: #888;
-          margin-top: 4px;
-        }
-
-        .sections h4 {
-          margin: 0 0 8px 0;
-          font-size: 12px;
-          color: #888;
-        }
-
-        .section-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 4px 0;
-          font-size: 11px;
-        }
-
-        .section-name { color: #ccc; }
-        .section-size { color: #888; font-family: monospace; }
-      `}</style>
     </div>
   );
 }

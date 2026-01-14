@@ -30,6 +30,9 @@ pub mod toolchain;
 pub mod project;
 pub mod canvas;
 pub mod nodes;
+pub mod shared;
+pub mod transitions;
+pub mod simulation;
 
 #[cfg(test)]
 mod tests;
@@ -47,6 +50,7 @@ use serde::{Serialize, Deserialize};
 /// Application state - persists across IPC calls
 pub struct AppState {
     pub orchestrator: Arc<Mutex<agents::Orchestrator>>,
+    pub unified_assistant: Arc<Mutex<agents::UnifiedAIAssistant>>,
     pub build_manager: Arc<toolchain::streaming_build::BuildManager>,
     pub job_manager: Arc<jobs::JobManager>,
     pub tool_registry: Arc<Mutex<agents::ToolRegistry>>,
@@ -60,6 +64,7 @@ impl AppState {
     pub fn new() -> Self {
         Self {
             orchestrator: Arc::new(Mutex::new(agents::Orchestrator::new())),
+            unified_assistant: Arc::new(Mutex::new(agents::UnifiedAIAssistant::new())),
             build_manager: Arc::new(toolchain::streaming_build::BuildManager::new()),
             job_manager: Arc::new(jobs::JobManager::new()),
             tool_registry: Arc::new(Mutex::new(agents::create_default_registry())),
@@ -85,12 +90,16 @@ pub fn run() {
     
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             // Project commands
             commands::project::create_project,
             commands::project::save_project,
             commands::project::load_project,
             commands::project::list_projects,
+            commands::project::secure_save_project,
+            commands::project::secure_load_project,
             
             // FSM commands
             commands::fsm::add_node,
@@ -199,6 +208,17 @@ pub fn run() {
             agent_chat,
             execute_tool,
             update_fsm_context,
+            
+            // Unified AI Assistant (Phase 6)
+            unified_chat,
+            unified_chat_stream,
+            unified_update_context,
+            unified_list_agents,
+            
+            // Session Memory
+            save_to_memory,
+            get_session_history,
+            clear_session_memory,
             
             // Project persistence
             save_project_file,
@@ -439,6 +459,16 @@ pub fn run() {
             nodes_generate_code,
             nodes_generate_files,
             
+            // Transition Engine
+            transitions_create,
+            transitions_update,
+            transitions_delete,
+            transitions_get,
+            transitions_get_all,
+            transitions_get_by_node,
+            transitions_validate,
+            transitions_clear,
+            
             // New Agent System Commands
             agent_create_plan,
             agent_get_model_config,
@@ -465,6 +495,32 @@ pub fn run() {
             schedule_priority_job,
             scheduler_get_status,
             scheduler_set_limit,
+            
+            // Simulation Engine
+            simulation_get_supported_mcus,
+            simulation_create,
+            simulation_load_firmware,
+            simulation_start,
+            simulation_stop,
+            simulation_pause,
+            simulation_resume,
+            simulation_step,
+            simulation_run_cycles,
+            simulation_reset,
+            simulation_get_state,
+            simulation_inject_gpio,
+            simulation_inject_uart,
+            simulation_set_breakpoint,
+            simulation_remove_breakpoint,
+            simulation_get_registers,
+            simulation_get_memory,
+            
+            // Canvas Behavior Simulation (FSM-to-Peripheral bridge)
+            canvas_simulate_start,
+            canvas_simulate_stop,
+            canvas_simulate_step,
+            canvas_simulate_inject_gpio,
+            canvas_simulate_get_state,
         ])
         .manage(AppState::new())
         .run(tauri::generate_context!())
@@ -996,6 +1052,165 @@ async fn update_fsm_context(
 ) -> Result<(), String> {
     let mut orchestrator = state.orchestrator.lock().await;
     orchestrator.update_context(nodes, edges, selected_node).await;
+    Ok(())
+}
+
+// ==================== Unified AI Assistant Commands (Phase 6) ====================
+
+/// Chat with the unified AI assistant - like Cursor/Antigravity
+/// This is the primary entry point for AI interactions
+#[tauri::command]
+async fn unified_chat(
+    state: State<'_, AppState>,
+    message: String,
+    user_id: Option<String>,
+) -> Result<agents::AssistantResponse, String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    assistant.chat(&message, user_id.as_deref()).await
+}
+
+/// Update canvas context for the unified assistant
+#[tauri::command]
+async fn unified_update_context(
+    state: State<'_, AppState>,
+    nodes: Vec<agents::ContextNode>,
+    edges: Vec<agents::ContextEdge>,
+    selected_node: Option<String>,
+) -> Result<(), String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    assistant.update_canvas_context(nodes, edges, selected_node).await;
+    Ok(())
+}
+
+/// Get list of agents from the unified assistant
+#[tauri::command]
+async fn unified_list_agents(state: State<'_, AppState>) -> Result<Vec<agents::AgentInfo>, String> {
+    let assistant = state.unified_assistant.lock().await;
+    Ok(assistant.list_agents())
+}
+
+/// Streaming chat with unified assistant - emits events for real-time display
+#[tauri::command]
+async fn unified_chat_stream(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    message: String,
+    user_id: Option<String>,
+) -> Result<String, String> {
+    use agents::streaming::simulate_streaming;
+    
+    // Generate a unique stream ID
+    let stream_id = format!("stream_{}", chrono::Utc::now().timestamp_millis());
+    
+    // Emit stream start event
+    let _ = app.emit("agent-stream", serde_json::json!({
+        "type": "start",
+        "stream_id": stream_id,
+        "agent_id": "unified"
+    }));
+    
+    // Get the response from unified assistant
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    match assistant.chat(&message, user_id.as_deref()).await {
+        Ok(response) => {
+            // Simulate streaming by emitting chunks word by word
+            let chunks = simulate_streaming(&response.message, 30);
+            
+            for (i, (chunk, _delay)) in chunks.iter().enumerate() {
+                let _ = app.emit("agent-stream", serde_json::json!({
+                    "type": "chunk",
+                    "stream_id": stream_id,
+                    "content": chunk,
+                    "sequence": i as u32
+                }));
+                
+                // Small delay between chunks for visual effect
+                tokio::time::sleep(tokio::time::Duration::from_millis(20)).await;
+            }
+            
+            // Emit completion event with full response
+            let _ = app.emit("agent-stream", serde_json::json!({
+                "type": "complete",
+                "stream_id": stream_id,
+                "response": response,
+                "total_chunks": chunks.len()
+            }));
+            
+            Ok(stream_id)
+        }
+        Err(e) => {
+            // Emit error event
+            let _ = app.emit("agent-stream", serde_json::json!({
+                "type": "error",
+                "stream_id": stream_id,
+                "error": e.to_string()
+            }));
+            
+            Err(e)
+        }
+    }
+}
+
+// ==================== Session Memory Commands ====================
+
+/// Save a message to session memory
+#[tauri::command]
+async fn save_to_memory(
+    state: State<'_, AppState>,
+    role: String,
+    content: String,
+) -> Result<(), String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    // Add to conversation context
+    let mut ctx = assistant.context.write().await;
+    ctx.agent_context.conversation.push(agents::ConversationTurn {
+        role,
+        content,
+    });
+    
+    // Trim if too many messages (keep last 50)
+    if ctx.agent_context.conversation.len() > 50 {
+        ctx.agent_context.conversation.remove(0);
+    }
+    
+    Ok(())
+}
+
+/// Get conversation history from session memory
+#[tauri::command]
+async fn get_session_history(
+    state: State<'_, AppState>,
+) -> Result<Vec<agents::ConversationTurn>, String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    let ctx = assistant.context.read().await;
+    Ok(ctx.agent_context.conversation.clone())
+}
+
+/// Clear session memory
+#[tauri::command]
+async fn clear_session_memory(
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    let mut ctx = assistant.context.write().await;
+    ctx.agent_context.conversation.clear();
+    
     Ok(())
 }
 
@@ -4750,6 +4965,97 @@ fn nodes_generate_files(
 }
 
 // ============================================================================
+// TRANSITION ENGINE IPC COMMANDS
+// ============================================================================
+
+/// Global transition engine state (for now, would typically be in AppState)
+static TRANSITION_ENGINE: std::sync::OnceLock<tokio::sync::RwLock<transitions::TransitionEngine>> = std::sync::OnceLock::new();
+
+fn get_transition_engine() -> &'static tokio::sync::RwLock<transitions::TransitionEngine> {
+    TRANSITION_ENGINE.get_or_init(|| tokio::sync::RwLock::new(transitions::TransitionEngine::new()))
+}
+
+/// Create a new transition between nodes
+#[tauri::command]
+async fn transitions_create(
+    source_node: String,
+    target_node: String,
+    source_port: Option<String>,
+    target_port: Option<String>,
+) -> Result<transitions::Transition, String> {
+    let mut engine = get_transition_engine().write().await;
+    
+    // Register nodes if not already known
+    engine.register_node(&source_node);
+    engine.register_node(&target_node);
+    
+    if let (Some(sp), Some(tp)) = (source_port, target_port) {
+        engine.create_with_ports(&source_node, sp, &target_node, tp)
+            .map_err(|e| e.to_string())
+    } else {
+        engine.create(&source_node, &target_node)
+            .map_err(|e| e.to_string())
+    }
+}
+
+/// Update a transition
+#[tauri::command]
+async fn transitions_update(
+    id: String,
+    update: transitions::TransitionUpdate,
+) -> Result<transitions::Transition, String> {
+    let mut engine = get_transition_engine().write().await;
+    engine.update(&id, update).map_err(|e| e.to_string())
+}
+
+/// Delete a transition
+#[tauri::command]
+async fn transitions_delete(id: String) -> Result<transitions::Transition, String> {
+    let mut engine = get_transition_engine().write().await;
+    engine.delete(&id).map_err(|e| e.to_string())
+}
+
+/// Get a transition by ID
+#[tauri::command]
+async fn transitions_get(id: String) -> Result<Option<transitions::Transition>, String> {
+    let engine = get_transition_engine().read().await;
+    Ok(engine.get(&id).cloned())
+}
+
+/// Get all transitions
+#[tauri::command]
+async fn transitions_get_all() -> Result<Vec<transitions::Transition>, String> {
+    let engine = get_transition_engine().read().await;
+    Ok(engine.get_all_owned())
+}
+
+/// Get transitions by node (source or target)
+#[tauri::command]
+async fn transitions_get_by_node(node_id: String) -> Result<Vec<transitions::TransitionInfo>, String> {
+    let engine = get_transition_engine().read().await;
+    let transitions: Vec<transitions::TransitionInfo> = engine.get_by_node(&node_id)
+        .iter()
+        .map(|t| transitions::TransitionInfo::from(*t))
+        .collect();
+    Ok(transitions)
+}
+
+/// Validate all transitions
+#[tauri::command]
+async fn transitions_validate() -> Result<transitions::ValidationResult, String> {
+    let engine = get_transition_engine().read().await;
+    Ok(engine.validate())
+}
+
+/// Clear all transitions
+#[tauri::command]
+async fn transitions_clear() -> Result<(), String> {
+    let mut engine = get_transition_engine().write().await;
+    engine.clear();
+    Ok(())
+}
+
+// ============================================================================
 // NEW AGENT SYSTEM IPC COMMANDS
 // ============================================================================
 
@@ -4987,4 +5293,472 @@ fn scheduler_get_status() -> Result<serde_json::Value, String> {
 fn scheduler_set_limit(kind: String, limit: usize) -> Result<(), String> {
     log::info!("Setting concurrency limit for {} to {}", kind, limit);
     Ok(())
+}
+
+// ============================================================================
+// SIMULATION ENGINE IPC COMMANDS
+// ============================================================================
+
+use simulation::mcu::{get_supported_mcus as sim_get_mcus, create_config_for_mcu, McuInfo as SimMcuInfo};
+use simulation::engine::{SimulationConfig, SimulationState as SimState};
+use std::sync::RwLock;
+use once_cell::sync::Lazy;
+
+// Global simulation engine instance
+static SIMULATION_ENGINE: Lazy<RwLock<Option<simulation::SimulationEngine>>> = 
+    Lazy::new(|| RwLock::new(None));
+
+static SIM_CMD_TX: Lazy<RwLock<Option<tokio::sync::mpsc::Sender<simulation::SimulationCommand>>>> =
+    Lazy::new(|| RwLock::new(None));
+
+/// Get list of MCUs supported by the simulation engine
+#[tauri::command]
+fn simulation_get_supported_mcus() -> Result<Vec<SimMcuInfo>, String> {
+    Ok(sim_get_mcus())
+}
+
+/// Create a new simulation instance
+#[tauri::command]
+fn simulation_create(mcu: String) -> Result<serde_json::Value, String> {
+    let config = create_config_for_mcu(&mcu)
+        .ok_or_else(|| format!("Unsupported MCU: {}", mcu))?;
+    
+    let (cmd_tx, cmd_rx) = tokio::sync::mpsc::channel(256);
+    let (evt_tx, _evt_rx) = tokio::sync::mpsc::channel(1024);
+    
+    let engine = simulation::SimulationEngine::new(config.clone(), cmd_rx, evt_tx);
+    
+    // Store the engine and command sender
+    if let Ok(mut guard) = SIMULATION_ENGINE.write() {
+        *guard = Some(engine);
+    }
+    if let Ok(mut guard) = SIM_CMD_TX.write() {
+        *guard = Some(cmd_tx);
+    }
+    
+    Ok(serde_json::json!({
+        "success": true,
+        "mcu": config.mcu,
+        "flash_size": config.flash_size,
+        "ram_size": config.ram_size,
+        "system_clock": config.system_clock,
+    }))
+}
+
+/// Load firmware into simulation
+#[tauri::command]
+fn simulation_load_firmware(data: Vec<u8>) -> Result<serde_json::Value, String> {
+    if let Ok(mut guard) = SIMULATION_ENGINE.write() {
+        if let Some(ref mut engine) = *guard {
+            engine.load_firmware(&data)?;
+            return Ok(serde_json::json!({
+                "success": true,
+                "size": data.len(),
+            }));
+        }
+    }
+    Err("No simulation engine created".to_string())
+}
+
+/// Start the simulation
+#[tauri::command]
+async fn simulation_start() -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    tx.send(simulation::SimulationCommand::Start).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({ "success": true, "state": "Running" }))
+}
+
+/// Stop the simulation
+#[tauri::command]
+async fn simulation_stop() -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    tx.send(simulation::SimulationCommand::Stop).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({ "success": true, "state": "Stopped" }))
+}
+
+/// Pause the simulation
+#[tauri::command]
+async fn simulation_pause() -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    tx.send(simulation::SimulationCommand::Pause).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({ "success": true, "state": "Paused" }))
+}
+
+/// Resume the simulation
+#[tauri::command]
+async fn simulation_resume() -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    tx.send(simulation::SimulationCommand::Resume).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({ "success": true, "state": "Running" }))
+}
+
+/// Step single instruction
+#[tauri::command]
+fn simulation_step() -> Result<serde_json::Value, String> {
+    if let Ok(mut guard) = SIMULATION_ENGINE.write() {
+        if let Some(ref mut engine) = *guard {
+            let result = engine.step();
+            return Ok(serde_json::json!({
+                "success": true,
+                "result": format!("{:?}", result),
+                "cycles": engine.cycle_count(),
+            }));
+        }
+    }
+    Err("No simulation engine created".to_string())
+}
+
+/// Run for specified cycles
+#[tauri::command]
+fn simulation_run_cycles(cycles: u64) -> Result<serde_json::Value, String> {
+    if let Ok(mut guard) = SIMULATION_ENGINE.write() {
+        if let Some(ref mut engine) = *guard {
+            let result = engine.run(cycles);
+            return Ok(serde_json::json!({
+                "success": true,
+                "cycles_executed": result.cycles_executed,
+                "instructions_executed": result.instructions_executed,
+                "stop_reason": format!("{:?}", result.stop_reason),
+            }));
+        }
+    }
+    Err("No simulation engine created".to_string())
+}
+
+/// Reset simulation
+#[tauri::command]
+fn simulation_reset() -> Result<serde_json::Value, String> {
+    if let Ok(mut guard) = SIMULATION_ENGINE.write() {
+        if let Some(ref mut engine) = *guard {
+            engine.reset();
+            return Ok(serde_json::json!({
+                "success": true,
+                "state": "Idle",
+            }));
+        }
+    }
+    Err("No simulation engine created".to_string())
+}
+
+/// Get simulation state
+#[tauri::command]
+fn simulation_get_state() -> Result<serde_json::Value, String> {
+    if let Ok(guard) = SIMULATION_ENGINE.read() {
+        if let Some(ref engine) = *guard {
+            let cpu = engine.cpu();
+            return Ok(serde_json::json!({
+                "state": format!("{:?}", engine.state()),
+                "cycles": engine.cycle_count(),
+                "pc": cpu.pc(),
+            }));
+        }
+    }
+    Err("No simulation engine created".to_string())
+}
+
+/// Inject GPIO input
+#[tauri::command]
+async fn simulation_inject_gpio(port: char, pin: u8, state: bool) -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    tx.send(simulation::SimulationCommand::InjectGpio { port, pin, state }).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({
+        "success": true,
+        "port": port.to_string(),
+        "pin": pin,
+        "state": state,
+    }))
+}
+
+/// Inject UART data
+#[tauri::command]
+async fn simulation_inject_uart(instance: u8, data: Vec<u8>) -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    let data_len = data.len();
+    tx.send(simulation::SimulationCommand::InjectUart { instance, data }).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({
+        "success": true,
+        "instance": instance,
+        "bytes": data_len,
+    }))
+}
+
+/// Set breakpoint
+#[tauri::command]
+async fn simulation_set_breakpoint(address: u32) -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    tx.send(simulation::SimulationCommand::SetBreakpoint { address }).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({
+        "success": true,
+        "address": format!("0x{:08X}", address),
+    }))
+}
+
+/// Remove breakpoint
+#[tauri::command]
+async fn simulation_remove_breakpoint(id: u32) -> Result<serde_json::Value, String> {
+    let tx = {
+        let guard = SIM_CMD_TX.read().map_err(|e| e.to_string())?;
+        guard.clone().ok_or_else(|| "No simulation engine created".to_string())?
+    };
+    tx.send(simulation::SimulationCommand::RemoveBreakpoint { id }).await
+        .map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({
+        "success": true,
+        "id": id,
+    }))
+}
+
+/// Get CPU registers
+#[tauri::command]
+fn simulation_get_registers() -> Result<serde_json::Value, String> {
+    if let Ok(guard) = SIMULATION_ENGINE.read() {
+        if let Some(ref engine) = *guard {
+            let cpu = engine.cpu();
+            let snapshot = cpu.snapshot();
+            return Ok(serde_json::json!({
+                "registers": {
+                    "r0": snapshot.registers[0],
+                    "r1": snapshot.registers[1],
+                    "r2": snapshot.registers[2],
+                    "r3": snapshot.registers[3],
+                    "r4": snapshot.registers[4],
+                    "r5": snapshot.registers[5],
+                    "r6": snapshot.registers[6],
+                    "r7": snapshot.registers[7],
+                    "r8": snapshot.registers[8],
+                    "r9": snapshot.registers[9],
+                    "r10": snapshot.registers[10],
+                    "r11": snapshot.registers[11],
+                    "r12": snapshot.registers[12],
+                    "sp": snapshot.sp,
+                    "lr": snapshot.lr,
+                    "pc": snapshot.pc,
+                    "xpsr": snapshot.xpsr,
+                },
+            }));
+        }
+    }
+    Err("No simulation engine created".to_string())
+}
+
+/// Read memory
+#[tauri::command]
+fn simulation_get_memory(address: u32, size: usize) -> Result<serde_json::Value, String> {
+    if let Ok(guard) = SIMULATION_ENGINE.read() {
+        if let Some(ref engine) = *guard {
+            let memory = engine.memory();
+            let mut data = Vec::with_capacity(size);
+            
+            for i in 0..size {
+                match memory.read8(address + i as u32) {
+                    Ok(byte) => data.push(byte),
+                    Err(e) => return Err(format!("Memory read error at 0x{:08X}: {}", address + i as u32, e)),
+                }
+            }
+            
+            return Ok(serde_json::json!({
+                "address": format!("0x{:08X}", address),
+                "size": size,
+                "data": data,
+                "hex": data.iter().map(|b| format!("{:02X}", b)).collect::<Vec<_>>().join(" "),
+            }));
+        }
+    }
+    Err("No simulation engine created".to_string())
+}
+
+// ============================================================================
+// Canvas Behavior Simulation (FSM-to-Peripheral Bridge)
+// ============================================================================
+
+use simulation::fsm_behavior::{FsmBehaviorSimulator, BehaviorState, StepResult as BehaviorStepResult};
+
+// Global FSM behavior simulator
+static FSM_BEHAVIOR_SIM: Lazy<RwLock<Option<FsmBehaviorSimulator>>> = 
+    Lazy::new(|| RwLock::new(None));
+
+/// Start canvas behavior simulation from the current FSM design
+#[tauri::command]
+async fn canvas_simulate_start(
+    state: State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    // Get the current FSM graph from the canvas engine
+    let graph = {
+        let engine = state.canvas_engine.read().await;
+        
+        // Convert canvas nodes/edges to FSMGraph
+        let mut fsm_graph = core::graph::FSMGraph::new();
+        
+        for node in engine.nodes().values() {
+            let fsm_node = core::types::FSMNode {
+                id: uuid::Uuid::parse_str(&node.id).unwrap_or_else(|_| uuid::Uuid::new_v4()),
+                label: node.label.clone(),
+                node_type: string_to_node_type(&format!("{:?}", node.node_type)),
+                position: core::types::Position { x: node.x, y: node.y },
+                entry_action: node.entry_action.clone(),
+                exit_action: node.exit_action.clone(),
+                description: node.description.clone(),
+                tags: vec![],
+                is_active: false,
+                is_breakpoint: false,
+                has_error: false,
+            };
+            fsm_graph.add_node(fsm_node);
+        }
+        
+        for edge in engine.edges().values() {
+            let source = uuid::Uuid::parse_str(&edge.source).unwrap_or_else(|_| uuid::Uuid::new_v4());
+            let target = uuid::Uuid::parse_str(&edge.target).unwrap_or_else(|_| uuid::Uuid::new_v4());
+            
+            let fsm_edge = core::types::FSMEdge {
+                id: uuid::Uuid::parse_str(&edge.id).unwrap_or_else(|_| uuid::Uuid::new_v4()),
+                source,
+                target,
+                label: edge.label.clone(),
+                guard: edge.guard.clone(),
+                is_traversing: false,
+            };
+            fsm_graph.add_edge(fsm_edge);
+        }
+        
+        fsm_graph
+    };
+    
+    // Create the behavior simulator
+    let mut simulator = FsmBehaviorSimulator::new(graph);
+    simulator.start()?;
+    
+    let state_snapshot = simulator.state().clone();
+    
+    // Store the simulator
+    if let Ok(mut guard) = FSM_BEHAVIOR_SIM.write() {
+        *guard = Some(simulator);
+    }
+    
+    Ok(serde_json::json!({
+        "success": true,
+        "message": "Canvas behavior simulation started",
+        "state": state_snapshot,
+    }))
+}
+
+/// Stop canvas behavior simulation
+#[tauri::command]
+fn canvas_simulate_stop() -> Result<serde_json::Value, String> {
+    if let Ok(mut guard) = FSM_BEHAVIOR_SIM.write() {
+        if let Some(ref mut sim) = *guard {
+            sim.stop();
+            return Ok(serde_json::json!({
+                "success": true,
+                "message": "Simulation stopped",
+            }));
+        }
+    }
+    Err("No canvas simulation running".to_string())
+}
+
+/// Step canvas behavior simulation
+#[tauri::command]
+fn canvas_simulate_step() -> Result<serde_json::Value, String> {
+    if let Ok(mut guard) = FSM_BEHAVIOR_SIM.write() {
+        if let Some(ref mut sim) = *guard {
+            let result = sim.step()?;
+            let state = sim.state().clone();
+            let history = sim.action_history().to_vec();
+            
+            return Ok(serde_json::json!({
+                "success": true,
+                "result": format!("{:?}", result),
+                "state": state,
+                "actions": history,
+            }));
+        }
+    }
+    Err("No canvas simulation running".to_string())
+}
+
+/// Inject GPIO input into canvas simulation
+#[tauri::command]
+fn canvas_simulate_inject_gpio(port: char, pin: u8, value: bool) -> Result<serde_json::Value, String> {
+    if let Ok(mut guard) = FSM_BEHAVIOR_SIM.write() {
+        if let Some(ref mut sim) = *guard {
+            sim.inject_gpio(port, pin, value);
+            return Ok(serde_json::json!({
+                "success": true,
+                "port": port.to_string(),
+                "pin": pin,
+                "value": value,
+            }));
+        }
+    }
+    Err("No canvas simulation running".to_string())
+}
+
+/// Get current canvas simulation state
+#[tauri::command]
+fn canvas_simulate_get_state() -> Result<serde_json::Value, String> {
+    if let Ok(guard) = FSM_BEHAVIOR_SIM.read() {
+        if let Some(ref sim) = *guard {
+            let state = sim.state();
+            let history = sim.action_history();
+            
+            return Ok(serde_json::json!({
+                "success": true,
+                "state": state,
+                "action_count": history.len(),
+                "last_actions": history.iter().rev().take(10).collect::<Vec<_>>(),
+            }));
+        }
+    }
+    Err("No canvas simulation running".to_string())
+}
+
+// Helper to convert string node type to NodeType enum
+fn string_to_node_type(s: &str) -> core::types::NodeType {
+    match s.to_lowercase().as_str() {
+        "input" => core::types::NodeType::Input,
+        "output" => core::types::NodeType::Output,
+        "process" => core::types::NodeType::Process,
+        "decision" => core::types::NodeType::Decision,
+        "hardware" => core::types::NodeType::Hardware,
+        "uart" => core::types::NodeType::Uart,
+        "timer" => core::types::NodeType::Timer,
+        "interrupt" => core::types::NodeType::Interrupt,
+        "peripheral" => core::types::NodeType::Peripheral,
+        "sensor" => core::types::NodeType::Sensor,
+        "display" => core::types::NodeType::Display,
+        "network" => core::types::NodeType::Network,
+        "wireless" => core::types::NodeType::Wireless,
+        "queue" => core::types::NodeType::Queue,
+        "mutex" => core::types::NodeType::Mutex,
+        _ => core::types::NodeType::Process,
+    }
 }

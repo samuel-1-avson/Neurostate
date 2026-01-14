@@ -1,0 +1,259 @@
+/* WorkflowPanel Industrial Theme */
+
+.workflow-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-base, #1e1e1e);
+  color: var(--text-primary, #e8e8e8);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 11px;
+  overflow: hidden;
+  border-right: 1px solid var(--border, #333);
+}
+
+/* === HEADER === */
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  height: 38px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #888);
+}
+
+.panel-header svg {
+  width: 14px;
+  height: 14px;
+  color: var(--accent, #e49b0f);
+}
+
+/* === STATUS STRIP === */
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  font-size: 10px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  border: 1px solid transparent;
+}
+
+.status-label {
+  color: var(--text-dim, #888);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.status-value {
+  color: var(--text-primary, #e8e8e8);
+  font-weight: 700;
+  font-family: 'Fira Code', monospace;
+}
+
+.status-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-with-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Specific Status Colors */
+.status-item.success {
+  border-color: rgba(46, 204, 113, 0.3);
+  color: var(--status-success, #2ecc71);
+  background: rgba(46, 204, 113, 0.1);
+}
+
+.status-item.error {
+  border-color: rgba(231, 76, 60, 0.3);
+  color: var(--status-error, #e74c3c);
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.status-item.rtt-active {
+  border-color: rgba(52, 152, 219, 0.3);
+  color: var(--status-info, #3498db);
+  background: rgba(52, 152, 219, 0.1);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* === CONTROLS === */
+.workflow-controls {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--border, #333);
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.control-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text-dim, #aaa);
+  text-transform: uppercase;
+  font-weight: 600;
+  flex: 1;
+}
+
+.control-row label.checkbox-label {
+  flex: 0 0 auto;
+  cursor: pointer;
+  color: var(--text-primary, #e8e8e8);
+}
+
+.control-row input[type="text"],
+.control-row select {
+  background: var(--bg-input, #111);
+  border: 1px solid var(--border, #333);
+  color: var(--text-primary, #e8e8e8);
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 11px;
+  flex: 1;
+}
+
+.control-row select {
+  cursor: pointer;
+}
+
+.control-row input:focus,
+.control-row select:focus {
+  border-color: var(--accent, #e49b0f);
+  outline: none;
+}
+
+.control-row input[type="checkbox"] {
+  accent-color: var(--accent, #e49b0f);
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.run-button, .stop-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.run-button {
+  background: var(--status-success, #2ecc71);
+  color: #000;
+  border-color: var(--status-success, #2ecc71);
+}
+
+.run-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.4);
+}
+
+.stop-button {
+  background: var(--status-error, #e74c3c);
+  color: #fff;
+  border-color: var(--status-error, #e74c3c);
+}
+
+.stop-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
+.run-button:disabled,
+.stop-button:disabled {
+  background: #333;
+  border-color: #333;
+  color: #666;
+  cursor: not-allowed;
+  filter: none;
+  box-shadow: none;
+}
+
+/* === LOGS === */
+.message-log {
+  flex: 1;
+  background: #111;
+  padding: 8px 12px;
+  overflow-y: auto;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary, #aaa);
+}
+
+.log-line {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* === ERROR === */
+.status-error {
+  background: rgba(231, 76, 60, 0.1);
+  border-top: 1px solid var(--status-error, #e74c3c);
+  color: var(--status-error, #e74c3c);
+  padding: 8px 12px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

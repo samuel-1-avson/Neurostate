@@ -1,8 +1,10 @@
 // Performance Monitor Panel
 // Task Manager-style system metrics visualizer with real-time graphs
 
-import { createSignal, For, Show, onMount, onCleanup, createEffect } from "solid-js";
+import { createSignal, For, Show, onMount, onCleanup } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
+import "./PerformancePanel.css";
 
 interface SystemMetrics {
   cpu: CpuMetrics;
@@ -184,8 +186,8 @@ function CircularProgress(props: { value: number, color: string, label: string, 
           fill="none"
           stroke={props.color}
           stroke-width="8"
-          stroke-dasharray={circumference}
-          stroke-dashoffset={offset}
+          stroke-dasharray={String(circumference)}
+          stroke-dashoffset={String(offset)}
           stroke-linecap="round"
           transform="rotate(-90 50 50)"
           class="progress-ring"
@@ -287,7 +289,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
   return (
     <div class="performance-panel">
       <div class="performance-header">
-        <h2>⚡ Performance Monitor</h2>
+        <h2><span class="header-icon">{Icons.flash()}</span> Performance Monitor</h2>
         <div class="performance-actions">
           <select 
             class="interval-select"
@@ -300,7 +302,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
             <option value="5000">5s</option>
           </select>
           <button class="refresh-btn" onClick={() => { fetchMetrics(); fetchProcesses(); fetchEmbedded(); }}>
-            🔄 Refresh
+            {Icons.refresh()} Refresh
           </button>
         </div>
       </div>
@@ -310,19 +312,19 @@ export function PerformancePanel(props: PerformancePanelProps) {
           class={`tab-btn ${activeTab() === "overview" ? "active" : ""}`}
           onClick={() => setActiveTab("overview")}
         >
-          📊 Overview
+          {Icons.chart()} Overview
         </button>
         <button 
           class={`tab-btn ${activeTab() === "processes" ? "active" : ""}`}
           onClick={() => { setActiveTab("processes"); fetchProcesses(); }}
         >
-          📋 Processes
+          {Icons.tasks()} Processes
         </button>
         <button 
           class={`tab-btn ${activeTab() === "embedded" ? "active" : ""}`}
           onClick={() => { setActiveTab("embedded"); fetchEmbedded(); }}
         >
-          🔌 Embedded
+          {Icons.plug()} Embedded
         </button>
       </div>
 
@@ -337,7 +339,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
             {/* CPU Card */}
             <div class="metric-card cpu">
               <div class="metric-header">
-                <span class="metric-icon">🖥️</span>
+                <span class="metric-icon">{Icons.cpu()}</span>
                 <span class="metric-title">CPU</span>
                 <span class="metric-value">{metrics()!.cpu.usage_percent.toFixed(1)}%</span>
               </div>
@@ -363,7 +365,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
             {/* Memory Card */}
             <div class="metric-card memory">
               <div class="metric-header">
-                <span class="metric-icon">💾</span>
+                <span class="metric-icon">{Icons.memory()}</span>
                 <span class="metric-title">Memory</span>
                 <span class="metric-value">{formatBytes(metrics()!.memory.used_bytes)}</span>
               </div>
@@ -385,7 +387,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
             {/* Disk Card */}
             <div class="metric-card disk">
               <div class="metric-header">
-                <span class="metric-icon">💿</span>
+                <span class="metric-icon">{Icons.hardDrive()}</span>
                 <span class="metric-title">Storage</span>
               </div>
               <div class="disk-list">
@@ -414,16 +416,16 @@ export function PerformancePanel(props: PerformancePanelProps) {
             {/* Network Card */}
             <div class="metric-card network">
               <div class="metric-header">
-                <span class="metric-icon">🌐</span>
+                <span class="metric-icon">{Icons.globe()}</span>
                 <span class="metric-title">Network</span>
               </div>
               <div class="network-speeds">
                 <div class="speed-item">
-                  <span class="speed-label">↓ Download</span>
+                  <span class="speed-label"><span class="icon-inline">{Icons.arrowDown()}</span> Download</span>
                   <span class="speed-value">{formatSpeed(networkRxHistory().at(-1) || 0)}</span>
                 </div>
                 <div class="speed-item">
-                  <span class="speed-label">↑ Upload</span>
+                  <span class="speed-label"><span class="icon-inline">{Icons.arrowUp()}</span> Upload</span>
                   <span class="speed-value">{formatSpeed(networkTxHistory().at(-1) || 0)}</span>
                 </div>
               </div>
@@ -431,14 +433,14 @@ export function PerformancePanel(props: PerformancePanelProps) {
                 <SparklineChart data={networkRxHistory()} color={COLORS.network} />
               </div>
               <div class="metric-details">
-                <span>Total: ↓{formatBytes(metrics()!.network.total_received)} ↑{formatBytes(metrics()!.network.total_transmitted)}</span>
+                <span>Total: <span class="icon-inline">{Icons.arrowDown()}</span>{formatBytes(metrics()!.network.total_received)} <span class="icon-inline">{Icons.arrowUp()}</span>{formatBytes(metrics()!.network.total_transmitted)}</span>
               </div>
             </div>
           </div>
 
           {/* System Info */}
           <div class="system-info">
-            <span>⏱️ Uptime: {formatUptime(metrics()!.uptime)}</span>
+            <span><span class="icon-inline">{Icons.timer()}</span> Uptime: {formatUptime(metrics()!.uptime)}</span>
           </div>
         </Show>
 
@@ -473,11 +475,11 @@ export function PerformancePanel(props: PerformancePanelProps) {
           <Show when={embedded()} fallback={<div class="no-device">No embedded device connected</div>}>
             <div class="embedded-section">
               <div class="embedded-header">
-                <span class="device-icon">🔌</span>
+                <span class="device-icon">{Icons.plug()}</span>
                 <span class="device-name">{embedded()!.device_name}</span>
                 <span class="device-port">{embedded()!.port}</span>
                 <span class={`device-status ${embedded()!.connected ? "connected" : "disconnected"}`}>
-                  {embedded()!.connected ? "● Connected" : "○ Disconnected"}
+                  {embedded()!.connected ? <><span class="icon-inline">{Icons.circleFilled()}</span> Connected</> : <><span class="icon-inline">{Icons.circle()}</span> Disconnected</>}
                 </span>
               </div>
 
@@ -485,7 +487,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
                 {/* Power */}
                 <div class="embedded-card">
                   <div class="embedded-card-header">
-                    <span>⚡ Power</span>
+                    <span><span class="icon-inline">{Icons.flash()}</span> Power</span>
                     <span class="embedded-value">{embedded()!.power_mw.toFixed(1)} mW</span>
                   </div>
                   <div class="metric-chart">
@@ -499,7 +501,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
                 {/* Temperature */}
                 <div class="embedded-card">
                   <div class="embedded-card-header">
-                    <span>🌡️ Temperature</span>
+                    <span><span class="icon-inline">{Icons.thermometer()}</span> Temperature</span>
                     <span class="embedded-value">{embedded()!.temperature_c.toFixed(1)}°C</span>
                   </div>
                   <div class="metric-chart">
@@ -510,7 +512,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
                 {/* Clock */}
                 <div class="embedded-card">
                   <div class="embedded-card-header">
-                    <span>⏱️ Clock</span>
+                    <span><span class="icon-inline">{Icons.timer()}</span> Clock</span>
                     <span class="embedded-value">{embedded()!.clock_mhz} MHz</span>
                   </div>
                   <CircularProgress value={100} color={COLORS.cpu} label="Active" />
@@ -519,7 +521,7 @@ export function PerformancePanel(props: PerformancePanelProps) {
                 {/* Memory */}
                 <div class="embedded-card">
                   <div class="embedded-card-header">
-                    <span>💾 Memory</span>
+                    <span><span class="icon-inline">{Icons.memory()}</span> Memory</span>
                   </div>
                   <div class="embedded-memory">
                     <div class="emem-item">
@@ -926,6 +928,18 @@ export function PerformancePanel(props: PerformancePanelProps) {
 
         .progress-ring {
           transition: stroke-dashoffset 0.3s ease;
+        }
+        .icon-inline {
+          display: inline-block;
+          width: 1em;
+          height: 1em;
+          vertical-align: text-bottom;
+          margin-right: 2px;
+        }
+
+        .icon-inline svg {
+          width: 100%;
+          height: 100%;
         }
       `}</style>
     </div>

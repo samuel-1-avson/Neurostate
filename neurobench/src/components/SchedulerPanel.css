@@ -1,47 +1,72 @@
-/* Scheduler Panel Styles */
+/* Scheduler Panel Industrial Theme */
 .scheduler-panel {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--bg-secondary, #1e1e1e);
-  color: var(--text-primary, #e0e0e0);
-  font-family: 'Inter', -apple-system, sans-serif;
-  overflow-y: auto;
+  background: var(--bg-base, #1e1e1e);
+  color: var(--text-primary, #e8e8e8);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 11px;
+  overflow: hidden;
+  border-right: 1px solid var(--border, #333);
 }
 
 .scheduler-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 12px;
+  background: var(--bg-surface, #252526);
   border-bottom: 1px solid var(--border, #333);
-  background: var(--bg-tertiary, #252526);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  height: 38px;
+  flex-shrink: 0;
 }
 
 .scheduler-header h3 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #888);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scheduler-header h3 svg {
+  color: var(--accent, #e49b0f);
+  width: 14px;
+  height: 14px;
 }
 
 .scheduler-header button {
-  padding: 6px 12px;
+  padding: 4px 12px;
   border: none;
   border-radius: 4px;
-  background: var(--accent, #007acc);
-  color: white;
+  background: var(--bg-input, #333);
+  color: var(--text-primary, #e8e8e8);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.scheduler-header button:hover:not(:disabled) {
+  background: var(--accent, #e49b0f);
+  color: #000;
 }
 
 .scheduler-error {
-  padding: 8px 16px;
-  background: rgba(255, 0, 0, 0.1);
-  color: #ff6b6b;
-  font-size: 12px;
+  padding: 8px 12px;
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--status-error, #e74c3c);
+  font-size: 10px;
+  border-bottom: 1px solid var(--status-error, #e74c3c);
 }
 
 /* Status Overview */
@@ -49,33 +74,36 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  padding: 16px;
+  padding: 12px;
   border-bottom: 1px solid var(--border, #333);
+  background: var(--bg-surface, #252526);
 }
 
 .status-card {
   text-align: center;
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--bg-tertiary, #252526);
+  padding: 8px;
+  border-radius: 4px;
+  background: var(--bg-input, #111);
+  border: 1px solid var(--border, #333);
 }
 
-.status-card.pending { border-left: 3px solid #fa0; }
-.status-card.running { border-left: 3px solid #0af; }
-.status-card.completed { border-left: 3px solid #0a0; }
-.status-card.failed { border-left: 3px solid #f00; }
+.status-card.pending { border-left: 2px solid var(--status-warning, #f1c40f); }
+.status-card.running { border-left: 2px solid var(--status-info, #3498db); }
+.status-card.completed { border-left: 2px solid var(--status-success, #2ecc71); }
+.status-card.failed { border-left: 2px solid var(--status-error, #e74c3c); }
 
 .status-value {
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 700;
   font-family: 'Fira Code', monospace;
+  color: var(--text-primary, #e8e8e8);
 }
 
 .status-label {
-  font-size: 10px;
-  color: var(--text-secondary, #999);
+  font-size: 9px;
+  color: var(--text-dim, #888);
   text-transform: uppercase;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 /* Quick Actions */
@@ -83,7 +111,7 @@
 .new-job-section,
 .running-jobs,
 .concurrency-section {
-  padding: 16px;
+  padding: 12px;
   border-bottom: 1px solid var(--border, #333);
 }
 
@@ -91,9 +119,23 @@
 .new-job-section h4,
 .running-jobs h4,
 .concurrency-section h4 {
-  margin: 0 0 12px 0;
-  font-size: 12px;
-  color: var(--text-secondary, #999);
+  margin: 0 0 10px 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim, #888);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-actions h4 svg,
+.new-job-section h4 svg,
+.running-jobs h4 svg,
+.concurrency-section h4 svg {
+  color: var(--accent, #e49b0f);
+  width: 12px;
+  height: 12px;
 }
 
 .action-buttons {
@@ -103,114 +145,130 @@
 
 .action-btn {
   flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
-}
-
-.action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-transform: uppercase;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
 }
 
 .action-btn.build {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: rgba(52, 152, 219, 0.1);
+  color: var(--status-info, #3498db);
+  border-color: rgba(52, 152, 219, 0.3);
 }
 
 .action-btn.flash {
-  background: linear-gradient(135deg, #f093fb, #f5576c);
-  color: white;
+  background: rgba(46, 204, 113, 0.1);
+  color: var(--status-success, #2ecc71);
+  border-color: rgba(46, 204, 113, 0.3);
 }
 
 .action-btn.chain {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: white;
+  background: rgba(228, 155, 15, 0.1);
+  color: var(--accent, #e49b0f);
+  border-color: rgba(228, 155, 15, 0.3);
+}
+
+.action-btn:hover {
+  filter: brightness(1.2);
 }
 
 /* Job Form */
 .job-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .form-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .form-row label {
-  width: 80px;
-  font-size: 12px;
-  color: var(--text-secondary, #999);
+  width: 70px;
+  font-size: 10px;
+  color: var(--text-dim, #888);
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
 .form-row select,
 .form-row input {
   flex: 1;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 1px solid var(--border, #333);
   border-radius: 4px;
-  background: var(--bg-primary, #1a1a1a);
-  color: var(--text-primary, #e0e0e0);
-  font-size: 12px;
+  background: var(--bg-input, #111);
+  color: var(--text-primary, #e8e8e8);
+  font-size: 11px;
+  font-family: inherit;
 }
 
 .schedule-btn {
-  padding: 10px;
+  padding: 8px;
   border: none;
-  border-radius: 6px;
-  background: var(--accent, #007acc);
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 4px;
+  background: var(--accent, #e49b0f);
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
   cursor: pointer;
   margin-top: 4px;
+  transition: all 0.15s;
+  font-family: inherit;
 }
 
 .schedule-btn:hover {
-  background: #0088e0;
+  filter: brightness(1.1);
 }
 
 /* Running Jobs */
 .empty {
-  padding: 20px;
+  padding: 16px;
   text-align: center;
-  color: var(--text-secondary, #999);
-  font-size: 12px;
+  color: var(--text-dim, #666);
+  font-size: 10px;
+  font-style: italic;
 }
 
 .job-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .job-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 6px;
-  background: var(--bg-tertiary, #252526);
+  gap: 12px;
+  padding: 8px;
+  border-radius: 4px;
+  background: var(--bg-input, #111);
+  border: 1px solid var(--border, #333);
 }
 
 .job-id {
   font-family: 'Fira Code', monospace;
-  font-size: 11px;
-  color: var(--text-secondary, #999);
+  font-size: 10px;
+  color: var(--text-secondary, #aaa);
 }
 
 .job-progress {
   flex: 1;
   height: 4px;
-  background: var(--bg-primary, #1a1a1a);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -218,7 +276,7 @@
 .progress-bar {
   height: 100%;
   width: 60%;
-  background: linear-gradient(90deg, #0af, #0fa);
+  background: var(--status-info, #3498db);
   animation: progress-pulse 1.5s ease-in-out infinite;
 }
 
@@ -231,33 +289,35 @@
 .limit-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .limit-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px;
-  background: var(--bg-tertiary, #252526);
-  border-radius: 6px;
+  gap: 4px;
+  padding: 8px;
+  background: var(--bg-input, #111);
+  border: 1px solid var(--border, #333);
+  border-radius: 4px;
 }
 
 .limit-label {
-  font-size: 10px;
+  font-size: 9px;
   text-transform: uppercase;
-  color: var(--text-secondary, #999);
+  color: var(--text-dim, #888);
+  font-weight: 700;
 }
 
 .limit-item input {
-  width: 50px;
-  padding: 6px;
+  width: 40px;
+  padding: 4px;
   text-align: center;
   border: 1px solid var(--border, #333);
-  border-radius: 4px;
-  background: var(--bg-primary, #1a1a1a);
-  color: var(--text-primary, #e0e0e0);
-  font-size: 14px;
+  border-radius: 3px;
+  background: var(--bg-surface, #252526);
+  color: var(--text-primary, #e8e8e8);
+  font-size: 11px;
   font-family: 'Fira Code', monospace;
 }

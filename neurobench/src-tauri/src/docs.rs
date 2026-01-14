@@ -2,7 +2,6 @@
 // Auto-generate Doxygen-style documentation
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Function documentation
 #[derive(Debug, Clone, Serialize, Deserialize)]

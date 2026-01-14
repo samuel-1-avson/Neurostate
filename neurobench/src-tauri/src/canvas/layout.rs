@@ -377,3 +377,168 @@ impl Default for LayoutEngine {
         Self::new()
     }
 }
+
+// =============================================================================
+// LAYOUT CACHE
+// =============================================================================
+
+use std::hash::{Hash, Hasher};
+use std::collections::hash_map::DefaultHasher;
+
+/// Cache key for layout results
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct LayoutCacheKey {
+    algorithm: String,
+    node_ids_hash: u64,
+    edge_ids_hash: u64,
+}
+
+impl LayoutCacheKey {
+    fn new(
+        algorithm: LayoutAlgorithm,
+        nodes: &HashMap<String, CanvasNode>,
+        edges: &HashMap<String, CanvasEdge>,
+    ) -> Self {
+        // Hash node IDs and positions
+        let mut node_hasher = DefaultHasher::new();
+        let mut node_ids: Vec<_> = nodes.keys().collect();
+        node_ids.sort();
+        for id in node_ids {
+            id.hash(&mut node_hasher);
+        }
+        
+        // Hash edge IDs
+        let mut edge_hasher = DefaultHasher::new();
+        let mut edge_ids: Vec<_> = edges.keys().collect();
+        edge_ids.sort();
+        for id in edge_ids {
+            id.hash(&mut edge_hasher);
+            if let Some(edge) = edges.get(id) {
+                edge.source.hash(&mut edge_hasher);
+                edge.target.hash(&mut edge_hasher);
+            }
+        }
+        
+        Self {
+            algorithm: format!("{:?}", algorithm),
+            node_ids_hash: node_hasher.finish(),
+            edge_ids_hash: edge_hasher.finish(),
+        }
+    }
+}
+
+/// Cached layout entry with timestamp
+#[derive(Debug, Clone)]
+struct CachedLayoutEntry {
+    positions: HashMap<String, (f64, f64)>,
+    created_at: std::time::Instant,
+}
+
+/// Cache for computed layout results
+/// 
+/// Avoids expensive recalculation of force-directed layouts for unchanged graphs.
+pub struct LayoutCache {
+    cache: HashMap<LayoutCacheKey, CachedLayoutEntry>,
+    max_entries: usize,
+    ttl_secs: u64,
+    hits: u64,
+    misses: u64,
+}
+
+impl LayoutCache {
+    pub fn new() -> Self {
+        Self {
+            cache: HashMap::new(),
+            max_entries: 10,
+            ttl_secs: 300, // 5 minutes
+            hits: 0,
+            misses: 0,
+        }
+    }
+    
+    /// Get cached layout if available and fresh
+    pub fn get(
+        &mut self,
+        algorithm: LayoutAlgorithm,
+        nodes: &HashMap<String, CanvasNode>,
+        edges: &HashMap<String, CanvasEdge>,
+    ) -> Option<HashMap<String, (f64, f64)>> {
+        let key = LayoutCacheKey::new(algorithm, nodes, edges);
+        
+        if let Some(entry) = self.cache.get(&key) {
+            // Check TTL
+            if entry.created_at.elapsed().as_secs() < self.ttl_secs {
+                self.hits += 1;
+                return Some(entry.positions.clone());
+            } else {
+                // Expired - remove it
+                self.cache.remove(&key);
+            }
+        }
+        
+        self.misses += 1;
+        None
+    }
+    
+    /// Store computed layout in cache
+    pub fn insert(
+        &mut self,
+        algorithm: LayoutAlgorithm,
+        nodes: &HashMap<String, CanvasNode>,
+        edges: &HashMap<String, CanvasEdge>,
+        positions: HashMap<String, (f64, f64)>,
+    ) {
+        let key = LayoutCacheKey::new(algorithm, nodes, edges);
+        
+        // Evict oldest if at capacity
+        if self.cache.len() >= self.max_entries {
+            self.evict_oldest();
+        }
+        
+        self.cache.insert(key, CachedLayoutEntry {
+            positions,
+            created_at: std::time::Instant::now(),
+        });
+    }
+    
+    /// Clear the cache
+    pub fn clear(&mut self) {
+        self.cache.clear();
+    }
+    
+    /// Get cache statistics
+    pub fn stats(&self) -> LayoutCacheStats {
+        let total = self.hits + self.misses;
+        LayoutCacheStats {
+            entries: self.cache.len(),
+            hits: self.hits,
+            misses: self.misses,
+            hit_rate: if total > 0 { self.hits as f64 / total as f64 } else { 0.0 },
+        }
+    }
+    
+    /// Evict oldest entry
+    fn evict_oldest(&mut self) {
+        if let Some(oldest_key) = self.cache.iter()
+            .min_by_key(|(_, v)| v.created_at)
+            .map(|(k, _)| k.clone())
+        {
+            self.cache.remove(&oldest_key);
+        }
+    }
+}
+
+impl Default for LayoutCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Layout cache statistics
+#[derive(Debug, Clone)]
+pub struct LayoutCacheStats {
+    pub entries: usize,
+    pub hits: u64,
+    pub misses: u64,
+    pub hit_rate: f64,
+}

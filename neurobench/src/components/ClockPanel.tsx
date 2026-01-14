@@ -1,5 +1,6 @@
 import { createSignal, Show, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface ClockPanelProps {
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
@@ -130,7 +131,7 @@ export function ClockPanel(props: ClockPanelProps) {
   return (
     <div class="clock-panel">
       <div class="panel-header">
-        <h3>⚙️ Clock & Power</h3>
+        <h3>{Icons.settings()} Clock & Power</h3>
       </div>
       
       {/* Tabs */}
@@ -139,13 +140,13 @@ export function ClockPanel(props: ClockPanelProps) {
           class={`tab ${activeTab() === "clock" ? "active" : ""}`}
           onClick={() => setActiveTab("clock")}
         >
-          🕐 Clock Tree
+          {Icons.clock()} Clock Tree
         </button>
         <button 
           class={`tab ${activeTab() === "power" ? "active" : ""}`}
           onClick={() => setActiveTab("power")}
         >
-          ⚡ Low Power
+          {Icons.power()} Low Power
         </button>
       </div>
 
@@ -267,7 +268,7 @@ export function ClockPanel(props: ClockPanelProps) {
             <div class="freq-item">
               <span class="freq-label">USB/SDIO</span>
               <span class={`freq-value ${usbValid() ? "valid" : "invalid"}`}>
-                {pll48()} MHz {usbValid() ? "✓" : "✗"}
+                {pll48()} MHz {usbValid() ? Icons.check() : Icons.x()}
               </span>
             </div>
           </div>
@@ -338,7 +339,7 @@ export function ClockPanel(props: ClockPanelProps) {
         <div class="code-output">
           <div class="code-header">
             <span>Generated Code</span>
-            <button class="copy-btn" onClick={copyCode}>📋 Copy</button>
+            <button class="copy-btn" onClick={copyCode}>{Icons.clipboard()} Copy</button>
           </div>
           <pre><code>{generatedCode()}</code></pre>
         </div>

@@ -5,6 +5,22 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use uuid::Uuid;
 
+// Encryption
+use aes_gcm::{
+    aead::{Aead, KeyInit},
+    Aes256Gcm, Nonce,
+};
+use pbkdf2::pbkdf2;
+use sha2::Sha256;
+use hmac::Hmac;
+use rand::{rngs::OsRng, RngCore};
+use std::io::{Read, Write};
+
+const SALT_SIZE: usize = 16;
+const NONCE_SIZE: usize = 12;
+const ITERATIONS: u32 = 600_000;
+const DEFAULT_APP_KEY: &str = "NEUROBENCH_INTERNAL_SECURE_KEY_2024_V1"; // Obfuscation key
+
 /// Create a new project
 #[tauri::command]
 pub fn create_project(name: String, target_mcu: Option<String>) -> Result<FSMProject, String> {
@@ -32,7 +48,7 @@ pub fn create_project(name: String, target_mcu: Option<String>) -> Result<FSMPro
     Ok(project)
 }
 
-/// Save project to disk
+/// Save project to disk (Plain Text)
 #[tauri::command]
 pub fn save_project(project: FSMProject, path: Option<String>) -> Result<String, String> {
     let save_path = match path {
@@ -56,6 +72,58 @@ pub fn save_project(project: FSMProject, path: Option<String>) -> Result<String,
     Ok(save_path.to_string_lossy().to_string())
 }
 
+/// Secure Save Check (Helper)
+fn derive_key(password: &str, salt: &[u8]) -> [u8; 32] {
+    let mut key = [0u8; 32];
+    pbkdf2::<Hmac<Sha256>>(password.as_bytes(), salt, ITERATIONS, &mut key)
+        .expect("PBKDF2 failed");
+    key
+}
+
+/// Secure Save Project (Encrypted)
+#[tauri::command]
+pub fn secure_save_project(
+    project_json: String,
+    path: String,
+    password: Option<String>,
+) -> Result<String, String> {
+    // If password provided, use it. Otherwise use internal default key for transparent encryption.
+    let pwd = password.unwrap_or_else(|| DEFAULT_APP_KEY.to_string());
+    
+    // Encrypt
+    let mut salt = [0u8; SALT_SIZE];
+    OsRng.fill_bytes(&mut salt);
+    
+    let mut nonce_bytes = [0u8; NONCE_SIZE];
+    OsRng.fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
+    
+    let key = derive_key(&pwd, &salt);
+    let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
+    
+    let ciphertext = cipher
+        .encrypt(nonce, project_json.as_bytes())
+        .map_err(|e| format!("Encryption failed: {}", e))?;
+        
+    // Layout: [SALT] [NONCE] [CIPHERTEXT]
+    let mut file_content = Vec::with_capacity(SALT_SIZE + NONCE_SIZE + ciphertext.len());
+    file_content.extend_from_slice(&salt);
+    file_content.extend_from_slice(&nonce_bytes);
+    file_content.extend_from_slice(&ciphertext);
+    
+    // Create folder structure if needed
+    if let Some(parent) = std::path::Path::new(&path).parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create directory: {}", e))?;
+        }
+    }
+
+    std::fs::write(&path, file_content).map_err(|e| format!("Failed to write file: {}", e))?;
+    log::info!("Saved encrypted project to: {}", path);
+
+    Ok(path)
+}
+
 /// Load project from disk
 #[tauri::command]
 pub fn load_project(path: String) -> Result<FSMProject, String> {
@@ -67,6 +135,54 @@ pub fn load_project(path: String) -> Result<FSMProject, String> {
     
     log::info!("Loaded project: {} from {}", project.name, path);
     Ok(project)
+}
+
+/// Secure Load Project (Decrypted)
+#[tauri::command]
+pub fn secure_load_project(path: String, password: Option<String>) -> Result<String, String> {
+    let file_bytes = std::fs::read(&path).map_err(|e| format!("Failed to read file: {}", e))?;
+    
+    // Check if it looks encrypted (min size)
+    if file_bytes.len() < SALT_SIZE + NONCE_SIZE {
+        // Likely plaintext or empty
+        return String::from_utf8(file_bytes.clone())
+            .map_err(|_| "TRAP_PLAINTEXT: File is not valid UTF-8 and too short to be encrypted".to_string());
+    }
+
+    let salt = &file_bytes[0..SALT_SIZE];
+    let nonce_bytes = &file_bytes[SALT_SIZE..SALT_SIZE + NONCE_SIZE];
+    let ciphertext = &file_bytes[SALT_SIZE + NONCE_SIZE..];
+    let nonce = Nonce::from_slice(nonce_bytes);
+
+    // Helper closure to try decryption
+    let try_decrypt = |pwd: &str| -> Result<String, String> {
+        let key = derive_key(pwd, salt);
+        let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| e.to_string())?;
+        
+        let plaintext = cipher.decrypt(nonce, ciphertext)
+            .map_err(|_| "Decryption failed".to_string())?;
+            
+        String::from_utf8(plaintext).map_err(|e| e.to_string())
+    };
+
+    // Strategy:
+    // 1. If password provided, try it.
+    // 2. If no password provided, try DEFAULT_APP_KEY.
+    // 3. If DEFAULT_APP_KEY fails, return "TRAP_PASSWORD_REQUIRED".
+    
+    if let Some(pwd) = password {
+        // User provided specific password
+        return try_decrypt(&pwd).map_err(|_| "TRAP_WRONG_PASSWORD".to_string());
+    } else {
+        // Try default key first (Automatic Decryption)
+        match try_decrypt(DEFAULT_APP_KEY) {
+            Ok(json) => return Ok(json),
+            Err(_) => {
+                // Default key failed. This file implies it has a user password.
+                return Err("TRAP_PASSWORD_REQUIRED".to_string());
+            }
+        }
+    }
 }
 
 /// List saved projects in a directory
@@ -109,3 +225,4 @@ pub struct ProjectInfo {
     pub path: String,
     pub updated_at: String,
 }
+

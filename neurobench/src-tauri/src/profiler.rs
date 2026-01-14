@@ -2,7 +2,6 @@
 // Code performance analysis and optimization suggestions
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Code complexity metrics
 #[derive(Debug, Clone, Serialize, Deserialize)]

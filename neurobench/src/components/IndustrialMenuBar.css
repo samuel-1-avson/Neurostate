@@ -1,0 +1,413 @@
+/**
+ * IndustrialMenuBar Styles - Professional HMI-grade application menubar
+ */
+
+.industrial-menubar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  background: rgba(15, 15, 15, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 12px;
+  gap: 8px;
+  user-select: none;
+  -webkit-app-region: drag;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Three-section layout */
+.menubar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  -webkit-app-region: no-drag;
+}
+
+.menubar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.menubar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: flex-end;
+  -webkit-app-region: no-drag;
+}
+
+
+
+/* Divider */
+.menubar-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 4px;
+}
+
+/* Menu triggers */
+.menubar-menus {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.menu-trigger {
+  position: relative;
+  padding: 4px 10px;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 0;
+}
+
+.menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.menu-trigger.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 240px;
+  background: rgba(28, 28, 28, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  padding: 6px;
+  z-index: 1001;
+  animation: dropdownSlide 0.12s ease-out;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: all 0.1s;
+  border-radius: 4px;
+  margin: 1px 0;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.menu-item.checked {
+  color: #22d3ee;
+}
+
+.menu-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.menu-item.disabled:hover {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Toggle indicator for checked items */
+.item-toggle {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toggle-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.15s ease;
+}
+
+.toggle-indicator.active {
+  background: #22d3ee;
+  border-color: #22d3ee;
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.5);
+}
+
+.item-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+.item-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.item-label {
+  flex: 1;
+}
+
+.item-shortcut {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 2px 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  margin-left: auto;
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 6px 8px;
+}
+
+
+
+/* Quick action buttons */
+.menubar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.action-btn {
+  width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: var(--bg-input);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.action-btn span {
+  font-size: 14px;
+}
+
+.action-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.menubar-divider-small {
+  width: 1px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 4px;
+}
+
+/* Simulation button states */
+.action-btn.sim-btn.running {
+  background: linear-gradient(180deg, rgba(39, 174, 96, 0.2) 0%, rgba(30, 132, 73, 0.2) 100%);
+  border-color: #2ecc71;
+  color: #2ecc71;
+  box-shadow: 0 0 15px rgba(39, 174, 96, 0.2);
+  animation: simPulse 2s infinite;
+}
+
+.action-btn.sim-btn.paused {
+  background: linear-gradient(180deg, rgba(243, 156, 18, 0.2) 0%, rgba(214, 137, 16, 0.2) 100%);
+  border-color: #f1c40f;
+  color: #f1c40f;
+  box-shadow: 0 0 15px rgba(243, 156, 18, 0.2);
+}
+
+.action-btn.danger:hover:not(:disabled) {
+  border-color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+  box-shadow: 0 0 12px rgba(231, 76, 60, 0.2);
+}
+
+@keyframes simPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(39, 174, 96, 0.2); border-color: #2ecc71; }
+  50% { box-shadow: 0 0 15px rgba(39, 174, 96, 0.4); border-color: #27ae60; }
+}
+
+/* Status indicator */
+.menubar-status {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.status-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4a5568;
+  transition: all 0.3s;
+}
+
+.status-led.idle {
+  background: #4a5568;
+}
+
+.status-led.running {
+  background: #27ae60;
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);
+  animation: ledBlink 1.5s infinite;
+}
+
+.status-led.paused {
+  background: #e49b0f;
+  box-shadow: 0 0 10px rgba(228, 155, 15, 0.4);
+}
+
+.status-led.stopped {
+  background: #e74c3c;
+}
+
+@keyframes ledBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+/* MCU Selector */
+.menubar-mcu {
+  -webkit-app-region: no-drag;
+}
+
+.mcu-select {
+  padding: 5px 28px 5px 10px;
+  background: var(--bg-input, #0f0f0f);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 4px;
+  color: #e49b0f;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e49b0f' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.mcu-select:hover {
+  border-color: #e49b0f;
+  box-shadow: 0 0 0 1px rgba(228, 155, 15, 0.2);
+}
+
+.mcu-select:focus {
+  border-color: #e49b0f;
+  box-shadow: 0 0 0 2px rgba(228, 155, 15, 0.2);
+}
+
+
+/* Submenus */
+.menu-item {
+    position: relative; /* specific positioning context */
+}
+
+.menu-submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    min-width: 200px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.5);
+    padding: 4px 0;
+    z-index: 1002;
+    display: none;
+    border-radius: 0 4px 4px 4px;
+}
+
+.menu-item:hover > .menu-submenu {
+    display: block;
+}
+
+.submenu-arrow {
+    margin-left: auto;
+    font-size: 10px;
+    color: #888;
+    padding-left: 10px;
+}
+
+/* Ensure submenu items look like regular items */
+.menu-submenu .menu-item {
+    padding: 6px 16px;
+}

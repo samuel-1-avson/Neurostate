@@ -2,7 +2,6 @@
 // Low-level MCU register inspection and modification
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Register definition
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,5 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface Snippet {
   id: string;
@@ -63,7 +64,7 @@ export function SnippetPanel(props: SnippetPanelProps) {
   return (
     <div class="snippet-panel">
       <div class="panel-header">
-        <h3>📝 Code Snippets</h3>
+        <h3><span class="header-icon">{Icons.code()}</span> Code Snippets</h3>
       </div>
 
       {/* Search */}
@@ -75,7 +76,7 @@ export function SnippetPanel(props: SnippetPanelProps) {
           onInput={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && searchSnippets()}
         />
-        <button onClick={searchSnippets}>🔍</button>
+        <button onClick={searchSnippets}>{Icons.search()}</button>
       </div>
 
       {/* Snippet list */}
@@ -111,8 +112,8 @@ export function SnippetPanel(props: SnippetPanelProps) {
           <div class="preview-header">
             <span>{selectedSnippet()!.name}</span>
             <div class="preview-actions">
-              <button onClick={() => copyCode(selectedSnippet()!.code)}>📋 Copy</button>
-              <button onClick={() => props.onInsert?.(selectedSnippet()!.code)}>➕ Insert</button>
+              <button onClick={() => copyCode(selectedSnippet()!.code)}><span class="btn-icon">{Icons.docs()}</span> Copy</button>
+              <button onClick={() => props.onInsert?.(selectedSnippet()!.code)}><span class="btn-icon">{Icons.plus()}</span> Insert</button>
             </div>
           </div>
           <pre class="code-block"><code>{selectedSnippet()!.code}</code></pre>

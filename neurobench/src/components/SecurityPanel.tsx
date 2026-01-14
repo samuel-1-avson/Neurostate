@@ -1,5 +1,6 @@
 import { createSignal, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 import { ValidationPanel } from "./ValidationPanel";
 import { CodePreview } from "./CodePreview";
 
@@ -135,7 +136,7 @@ export function SecurityPanel(props: SecurityPanelProps) {
   return (
     <div class="security-panel">
       <div class="security-header">
-        <h3>🔒 Security Configuration</h3>
+        <h3><span class="header-icon">{Icons.lock()}</span> Security Configuration</h3>
       </div>
 
       {/* Security Type Tabs */}

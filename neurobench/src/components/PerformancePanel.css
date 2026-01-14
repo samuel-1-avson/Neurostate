@@ -1,0 +1,465 @@
+/* PerformancePanel Industrial Theme */
+
+.performance-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-base, #1e1e1e);
+  color: var(--text-primary, #e8e8e8);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 11px;
+  overflow: hidden;
+  border-right: 1px solid var(--border, #333);
+}
+
+/* === HEADER === */
+.performance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.performance-header h2 {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #888);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  color: var(--accent, #e49b0f);
+}
+
+.header-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.performance-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.interval-select, .refresh-btn {
+  background: var(--bg-input, #111);
+  border: 1px solid var(--border, #333);
+  color: var(--text-primary, #e8e8e8);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface, #2d2d2d);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.refresh-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+.refresh-btn:hover {
+  background: #3d3d3d;
+  color: #fff;
+  border-color: #555;
+}
+
+.interval-select:focus {
+  border-color: var(--accent, #e49b0f);
+  outline: none;
+}
+
+/* === TABS === */
+.performance-tabs {
+  display: flex;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  padding: 0 4px;
+  gap: 2px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary, #888);
+  padding: 8px 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tab-btn svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.7;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary, #e8e8e8);
+}
+
+.tab-btn.active {
+  color: var(--accent, #e49b0f);
+  border-bottom-color: var(--accent, #e49b0f);
+  background: rgba(228, 155, 15, 0.05);
+}
+
+/* === LOADING / EMPTY STATES === */
+.loading-state, .no-device {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--text-dim, #666);
+  font-style: italic;
+  font-size: 11px;
+}
+
+/* === METRICS GRID (Overview) === */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.metric-card {
+  background: var(--bg-surface, #252526);
+  border: 1px solid var(--border, #333);
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.metric-icon {
+  color: var(--text-dim, #666);
+  display: flex;
+}
+
+.metric-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.metric-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim, #888);
+  flex: 1;
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent, #e49b0f);
+  font-family: 'Fira Code', monospace;
+}
+
+.metric-chart {
+  height: 40px;
+  margin: 8px 0;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sparkline-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.metric-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-dim, #666);
+}
+
+.core-usage {
+  display: flex;
+  gap: 2px;
+  margin-top: 8px;
+  height: 24px;
+  align-items: flex-end;
+}
+
+.core-bar {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 1px;
+}
+
+.core-fill {
+  width: 100%;
+  border-radius: 1px 1px 0 0;
+  transition: height 0.3s ease;
+  min-height: 1px;
+}
+
+/* Specific Progress Bars */
+.memory-bar, .disk-bar, .emem-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.memory-fill, .disk-fill, .emem-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Disk List */
+.disk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.disk-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.disk-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-secondary, #aaa);
+}
+
+.disk-name {
+  font-weight: 600;
+}
+
+/* Network Speeds */
+.network-speeds {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.speed-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.speed-label {
+  font-size: 9px;
+  color: var(--text-dim, #666);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icon-inline svg {
+  width: 10px;
+  height: 10px;
+}
+
+.speed-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #e8e8e8);
+  font-family: 'Fira Code', monospace;
+}
+
+/* System Info Footer */
+.system-info {
+  padding: 6px 16px;
+  font-size: 10px;
+  color: var(--text-dim, #666);
+  border-top: 1px solid var(--border, #333);
+  background: var(--bg-base, #1e1e1e);
+  flex-shrink: 0;
+}
+
+/* === PROCESS LIST === */
+.process-list {
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.process-header, .process-row {
+  display: grid;
+  grid-template-columns: 2fr 60px 60px 80px 70px;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  align-items: center;
+}
+
+.process-header {
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim, #888);
+  font-size: 10px;
+  position: sticky;
+  top: 0;
+}
+
+.process-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.process-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.col-name { font-weight: 600; color: var(--text-primary, #e8e8e8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-pid { font-family: 'Fira Code', monospace; color: var(--text-dim, #666); }
+.col-cpu { color: var(--text-secondary, #aaa); }
+.col-cpu.high { color: var(--status-usage-high, #e74c3c); font-weight: 700; }
+.col-memory { color: var(--text-secondary, #aaa); font-family: 'Fira Code', monospace; }
+.col-status { text-transform: capitalize; color: var(--text-dim, #666); }
+
+/* === EMBEDDED SECTION === */
+.embedded-section {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.embedded-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-surface, #252526);
+  border: 1px solid var(--border, #333);
+  border-radius: 4px;
+}
+
+.device-icon {
+  color: var(--accent, #e49b0f);
+}
+.device-icon svg { width: 18px; height: 18px; }
+
+.device-name { font-weight: 700; font-size: 14px; color: var(--text-primary, #e8e8e8); }
+.device-port { font-family: 'Fira Code', monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+
+.device-status {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.device-status.connected { color: var(--status-success, #2ecc71); }
+.device-status.disconnected { color: var(--text-dim, #666); }
+
+.embedded-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.embedded-card {
+  background: var(--bg-surface, #252526);
+  border: 1px solid var(--border, #333);
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.embedded-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-dim, #aaa);
+}
+
+.embedded-value {
+  font-family: 'Fira Code', monospace;
+  font-weight: 700;
+  color: var(--text-primary, #e8e8e8);
+}
+
+.embedded-memory {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emem-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-dim, #888);
+}
+
+/* Circular Progress overrides */
+.circular-progress {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+}
+
+.circular-sublabel {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--text-dim, #666);
+}

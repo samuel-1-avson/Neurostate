@@ -1,6 +1,8 @@
 import { createSignal, For, Show, onMount, onCleanup } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { Icons } from "./AppIcons";
+import "./BuildPanel.css";
 
 // Types matching Rust backend
 interface ToolchainInfo {
@@ -492,16 +494,16 @@ export function BuildPanel(props: BuildPanelProps) {
       {/* Tab bar */}
       <div class="tab-bar">
         <button class={activeTab() === "build" ? "active" : ""} onClick={() => setActiveTab("build")}>
-          🔨 Build
+          <span class="tab-icon">{Icons.build()}</span> Build
         </button>
         <button class={activeTab() === "flash" ? "active" : ""} onClick={() => setActiveTab("flash")}>
-          ⚡ Flash
+          <span class="tab-icon">{Icons.flash()}</span> Flash
         </button>
         <button class={activeTab() === "rtt" ? "active" : ""} onClick={() => setActiveTab("rtt")}>
-          📡 RTT
+          <span class="tab-icon">{Icons.antenna()}</span> RTT
         </button>
         <button class={activeTab() === "diagnostics" ? "active" : ""} onClick={() => setActiveTab("diagnostics")}>
-          🔍 Diagnostics
+          <span class="tab-icon">{Icons.debug()}</span> Diagnostics
         </button>
       </div>
 
@@ -520,11 +522,11 @@ export function BuildPanel(props: BuildPanelProps) {
                   {(tc) => <option value={tc.id}>{tc.name} ({tc.version})</option>}
                 </For>
               </select>
-              <button class="icon-btn" onClick={discoverToolchains} title="Refresh">🔄</button>
+              <button class="icon-btn" onClick={discoverToolchains} title="Refresh"><span class="btn-icon">{Icons.refresh()}</span></button>
             </div>
             <Show when={toolchains().length === 0}>
               <div class="warning-box">
-                ⚠️ No toolchain found. Install ARM GCC or Rust embedded.
+                <span class="warning-icon">{Icons.warning()}</span> No toolchain found. Install ARM GCC or Rust embedded.
               </div>
             </Show>
           </div>
@@ -543,15 +545,15 @@ export function BuildPanel(props: BuildPanelProps) {
           <div class="button-row">
             <Show when={!isBuilding()}>
               <button class="primary-btn" onClick={build} disabled={toolchains().length === 0}>
-                🔨 Build
+                <span class="btn-icon">{Icons.build()}</span> Build
               </button>
             </Show>
             <Show when={isBuilding()}>
               <button class="danger-btn" onClick={cancelBuild}>
-                ⏹️ Cancel
+                <span class="btn-icon">{Icons.stop()}</span> Cancel
               </button>
             </Show>
-            <button class="secondary-btn" onClick={clean} disabled={isBuilding()}>🗑️ Clean</button>
+            <button class="secondary-btn" onClick={clean} disabled={isBuilding()}><span class="btn-icon">{Icons.trash()}</span> Clean</button>
           </div>
 
           {/* Progress bar during build */}
@@ -594,7 +596,7 @@ export function BuildPanel(props: BuildPanelProps) {
                         <span class="file">{err.file}:{err.line}</span>
                         <span class="msg">{err.message}</span>
                         <Show when={err.suggestion}>
-                          <span class="suggestion">💡 {err.suggestion}</span>
+                          <span class="suggestion"><span class="sug-icon">{Icons.lightbulb()}</span> {err.suggestion}</span>
                         </Show>
                       </div>
                     )}
@@ -607,7 +609,7 @@ export function BuildPanel(props: BuildPanelProps) {
           {/* Size report */}
           <Show when={sizeReport()}>
             <div class="size-report">
-              <div class="size-header">📊 Memory Usage</div>
+              <div class="size-header"><span class="header-icon">{Icons.chart()}</span> Memory Usage</div>
               <div class="size-bars">
                 <div class="size-bar">
                   <label>Flash ({formatBytes(sizeReport()!.flash_used)} / {formatBytes(sizeReport()!.flash_total)})</label>
@@ -650,11 +652,11 @@ export function BuildPanel(props: BuildPanelProps) {
                   {(probe, idx) => <option value={idx()}>{probe.name} ({probe.probe_type})</option>}
                 </For>
               </select>
-              <button class="icon-btn" onClick={listProbes} title="Refresh" disabled={probeConnected()}>🔄</button>
+              <button class="icon-btn" onClick={listProbes} title="Refresh" disabled={probeConnected()}><span class="btn-icon">{Icons.refresh()}</span></button>
             </div>
             <Show when={probes().length === 0}>
               <div class="warning-box">
-                ⚠️ No debug probe detected. Connect ST-Link, J-Link, or CMSIS-DAP.
+                <span class="warning-icon">{Icons.warning()}</span> No debug probe detected. Connect ST-Link, J-Link, or CMSIS-DAP.
               </div>
             </Show>
           </div>
@@ -663,12 +665,12 @@ export function BuildPanel(props: BuildPanelProps) {
           <div class="button-row">
             <Show when={!probeConnected()}>
               <button class="primary-btn" onClick={connectProbe} disabled={probes().length === 0}>
-                🔌 Connect
+                <span class="btn-icon">{Icons.plug()}</span> Connect
               </button>
             </Show>
             <Show when={probeConnected()}>
               <button class="danger-btn" onClick={disconnectProbe}>
-                ❌ Disconnect
+                <span class="btn-icon">{Icons.x()}</span> Disconnect
               </button>
             </Show>
           </div>
@@ -687,9 +689,9 @@ export function BuildPanel(props: BuildPanelProps) {
             </div>
 
             <div class="button-row reset-row">
-              <button class="secondary-btn" onClick={() => resetTarget("software")}>🔄 Reset</button>
-              <button class="secondary-btn" onClick={() => resetTarget("halt")}>⏸️ Halt</button>
-              <button class="secondary-btn" onClick={() => invoke("probe_resume")}>▶️ Resume</button>
+              <button class="secondary-btn" onClick={() => resetTarget("software")}><span class="btn-icon">{Icons.reset()}</span> Reset</button>
+              <button class="secondary-btn" onClick={() => resetTarget("halt")}><span class="btn-icon">{Icons.halt()}</span> Halt</button>
+              <button class="secondary-btn" onClick={() => invoke("probe_resume")}><span class="btn-icon">{Icons.resume()}</span> Resume</button>
             </div>
           </Show>
 
@@ -715,16 +717,16 @@ export function BuildPanel(props: BuildPanelProps) {
           <div class="rtt-controls">
             <Show when={!rttActive()}>
               <button class="primary-btn" onClick={startRtt} disabled={!probeConnected()}>
-                ▶️ Start RTT
+                <span class="btn-icon">{Icons.resume()}</span> Start RTT
               </button>
             </Show>
             <Show when={rttActive()}>
               <button class="danger-btn" onClick={stopRtt}>
-                ⏹️ Stop RTT
+                <span class="btn-icon">{Icons.stop()}</span> Stop RTT
               </button>
               <span class="live-indicator">● LIVE</span>
             </Show>
-            <button class="secondary-btn" onClick={() => setRttMessages([])}>🗑️ Clear</button>
+            <button class="secondary-btn" onClick={() => setRttMessages([])}><span class="btn-icon">{Icons.trash()}</span> Clear</button>
           </div>
 
           <div class="rtt-output">
@@ -762,7 +764,7 @@ export function BuildPanel(props: BuildPanelProps) {
                       <div class="diag-loc">{diag.file}:{diag.line}{diag.column ? `:${diag.column}` : ""}</div>
                       <div class="diag-msg">{diag.message}</div>
                       <Show when={diag.suggestion}>
-                        <div class="diag-sug">💡 {diag.suggestion}</div>
+                        <div class="diag-sug"><span class="sug-icon">{Icons.lightbulb()}</span> {diag.suggestion}</div>
                       </Show>
                     </div>
                   )}
@@ -797,6 +799,20 @@ export function BuildPanel(props: BuildPanelProps) {
           flex: 1;
           background: transparent;
           border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+        }
+
+        .tab-icon {
+          display: flex;
+        }
+
+        .tab-icon svg {
+          width: 14px;
+          height: 14px;
+        }
           color: #888;
           padding: 10px 8px;
           font-size: 11px;

@@ -1,9 +1,12 @@
 // Agent Panel Component
 // UI for interacting with AI agents
 
-import { createSignal, createEffect, For, Show, onMount } from "solid-js";
+import { createSignal, createEffect, For, Show, onMount, onCleanup } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import type { UnlistenFn } from "@tauri-apps/api/event";
 import useVoice from "../hooks/useVoice";
+import { Icons } from "./AppIcons";
 
 interface AgentInfo {
   id: string;
@@ -29,11 +32,35 @@ interface AgentResponse {
   suggestions: string[];
 }
 
+// Unified Assistant Response (new)
+interface AssistantMetadata {
+  iterations: number;
+  tokens_used: number;
+  time_ms: number;
+  agents_used: string[];
+  complexity: number;
+}
+
+interface AssistantResponse {
+  message: string;
+  tool_calls: ToolCall[];
+  tool_results: ToolResult[];
+  suggestions: string[];
+  is_complete: boolean;
+  progress: number;
+  agent_id: string;
+  metadata: AssistantMetadata;
+}
+
 interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: string;
   toolCalls?: ToolCall[];
+  toolResults?: ToolResult[];
+  metadata?: AssistantMetadata;
+  isError?: boolean;
+  isSuccess?: boolean;
 }
 
 interface ToolResult {
@@ -68,9 +95,24 @@ interface TaskPlan {
   status: string;
 }
 
+// Context information for awareness
+interface ContextInfo {
+  projectName: string;
+  mcuTarget: string;
+  language: string;
+  nodeCount: number;
+  edgeCount: number;
+  selectedNodeId: string | null;
+  selectedNodeLabel: string | null;
+}
+
 // Props for parent communication
 interface AgentPanelProps {
   onToolAction?: (action: any) => void;
+  // Context awareness props
+  context?: ContextInfo;
+  // Hide header when embedded in parent with its own header
+  hideHeader?: boolean;
 }
 
 export function AgentPanel(props: AgentPanelProps) {
@@ -84,6 +126,10 @@ export function AgentPanel(props: AgentPanelProps) {
   const [modelConfigs, setModelConfigs] = createSignal<AgentModelSummary[]>([]);
   const [currentPlan, setCurrentPlan] = createSignal<TaskPlan | null>(null);
   const [showModels, setShowModels] = createSignal(false);
+  const [useStreaming, setUseStreaming] = createSignal(true); // Enable streaming by default
+  const [streamingContent, setStreamingContent] = createSignal(""); // Accumulator for streaming text
+  const [isStreaming, setIsStreaming] = createSignal(false);
+  const [lastMetadata, setLastMetadata] = createSignal<AssistantMetadata | null>(null);
 
   let chatContainerRef: HTMLDivElement | undefined;
   let inputRef: HTMLTextAreaElement | undefined;
@@ -141,9 +187,10 @@ export function AgentPanel(props: AgentPanelProps) {
       setMessages([...messages(), {
         role: "system",
         content: result.success 
-          ? `✅ ${result.message}` 
-          : `❌ ${result.message}`,
+          ? `SUCCESS: ${result.message}` 
+          : `FAILED: ${result.message}`,
         timestamp: getTime(),
+        isSuccess: result.success
       }]);
       
       // Scroll to bottom
@@ -165,6 +212,9 @@ export function AgentPanel(props: AgentPanelProps) {
     return executedTools().has(`${tool.tool}-${JSON.stringify(tool.params)}`);
   }
 
+  // Store unlisten function for cleanup
+  let unlistenStream: UnlistenFn | null = null;
+
   onMount(async () => {
     try {
       const agentList = await invoke("list_agents") as AgentInfo[];
@@ -184,8 +234,78 @@ export function AgentPanel(props: AgentPanelProps) {
       } catch {
         console.log("Model config not available");
       }
+      
+      // Set up streaming event listener
+      unlistenStream = await listen<any>("agent-stream", (event) => {
+        const data = event.payload;
+        
+        switch (data.type) {
+          case "start":
+            setStreamingContent("");
+            setIsStreaming(true);
+            break;
+            
+          case "chunk":
+            setStreamingContent(prev => prev + data.content);
+            // Scroll to bottom on each chunk
+            if (chatContainerRef) {
+              chatContainerRef.scrollTop = chatContainerRef.scrollHeight;
+            }
+            break;
+            
+          case "complete":
+            setIsStreaming(false);
+            // Access the full response from the event
+            if (data.response) {
+              const response = data.response as AssistantResponse;
+              setMessages(prev => [...prev, {
+                role: "assistant",
+                content: response.message,
+                timestamp: getTime(),
+                toolCalls: response.tool_calls,
+                toolResults: response.tool_results,
+                metadata: response.metadata,
+              }]);
+              setLastMetadata(response.metadata);
+              if (response.suggestions.length > 0) {
+                setSuggestions(response.suggestions);
+              }
+              
+              // Auto-execute safe tools
+              const safeTools = ["add_node", "add_edge", "validate_fsm", "analyze_fsm", "get_pinout", "calc_clock", "gen_docs"];
+              const toolsToExecute = response.tool_calls.filter(t => safeTools.includes(t.tool));
+              
+              // Execute safe tools automatically
+              for (const tool of toolsToExecute) {
+                executeTool(tool);
+              }
+            }
+            setStreamingContent("");
+            setIsLoading(false);
+            break;
+            
+          case "error":
+            setIsStreaming(false);
+            setMessages(prev => [...prev, {
+              role: "assistant",
+              content: `Error: ${data.error}`,
+              timestamp: getTime(),
+              isError: true
+            }]);
+            setStreamingContent("");
+            setIsLoading(false);
+            break;
+        }
+      });
     } catch (e) {
       console.error("Failed to load agents:", e);
+    }
+  });
+
+  // Cleanup event listener on unmount
+  onCleanup(() => {
+    if (unlistenStream) {
+      unlistenStream();
     }
   });
 
@@ -197,7 +317,7 @@ export function AgentPanel(props: AgentPanelProps) {
         setActiveAgent(agent);
         setMessages([{
           role: "system",
-          content: `${agent.icon} ${agent.name} is ready to help! ${agent.description}`,
+          content: `${agent.name} is ready to help! ${agent.description}`,
           timestamp: getTime(),
         }]);
         setSuggestions([]);
@@ -229,35 +349,44 @@ export function AgentPanel(props: AgentPanelProps) {
     }, 10);
 
     try {
-      const response = await invoke("agent_chat", { message: msg }) as AgentResponse;
-      
-      setMessages([...messages(), {
-        role: "assistant",
-        content: response.message,
-        timestamp: getTime(),
-        toolCalls: response.tool_calls,
-      }]);
+      // Always use unified streaming mode
+      if (useStreaming()) {
+        // Use streaming - event listener will handle the response
+        await invoke("unified_chat_stream", { 
+          message: msg, 
+          userId: null
+        });
+        // Response is handled by the event listener, don't set isLoading false here
+        // The event listener will do it on complete/error
+        return;
+      } else {
+        // Non-streaming unified mode
+        const response = await invoke("unified_chat", { 
+          message: msg, 
+          userId: null
+        }) as AssistantResponse;
+        
+        setMessages([...messages(), {
+          role: "assistant",
+          content: response.message,
+          timestamp: getTime(),
+          toolCalls: response.tool_calls,
+          toolResults: response.tool_results,
+          metadata: response.metadata,
+        }]);
 
-      if (response.suggestions.length > 0) {
-        setSuggestions(response.suggestions);
-      }
-      
-      // Check for task planning delegation
-      const delegateTool = response.tool_calls.find(t => t.tool === "delegate");
-      if (delegateTool && delegateTool.params.intent === "Complex") {
-        // Create a task plan for complex requests
-        try {
-          const plan = await invoke("agent_create_plan", { request: msg }) as TaskPlan;
-          setCurrentPlan(plan);
-        } catch {
-          console.log("Task planning not available");
+        setLastMetadata(response.metadata);
+        
+        if (response.suggestions.length > 0) {
+          setSuggestions(response.suggestions);
         }
       }
     } catch (e) {
       setMessages([...messages(), {
         role: "assistant",
-        content: `❌ Error: ${e}`,
+        content: `Error: ${e}`,
         timestamp: getTime(),
+        isError: true
       }]);
     }
 
@@ -296,84 +425,74 @@ export function AgentPanel(props: AgentPanelProps) {
 
   return (
     <div class="agent-panel">
-      {/* Agent Selector */}
-      <div class="agent-selector">
-        <For each={agents()}>
-          {(agent) => (
-            <button
-              class={`agent-btn ${activeAgent()?.id === agent.id ? "active" : ""}`}
-              onClick={() => selectAgent(agent.id)}
-              title={agent.description}
+      {/* Unified AI Assistant Header - hidden when parent has header */}
+      <Show when={!props.hideHeader}>
+        <div class="unified-header">
+          <div class="unified-header-main">
+            <span class="unified-header-icon">{Icons.brain()}</span>
+            <div class="unified-header-info">
+              <div class="unified-header-name">AI Assistant</div>
+              <div class="unified-header-context">
+                <Show when={props.context?.mcuTarget}>
+                  <span class="context-badge mcu">{Icons.chip()} {props.context?.mcuTarget}</span>
+                </Show>
+                <Show when={props.context?.projectName}>
+                  <span class="context-badge project">{Icons.folder()} {props.context?.projectName}</span>
+                </Show>
+                <Show when={props.context?.selectedNodeLabel}>
+                  <span class="context-badge node">{Icons.activity()} {props.context?.selectedNodeLabel}</span>
+                </Show>
+                <Show when={!props.context}>
+                  <span class="context-badge dim">No context</span>
+                </Show>
+              </div>
+            </div>
+          </div>
+          <div class="unified-header-actions">
+            <Show when={props.context}>
+              <span class="fsm-stats" title="FSM Statistics">
+                {props.context?.nodeCount || 0} states • {props.context?.edgeCount || 0} transitions
+              </span>
+            </Show>
+            <button 
+              class={`agent-header-btn ${showModels() ? 'active' : ''}`} 
+              onClick={() => setShowModels(!showModels())}
+              title="View AI model configuration"
             >
-              <span class="agent-icon">{agent.icon}</span>
-              <span class="agent-name">{agent.name}</span>
+              <span class="settings-icon">{Icons.gear()}</span>
             </button>
-          )}
-        </For>
-      </div>
-
-      {/* Active Agent Header */}
-      <Show when={activeAgent()}>
-        <div class="agent-header">
-          <span class="agent-header-icon">{activeAgent()!.icon}</span>
-          <div class="agent-header-info">
-            <div class="agent-header-name">{activeAgent()!.name}</div>
-            <div class="agent-header-caps">
-              <Show when={activeAgent()!.capabilities.can_edit_fsm}>
-                <span class="cap-badge">FSM</span>
-              </Show>
-              <Show when={activeAgent()!.capabilities.can_generate_code}>
-                <span class="cap-badge">Code</span>
-              </Show>
-              <Show when={activeAgent()!.capabilities.can_execute_terminal}>
-                <span class="cap-badge">Terminal</span>
-              </Show>
-              {/* Show model info for current agent */}
-              <Show when={modelConfigs().find(m => m.agent_id === activeAgent()!.id)}>
-                <span class="cap-badge model-badge">
-                  🤖 {modelConfigs().find(m => m.agent_id === activeAgent()!.id)?.primary}
-                </span>
-              </Show>
-            </div>
           </div>
-          <button 
-            class={`agent-header-btn ${showModels() ? 'active' : ''}`} 
-            onClick={() => setShowModels(!showModels())}
-            title="View AI model configuration"
-          >
-            ⚙️
-          </button>
         </div>
-        
-        {/* Model Configuration Panel */}
-        <Show when={showModels()}>
-          <div class="model-config-panel">
-            <div class="model-config-title">🤖 AI Model Configuration</div>
-            <div class="model-config-grid">
-              <For each={modelConfigs()}>
-                {(config) => (
-                  <div class={`model-config-item ${config.agent_id === activeAgent()?.id ? 'active' : ''}`}>
-                    <div class="model-agent-name">{config.agent_name}</div>
-                    <div class="model-primary">
-                      <span class="model-label">Primary:</span> {config.primary}
-                    </div>
-                    <Show when={config.fallback}>
-                      <div class="model-fallback">
-                        <span class="model-label">Fallback:</span> {config.fallback}
-                      </div>
-                    </Show>
+      </Show>
+
+      {/* Model Configuration Panel */}
+      <Show when={showModels()}>
+        <div class="model-config-panel">
+          <div class="model-config-title"><span class="title-icon">{Icons.brain()}</span> AI Model Configuration</div>
+          <div class="model-config-grid">
+            <For each={modelConfigs()}>
+              {(config) => (
+                <div class="model-config-item">
+                  <div class="model-agent-name">{config.agent_name}</div>
+                  <div class="model-primary">
+                    <span class="model-label">Primary:</span> {config.primary}
                   </div>
-                )}
-              </For>
-            </div>
+                  <Show when={config.fallback}>
+                    <div class="model-fallback">
+                      <span class="model-label">Fallback:</span> {config.fallback}
+                    </div>
+                  </Show>
+                </div>
+              )}
+            </For>
           </div>
-        </Show>
+        </div>
       </Show>
 
       {/* Task Plan Display */}
       <Show when={currentPlan()}>
         <div class="task-plan-panel">
-          <div class="task-plan-title">📋 Task Plan</div>
+          <div class="task-plan-title"><span class="title-icon">{Icons.tasks()}</span> Task Plan</div>
           <div class="task-plan-request">{currentPlan()!.original_request}</div>
           <div class="task-plan-steps">
             <For each={currentPlan()!.tasks}>
@@ -401,7 +520,7 @@ export function AgentPanel(props: AgentPanelProps) {
                     <For each={msg.toolCalls}>
                       {(tool) => (
                         <div class="tool-call">
-                          <span class="tool-icon">🔧</span>
+                          <span class="tool-icon">{Icons.build()}</span>
                           <span class="tool-name">{tool.tool}</span>
                           <button 
                             class={`tool-exec-btn ${isToolExecuted(tool) ? "executed" : ""}`}
@@ -415,20 +534,66 @@ export function AgentPanel(props: AgentPanelProps) {
                     </For>
                   </div>
                 </Show>
+                {/* Tool Results */}
+                <Show when={msg.toolResults && msg.toolResults.length > 0}>
+                  <div class="tool-results">
+                    <For each={msg.toolResults}>
+                      {(result) => (
+                        <div class={`tool-result ${result.success ? 'success' : 'error'}`}>
+                          <span class="result-icon">{result.success ? Icons.checkCircle() : Icons.errorCircle()}</span>
+                          <span class="result-msg">{result.message}</span>
+                        </div>
+                      )}
+                    </For>
+                  </div>
+                </Show>
+                {/* Metadata Badge */}
+                <Show when={msg.metadata}>
+                  <div class="metadata-badge">
+                    <span class="meta-item" title="Complexity Score">
+                      {Icons.activity()} {msg.metadata!.complexity}/10
+                    </span>
+                    <span class="meta-item" title="Response Time">
+                      {Icons.clock()} {msg.metadata!.time_ms}ms
+                    </span>
+                    <Show when={msg.metadata!.agents_used.length > 0}>
+                      <span class="meta-item" title="Agents Used">
+                        {Icons.layers()} {msg.metadata!.agents_used.join(', ')}
+                      </span>
+                    </Show>
+                  </div>
+                </Show>
               </div>
               <span class="chat-time">{msg.timestamp}</span>
             </div>
           )}
         </For>
         
+        {/* Loading / Streaming indicator */}
         <Show when={isLoading()}>
-          <div class="chat-message assistant">
-            <div class="chat-bubble loading">
-              <span class="loading-dot"></span>
-              <span class="loading-dot"></span>
-              <span class="loading-dot"></span>
+          <Show when={isStreaming() && streamingContent()}>
+            {/* Show streaming content in real-time */}
+            <div class="chat-message assistant">
+              <div class="chat-bubble streaming">
+                <div class="chat-content">{streamingContent()}</div>
+                <div class="streaming-indicator">
+                  <span class="streaming-dot"></span>
+                  <span class="streaming-dot"></span>
+                  <span class="streaming-dot"></span>
+                </div>
+              </div>
             </div>
-          </div>
+          </Show>
+          <Show when={!isStreaming() || !streamingContent()}>
+            {/* Regular loading dots */}
+            <div class="chat-message assistant">
+              <div class="chat-bubble loading">
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+              </div>
+            </div>
+          </Show>
         </Show>
       </div>
 
@@ -438,7 +603,7 @@ export function AgentPanel(props: AgentPanelProps) {
           <For each={suggestions()}>
             {(suggestion) => (
               <button class="suggestion-btn" onClick={() => useSuggestion(suggestion)}>
-                💡 {suggestion}
+                                <span class="sug-icon">{Icons.lightbulb()}</span> {suggestion}
               </button>
             )}
           </For>
@@ -466,11 +631,11 @@ export function AgentPanel(props: AgentPanelProps) {
               disabled={!activeAgent() || isLoading()}
             >
               {voice.isListening() ? (
-                <span class="voice-wave">
-                  <span></span><span></span><span></span>
+                <span class="voice-wave-active">
+                   {Icons.waveform()}
                 </span>
               ) : (
-                "🎤"
+                Icons.mic()
               )}
             </button>
           </Show>
@@ -480,7 +645,7 @@ export function AgentPanel(props: AgentPanelProps) {
             onClick={() => setSpeakResponses(!speakResponses())}
             title={speakResponses() ? "Disable voice responses" : "Enable voice responses"}
           >
-            {speakResponses() ? "🔊" : "🔇"}
+            {speakResponses() ? Icons.volume() : Icons.volumeMute()}
           </button>
           {/* Send Button */}
           <button 

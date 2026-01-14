@@ -2,10 +2,14 @@
 //!
 //! Provides persistent context across sessions for agents.
 //! Three-tier memory: short-term, working, and long-term.
+//!
+//! Enhanced with semantic search via vector embeddings.
 
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
 use chrono::{DateTime, Utc};
+
+// Note: Vector store integration is handled by SemanticMemoryManager in memory_storage.rs
 
 /// Memory entry with timestamp and metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -185,17 +189,31 @@ impl WorkingMemory {
 }
 
 /// Long-term memory - persistent knowledge base
+/// Enhanced with optional semantic search support
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct LongTermMemory {
     /// All stored memories
     entries: HashMap<String, MemoryEntry>,
     /// Index by category
     category_index: HashMap<MemoryCategory, Vec<String>>,
+    /// Whether semantic search is enabled (vector store is external)
+    #[serde(skip)]
+    semantic_enabled: bool,
 }
 
 impl LongTermMemory {
     pub fn new() -> Self {
         Self::default()
+    }
+    
+    /// Enable semantic search capability
+    pub fn enable_semantic(&mut self) {
+        self.semantic_enabled = true;
+    }
+    
+    /// Check if semantic search is enabled
+    pub fn is_semantic_enabled(&self) -> bool {
+        self.semantic_enabled
     }
     
     pub fn store(&mut self, entry: MemoryEntry) {
@@ -273,9 +291,25 @@ impl LongTermMemory {
             self.forget(&id);
         }
     }
+    
+    /// Get all entries (for syncing to vector store)
+    pub fn all_entries(&self) -> Vec<&MemoryEntry> {
+        self.entries.values().collect()
+    }
+    
+    /// Get entry count
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+    
+    /// Check if empty
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
 }
 
 /// Complete memory system for an agent
+/// Supports both keyword and semantic search
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentMemory {
     pub agent_id: String,
@@ -292,6 +326,13 @@ impl AgentMemory {
             working: WorkingMemory::new(),
             long_term: LongTermMemory::new(),
         }
+    }
+    
+    /// Create with semantic search enabled
+    pub fn with_semantic(agent_id: &str) -> Self {
+        let mut memory = Self::new(agent_id);
+        memory.long_term.enable_semantic();
+        memory
     }
     
     /// Record a user message

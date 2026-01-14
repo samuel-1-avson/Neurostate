@@ -27,11 +27,15 @@ impl Default for McuArch {
 }
 
 /// Driver output language
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum DriverLanguage {
     C,
     Cpp,
     Rust,
+    MicroPython,
+    Zig,
+    Ada,
+    Assembly,
 }
 
 impl Default for DriverLanguage {
@@ -39,6 +43,66 @@ impl Default for DriverLanguage {
         DriverLanguage::C
     }
 }
+
+// ============================================================================
+// Validation Framework
+// ============================================================================
+
+/// Driver generation errors
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum DriverError {
+    /// Invalid configuration parameter
+    InvalidConfig(String),
+    /// Peripheral not available on MCU
+    PeripheralNotAvailable { peripheral: String, mcu: String },
+    /// Pin not available or already in use
+    PinConflict { pin: String, reason: String },
+    /// Clock configuration error
+    ClockError(String),
+    /// DMA channel conflict
+    DmaConflict { channel: u8, existing: String },
+    /// Unsupported feature
+    UnsupportedFeature { feature: String, mcu: String },
+    /// Invalid baud rate
+    InvalidBaudRate { requested: u32, min: u32, max: u32 },
+    /// Template generation error
+    TemplateError(String),
+}
+
+impl std::fmt::Display for DriverError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DriverError::InvalidConfig(msg) => write!(f, "Invalid config: {}", msg),
+            DriverError::PeripheralNotAvailable { peripheral, mcu } => 
+                write!(f, "Peripheral {} not available on {}", peripheral, mcu),
+            DriverError::PinConflict { pin, reason } => 
+                write!(f, "Pin {} conflict: {}", pin, reason),
+            DriverError::ClockError(msg) => write!(f, "Clock error: {}", msg),
+            DriverError::DmaConflict { channel, existing } => 
+                write!(f, "DMA channel {} already used by {}", channel, existing),
+            DriverError::UnsupportedFeature { feature, mcu } => 
+                write!(f, "Feature {} not supported on {}", feature, mcu),
+            DriverError::InvalidBaudRate { requested, min, max } => 
+                write!(f, "Baud rate {} out of range [{}, {}]", requested, min, max),
+            DriverError::TemplateError(msg) => write!(f, "Template error: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for DriverError {}
+
+/// Trait for validating driver configurations
+pub trait ConfigValidator {
+    /// Validate configuration against MCU capabilities
+    fn validate(&self, arch: &McuArch) -> Result<(), DriverError>;
+    
+    /// Get list of required pins
+    fn required_pins(&self) -> Vec<String> { Vec::new() }
+    
+    /// Get required clock frequency
+    fn required_clock_hz(&self) -> Option<u32> { None }
+}
+
 
 /// Peripheral type
 #[derive(Debug, Clone, Serialize, Deserialize)]

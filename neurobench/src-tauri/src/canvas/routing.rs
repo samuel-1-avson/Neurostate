@@ -3,7 +3,7 @@
 //! Provides orthogonal routing with obstacle avoidance, waypoints, and edge bundling.
 
 use serde::{Serialize, Deserialize};
-use std::collections::{HashMap, HashSet, BinaryHeap};
+use std::collections::{HashSet, BinaryHeap};
 use std::cmp::Ordering;
 
 /// Edge routing style

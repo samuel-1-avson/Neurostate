@@ -1,5 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
+import "./SerialPanel.css";
 
 interface SerialPanelProps {
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
@@ -78,51 +80,55 @@ export function SerialPanel(props: SerialPanelProps) {
   return (
     <div class="serial-panel">
       <div class="panel-header">
-        <h3>📡 Serial Monitor</h3>
-        <button class="scan-btn" onClick={scanPorts}>🔄 Scan</button>
+        <h3><span class="header-icon">{Icons.serial()}</span> Serial Monitor</h3>
+        <button class="scan-btn" onClick={scanPorts}>{Icons.refresh()} Scan</button>
       </div>
 
-      {/* Port selection */}
-      <div class="config-row">
-        <label>Port</label>
-        <select value={selectedPort()} onChange={(e) => setSelectedPort(e.target.value)}>
-          <For each={ports()}>
-            {(port) => (
-              <option value={port.name}>{port.name} - {port.description}</option>
-            )}
-          </For>
-        </select>
+      <div class="config-section">
+        <div class="config-col">
+          <div class="config-row">
+            <label>Port</label>
+            <select value={selectedPort()} onChange={(e) => setSelectedPort(e.target.value)}>
+              <For each={ports()}>
+                {(port) => (
+                  <option value={port.name}>{port.name} - {port.description}</option>
+                )}
+              </For>
+            </select>
+          </div>
+        </div>
+        
+        <div class="config-col" style="max-width: 120px;">
+          <div class="config-row">
+            <label>Baud Rate</label>
+            <select value={baudRate()} onChange={(e) => setBaudRate(parseInt(e.target.value))}>
+              <For each={baudRates()}>
+                {(rate) => <option value={rate}>{rate}</option>}
+              </For>
+            </select>
+          </div>
+        </div>
+
+        <div class="connect-wrapper">
+          <button 
+            class={`connect-btn ${isConnected() ? "connected" : ""}`}
+            onClick={toggleConnection}
+          >
+            {isConnected() ? <>{Icons.plug()} Disconnect</> : <>{Icons.sync()} Connect</>}
+          </button>
+        </div>
       </div>
 
-      {/* Baud rate */}
-      <div class="config-row">
-        <label>Baud Rate</label>
-        <select value={baudRate()} onChange={(e) => setBaudRate(parseInt(e.target.value))}>
-          <For each={baudRates()}>
-            {(rate) => <option value={rate}>{rate}</option>}
-          </For>
-        </select>
-      </div>
-
-      {/* Connect button */}
-      <button 
-        class={`connect-btn ${isConnected() ? "connected" : ""}`}
-        onClick={toggleConnection}
-      >
-        {isConnected() ? "🔌 Disconnect" : "🔗 Connect"}
-      </button>
-
-      {/* Output display */}
       <div class="output-container">
         <div class="output-header">
-          <span>Output</span>
+          <span>Output ({displayFormat()})</span>
           <div class="output-controls">
             <select value={displayFormat()} onChange={(e) => setDisplayFormat(e.target.value)}>
               <option value="ascii">ASCII</option>
               <option value="hex">HEX</option>
               <option value="decimal">DEC</option>
             </select>
-            <button onClick={clearOutput}>Clear</button>
+            <button onClick={clearOutput}>Clear Output</button>
           </div>
         </div>
         <div class="output-area">
@@ -135,11 +141,10 @@ export function SerialPanel(props: SerialPanelProps) {
         </div>
       </div>
 
-      {/* Input */}
       <div class="input-container">
         <input 
           type="text" 
-          placeholder="Enter data to send (supports \n, \r, \xNN)"
+          placeholder="Enter data to send..."
           value={inputText()}
           onInput={(e) => setInputText(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendData()}
@@ -148,137 +153,7 @@ export function SerialPanel(props: SerialPanelProps) {
         <button onClick={sendData} disabled={!isConnected()}>Send</button>
       </div>
 
-      <style>{`
-        .serial-panel {
-          background: var(--bg-secondary, #1a1a2e);
-          border: 1px solid var(--border, #333);
-          border-radius: 8px;
-          padding: 12px;
-        }
 
-        .panel-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .panel-header h3 { margin: 0; font-size: 14px; }
-
-        .scan-btn {
-          background: rgba(255,255,255,0.1);
-          border: none;
-          color: #ccc;
-          padding: 4px 10px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 11px;
-        }
-
-        .config-row { margin-bottom: 10px; }
-        .config-row label {
-          display: block;
-          color: #888;
-          font-size: 11px;
-          margin-bottom: 4px;
-        }
-
-        .config-row select {
-          width: 100%;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid #333;
-          color: #fff;
-          padding: 8px 12px;
-          border-radius: 6px;
-        }
-
-        .connect-btn {
-          width: 100%;
-          background: linear-gradient(135deg, #22c55e, #16a34a);
-          color: white;
-          border: none;
-          padding: 10px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-          margin-bottom: 12px;
-        }
-
-        .connect-btn.connected {
-          background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        .output-container {
-          background: #11111b;
-          border-radius: 6px;
-          margin-bottom: 10px;
-          overflow: hidden;
-        }
-
-        .output-header {
-          display: flex;
-          justify-content: space-between;
-          padding: 6px 10px;
-          background: rgba(255,255,255,0.05);
-          font-size: 11px;
-        }
-
-        .output-controls {
-          display: flex;
-          gap: 6px;
-        }
-
-        .output-controls select,
-        .output-controls button {
-          background: rgba(255,255,255,0.1);
-          border: none;
-          color: #ccc;
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 10px;
-          cursor: pointer;
-        }
-
-        .output-area {
-          height: 150px;
-          overflow-y: auto;
-          padding: 8px;
-          font-family: 'Fira Code', monospace;
-          font-size: 11px;
-        }
-
-        .output-line { color: #4ade80; margin-bottom: 2px; }
-        .output-placeholder { color: #555; font-style: italic; }
-
-        .input-container {
-          display: flex;
-          gap: 8px;
-        }
-
-        .input-container input {
-          flex: 1;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid #333;
-          color: #fff;
-          padding: 8px 12px;
-          border-radius: 6px;
-          font-size: 12px;
-        }
-
-        .input-container button {
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .input-container button:disabled,
-        .input-container input:disabled {
-          opacity: 0.5;
-        }
-      `}</style>
     </div>
   );
 }

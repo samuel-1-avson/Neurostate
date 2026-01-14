@@ -1,5 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface Template {
   id: string;
@@ -60,9 +61,11 @@ export function TemplatePanel(props: TemplatePanelProps) {
 
   return (
     <div class="template-panel">
-      <div class="panel-header">
-        <h3>📋 Project Templates</h3>
-        <button class="refresh-btn" onClick={loadTemplates}>🔄</button>
+      <div class="panel-header" style={{ "justify-content": "space-between" }}>
+        <div style={{ display: "flex", gap: "6px", "align-items": "center" }}>
+          {Icons.docs()} <span>Project Templates</span>
+        </div>
+        <button class="refresh-btn" onClick={loadTemplates}>{Icons.refresh()}</button>
       </div>
 
       {/* Category filter */}
@@ -118,7 +121,7 @@ export function TemplatePanel(props: TemplatePanelProps) {
             <For each={selectedTemplate()!.files}>
               {(file) => (
                 <div class="file-item">
-                  <span>📄 {file.path}</span>
+                  <span><span class="file-icon">{Icons.file()}</span> {file.path}</span>
                 </div>
               )}
             </For>
@@ -140,15 +143,8 @@ export function TemplatePanel(props: TemplatePanelProps) {
           padding: 12px;
         }
 
-        .panel-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .panel-header h3 { margin: 0; font-size: 14px; }
-        .refresh-btn { background: transparent; border: none; cursor: pointer; }
+        .refresh-btn { background: transparent; border: none; cursor: pointer; color: var(--text-secondary); }
+        .refresh-btn:hover { color: var(--text-primary); }
 
         .category-filter {
           display: flex;

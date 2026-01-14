@@ -1,0 +1,305 @@
+/**
+ * CommandBar Styles - Industrial HMI Design
+ */
+
+.command-bar {
+  height: var(--header-height, 48px);
+  background: var(--bg-elevated, #22262d);
+  border-bottom: 1px solid var(--border-subtle, #2a2f38);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3, 12px);
+  gap: var(--space-2, 8px);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.command-bar-left,
+.command-bar-center,
+.command-bar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  -webkit-app-region: no-drag;
+}
+
+.command-bar-left {
+  flex: 0 0 auto;
+}
+
+.command-bar-center {
+  flex: 1;
+  justify-content: center;
+}
+
+.command-bar-right {
+  flex: 0 0 auto;
+}
+
+/* Logo */
+.command-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  color: var(--accent-primary, #6366f1);
+}
+
+.command-logo svg {
+  width: 24px;
+  height: 24px;
+}
+
+.logo-text {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm, 13px);
+  font-weight: var(--font-bold, 700);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.version-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  background: var(--bg-overlay, #323843);
+  border-radius: var(--radius-sm, 3px);
+  color: var(--text-tertiary, #64748b);
+}
+
+/* Dividers */
+.divider-vertical {
+  width: 1px;
+  height: 24px;
+  background: var(--border-subtle, #2a2f38);
+  margin: 0 var(--space-2, 8px);
+}
+
+/* Dropdown */
+.command-dropdown {
+  position: relative;
+}
+
+.command-dropdown-btn,
+.target-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-1, 4px) var(--space-3, 12px);
+  background: var(--bg-surface, #2a2f38);
+  border: 1px solid var(--border-default, #3a4150);
+  border-radius: var(--radius-md, 6px);
+  color: var(--text-primary, #f1f5f9);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm, 13px);
+  cursor: pointer;
+  transition: all var(--transition-base, 150ms);
+}
+
+.command-dropdown-btn:hover,
+.target-selector:hover {
+  background: var(--bg-hover, #3a4150);
+  border-color: var(--border-strong, #4a5568);
+}
+
+.dropdown-icon {
+  font-size: 14px;
+}
+
+.dropdown-text {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  color: var(--text-tertiary, #64748b);
+  transition: transform var(--transition-base, 150ms);
+}
+
+.command-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--space-1, 4px);
+  min-width: 180px;
+  background: var(--bg-base, #1a1d21);
+  border: 1px solid var(--border-default, #3a4150);
+  border-radius: var(--radius-md, 6px);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-dropdown, 100);
+  padding: var(--space-1, 4px);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  width: 100%;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 3px);
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm, 13px);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast, 100ms);
+}
+
+.dropdown-item:hover {
+  background: var(--bg-hover, #3a4150);
+  color: var(--text-primary, #f1f5f9);
+}
+
+/* Action buttons */
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  padding: var(--space-1, 4px);
+  background: var(--bg-surface, #2a2f38);
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--border-subtle, #2a2f38);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1, 4px);
+  padding: var(--space-1, 4px) var(--space-3, 12px);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 3px);
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs, 11px);
+  font-weight: var(--font-medium, 500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all var(--transition-base, 150ms);
+}
+
+.action-btn:hover:not(:disabled) {
+  background: var(--bg-hover, #3a4150);
+  color: var(--text-primary, #f1f5f9);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Action button variants */
+.action-btn.action-success {
+  color: var(--status-ok, #27ae60);
+}
+
+.action-btn.action-success:hover:not(:disabled) {
+  background: var(--status-ok-bg);
+}
+
+.action-btn.action-play.active {
+  background: var(--status-ok-bg);
+  color: var(--status-ok, #27ae60);
+}
+
+/* Icon button */
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: all var(--transition-base, 150ms);
+}
+
+.icon-btn:hover {
+  background: var(--bg-hover, #3a4150);
+  color: var(--text-primary, #f1f5f9);
+}
+
+/* Status cluster */
+.status-cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4, 16px);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.status-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all var(--transition-base, 150ms);
+}
+
+.status-led-ok {
+  background: var(--status-ok, #27ae60);
+  box-shadow: 0 0 8px var(--status-ok-glow);
+}
+
+.status-led-warning {
+  background: var(--status-warning, #f39c12);
+  box-shadow: 0 0 8px var(--status-warning-glow);
+}
+
+.status-led-critical {
+  background: var(--status-critical, #e74c3c);
+  box-shadow: 0 0 8px var(--status-critical-glow);
+  animation: led-pulse 1s ease-in-out infinite;
+}
+
+.status-led-inactive {
+  background: var(--status-inactive, #7f8c8d);
+}
+
+.status-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: var(--font-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary, #64748b);
+}
+
+@keyframes led-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Target selector specific styles */
+.target-selector svg {
+  width: 16px;
+  height: 16px;
+  color: var(--accent-primary, #6366f1);
+}
+
+.target-selector span {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 11px);
+}

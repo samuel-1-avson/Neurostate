@@ -102,10 +102,11 @@ impl SpatialIndex {
 
     /// Query for node at point - O(log n)
     pub fn query_point(&self, x: f64, y: f64) -> Option<String> {
-        let point = [x, y];
+        // Create a tiny envelope around the point for intersection query
+        let point_envelope = AABB::from_corners([x, y], [x, y]);
         
         // Find all nodes whose envelope contains the point
-        for envelope in self.tree.locate_all_at_point(&point) {
+        for envelope in self.tree.locate_in_envelope_intersecting(&point_envelope) {
             // Double-check the point is actually inside the node bounds
             if x >= envelope.x && x <= envelope.x + envelope.width &&
                y >= envelope.y && y <= envelope.y + envelope.height {

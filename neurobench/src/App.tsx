@@ -1,5 +1,8 @@
 import { createSignal, For, Show, onMount, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import "./styles/IndustrialTheme.css"; // Industrial design system
+import "./styles/PanelComponents.css"; // Panel refinements
+import "./styles/Animations.css"; // Animations and polish
 import "./App.css";
 import { PinDiagram } from "./components/PinDiagram";
 import "./components/PinDiagram.css";
@@ -26,7 +29,7 @@ import "./components/DSPPanel.css";
 import { SecurityPanel } from "./components/SecurityPanel";
 import "./components/SecurityPanel.css";
 import { SettingsPanel } from "./components/SettingsPanel";
-import UnifiedCanvas from "./components/UnifiedCanvas";
+import KonvaCanvas from "./components/KonvaCanvas";
 
 // NEW: Import additional panels that exist but were not accessible
 import { SimulatorPanel } from "./components/SimulatorPanel";
@@ -45,274 +48,33 @@ import "./components/HistoryPanel.css";
 import { SchedulerPanel } from "./components/SchedulerPanel";
 import "./components/SchedulerPanel.css";
 
-// --- Icons (inline SVG for simplicity) ---
-const Icons = {
-  brain: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2a4 4 0 0 0-4 4c0 1.1.9 2 2 2h.5" />
-      <path d="M8 6a4 4 0 0 0-4 4c0 2.2 1.8 4 4 4h1" />
-      <path d="M12 22a4 4 0 0 0 4-4c0-1.1-.9-2-2-2h-.5" />
-      <path d="M16 18a4 4 0 0 0 4-4c0-2.2-1.8-4-4-4h-1" />
-      <path d="M12 2a4 4 0 0 1 4 4c0 1.1-.9 2-2 2h-.5" />
-      <path d="M16 6a4 4 0 0 1 4 4c0 2.2-1.8 4-4 4h-1" />
-      <path d="M12 22a4 4 0 0 1-4-4c0-1.1.9-2 2-2h.5" />
-      <path d="M8 18a4 4 0 0 1-4-4c0-2.2 1.8-4 4-4h1" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-  newFile: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14,2 14,8 20,8" />
-      <line x1="12" y1="18" x2="12" y2="12" />
-      <line x1="9" y1="15" x2="15" y2="15" />
-    </svg>
-  ),
-  save: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-      <polyline points="17 21 17 13 7 13 7 21" />
-      <polyline points="7 3 7 8 15 8" />
-    </svg>
-  ),
-  folder: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-    </svg>
-  ),
-  play: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <polygon points="5 3 19 12 5 21 5 3" />
-    </svg>
-  ),
-  pause: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <rect x="6" y="4" width="4" height="16" />
-      <rect x="14" y="4" width="4" height="16" />
-    </svg>
-  ),
-  step: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
-      <line x1="19" y1="5" x2="19" y2="19" />
-    </svg>
-  ),
-  stop: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-    </svg>
-  ),
-  code: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="16 18 22 12 16 6" />
-      <polyline points="8 6 2 12 8 18" />
-    </svg>
-  ),
-  chip: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-      <rect x="9" y="9" width="6" height="6" />
-      <line x1="9" y1="1" x2="9" y2="4" />
-      <line x1="15" y1="1" x2="15" y2="4" />
-      <line x1="9" y1="20" x2="9" y2="23" />
-      <line x1="15" y1="20" x2="15" y2="23" />
-      <line x1="20" y1="9" x2="23" y2="9" />
-      <line x1="20" y1="14" x2="23" y2="14" />
-      <line x1="1" y1="9" x2="4" y2="9" />
-      <line x1="1" y1="14" x2="4" y2="14" />
-    </svg>
-  ),
-  layers: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polygon points="12 2 2 7 12 12 22 7 12 2" />
-      <polyline points="2 17 12 22 22 17" />
-      <polyline points="2 12 12 17 22 12" />
-    </svg>
-  ),
-  settings: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  ),
-  x: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  ),
-  message: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  ),
-  send: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  ),
-  zoomIn: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      <line x1="11" y1="8" x2="11" y2="14" />
-      <line x1="8" y1="11" x2="14" y2="11" />
-    </svg>
-  ),
-  zoomOut: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      <line x1="8" y1="11" x2="14" y2="11" />
-    </svg>
-  ),
-  fitView: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-    </svg>
-  ),
-  plug: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2v10" />
-      <path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-  cpu: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-      <rect x="9" y="9" width="6" height="6" />
-      <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
-    </svg>
-  ),
-  tasks: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 11l3 3L22 4" />
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-    </svg>
-  ),
-  wifi: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M5 12.55a11 11 0 0 1 14.08 0" />
-      <path d="M1.42 9a16 16 0 0 1 21.16 0" />
-      <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-      <circle cx="12" cy="20" r="1" fill="currentColor" />
-    </svg>
-  ),
-  activity: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  ),
-  lock: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  ),
-  grid: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-    </svg>
-  ),
-  minimap: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <rect x="14" y="14" width="5" height="5" fill="currentColor" opacity="0.5" />
-      <circle cx="8" cy="8" r="2" fill="currentColor" />
-      <circle cx="13" cy="10" r="1.5" fill="currentColor" />
-    </svg>
-  ),
-  layout: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="6" height="5" rx="1" />
-      <rect x="15" y="3" width="6" height="5" rx="1" />
-      <rect x="9" y="16" width="6" height="5" rx="1" />
-      <path d="M6 8v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V8" />
-      <path d="M12 14v2" />
-    </svg>
-  ),
-  validate: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 12l2 2 4-4" />
-      <circle cx="12" cy="12" r="10" />
-    </svg>
-  ),
-  // NEW ICONS for additional panels
-  debug: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2a3 3 0 0 0-3 3v2a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-      <path d="M18 12h-3M9 12H6M18 8h-3M9 8H6M18 16h-3M9 16H6" />
-      <rect x="9" y="9" width="6" height="13" rx="2" />
-    </svg>
-  ),
-  performance: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  build: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
-  ),
-  gitBranch: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="6" y1="3" x2="6" y2="15" />
-      <circle cx="18" cy="6" r="3" />
-      <circle cx="6" cy="18" r="3" />
-      <path d="M18 9a9 9 0 0 1-9 9" />
-    </svg>
-  ),
-  power: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
-      <line x1="12" y1="2" x2="12" y2="12" />
-    </svg>
-  ),
-  serial: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="4" y="4" width="16" height="6" rx="1" />
-      <rect x="4" y="14" width="16" height="6" rx="1" />
-      <path d="M8 10v4M12 10v4M16 10v4" />
-    </svg>
-  ),
-  memory: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="6" width="20" height="12" rx="2" />
-      <path d="M6 6V4M10 6V4M14 6V4M18 6V4M6 18v2M10 18v2M14 18v2M18 18v2" />
-      <line x1="6" y1="10" x2="6" y2="14" />
-      <line x1="18" y1="10" x2="18" y2="14" />
-    </svg>
-  ),
-  profiler: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
-    </svg>
-  ),
-  workflow: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="4" width="6" height="6" rx="1" />
-      <rect x="15" y="4" width="6" height="6" rx="1" />
-      <rect x="9" y="14" width="6" height="6" rx="1" />
-      <path d="M6 10v2a2 2 0 0 0 2 2h2M18 10v2a2 2 0 0 1-2 2h-2" />
-    </svg>
-  ),
-  simulator: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="3" width="20" height="14" rx="2" />
-      <line x1="8" y1="21" x2="16" y2="21" />
-      <line x1="12" y1="17" x2="12" y2="21" />
-    </svg>
-  ),
-};
+// --- Icons imported from separate file ---
+import { Icons } from "./components/AppIcons";
+
+// --- NEW: Industrial UI Components ---
+import { CommandBar } from "./components/CommandBar";
+import { ActivityBar } from "./components/ActivityBar";
+import { CanvasRulers, AlignmentGuides } from "./components/CanvasRulers";
+import { StatusBar } from "./components/StatusBar";
+import "./components/StatusBar.css";
+import { SimulationDashboard } from "./components/SimulationDashboard";
+import "./components/SimulationDashboard.css";
+import { AgentManager } from "./components/AgentManager";
+import "./components/AgentManager.css";
+import { QuickOpen } from "./components/QuickOpen";
+import "./components/QuickOpen.css";
+import { IndustrialMenuBar } from "./components/IndustrialMenuBar";
+import "./components/IndustrialMenuBar.css";
+import { FileSystem } from "./services/FileSystem";
+import { FileExplorer } from "./components/FileExplorer";
+import "./components/FileExplorer.css";
+import { EditorTabBar } from "./components/EditorTabBar";
+import "./components/EditorTabBar.css";
+import "./styles/MinimalRetroTheme.css"; // RETRO THEME
+import { ResizableSplitter } from "./components/ResizableSplitter";
+import { LayoutProvider, useLayout } from "./contexts/LayoutContext";
+import { LayoutCustomizer } from "./components/LayoutCustomizer";
+import { useLayoutKeyboard } from "./hooks/useLayoutKeyboard";
 
 // --- Types ---
 interface FSMNode {
@@ -376,8 +138,145 @@ const SNAP_THRESHOLD = 12;
 
 // --- App Component ---
 function App() {
-  // State
+  // Tab management functions
+  interface CanvasTab {
+    id: string;
+    name: string;
+    nodes: FSMNode[];
+    edges: FSMEdge[];
+    targetMcu: string;
+    modified: boolean;
+    content?: string;
+  }
+
+  const createNewTab = (name: string = "Untitled"): CanvasTab => ({
+    id: `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name,
+    nodes: [
+      { id: "1", label: "START", type: "input", x: 300, y: 80 },
+      { id: "2", label: "IDLE", type: "process", x: 300, y: 200 },
+    ],
+    edges: [
+      { id: "e1", source: "1", target: "2", label: "init" },
+    ],
+    targetMcu: "STM32F401",
+    modified: false,
+  });
+
+  // Layout customization state
+  const [showLayoutCustomizer, setShowLayoutCustomizer] = createSignal(false);
+  const layout = useLayout();
+  
+  // Register layout keyboard shortcuts (Ctrl+B, Ctrl+J)
+  useLayoutKeyboard();
+
+  // Panel Resizing State
+  // We use createSignal for these to allow dynamic resizing
+  const [leftPanelWidth, setLeftPanelWidth] = createSignal(280);
+
+
+  const [rightPanelWidth, setRightPanelWidth] = createSignal(400); // Default wider for AI
+  const [showRightPanel, setShowRightPanel] = createSignal(true);
+  const [showAgentManager, setShowAgentManager] = createSignal(false);
+  const [showQuickOpen, setShowQuickOpen] = createSignal(false);
+  const [bottomPanelHeight, setBottomPanelHeight] = createSignal(250);
+
+  const [tabs, setTabs] = createSignal<CanvasTab[]>([
+    {
+      id: "tab_default",
+      name: "Main Design",
+      nodes: [
+        { id: "1", label: "START", type: "input", x: 300, y: 80 },
+        { id: "2", label: "INIT", type: "process", x: 300, y: 200, entryAction: "HAL.init();\nGPIO.setup(13, OUTPUT);" },
+        { id: "3", label: "RUNNING", type: "process", x: 300, y: 320, entryAction: "ledOn = true;" },
+        { id: "4", label: "END", type: "output", x: 300, y: 440 },
+      ],
+      edges: [
+        { id: "e1", source: "1", target: "2", label: "init" },
+        { id: "e2", source: "2", target: "3", label: "ready" },
+        { id: "e3", source: "3", target: "4", label: "done" },
+      ],
+      targetMcu: "STM32F401",
+      modified: false,
+    },
+  ]);
+  const [activeTabId, setActiveTabId] = createSignal<string>("tab_default");
+
+  // Get current tab
+  const currentTab = () => tabs().find(t => t.id === activeTabId()) || tabs()[0];
+
+  // Tab management functions
+  const addNewTab = (name?: string) => {
+    const newTab = createNewTab(name || `Design ${tabs().length + 1}`);
+    setTabs(prev => [...prev, newTab]);
+    setActiveTabId(newTab.id);
+    addLog("SYSTEM", `Created new tab: ${newTab.name}`, "success");
+  };
+
+  const closeTab = (tabId: string) => {
+    if (tabs().length <= 1) {
+      addLog("SYSTEM", "Cannot close the last tab", "warning");
+      return;
+    }
+    const tabIndex = tabs().findIndex(t => t.id === tabId);
+    setTabs(prev => prev.filter(t => t.id !== tabId));
+    // If closing active tab, switch to adjacent tab
+    if (activeTabId() === tabId) {
+      const newIndex = Math.min(tabIndex, tabs().length - 2);
+      setActiveTabId(tabs().filter(t => t.id !== tabId)[newIndex]?.id || tabs()[0].id);
+    }
+    addLog("SYSTEM", `Closed tab`, "info");
+  };
+
+  const switchTab = (tabId: string) => {
+    // Save current tab state
+    const current = currentTab();
+    if (current) {
+      setTabs(prev => prev.map(t => 
+        t.id === current.id ? { ...t, nodes: nodes(), edges: edges(), modified: t.modified || hasChanges() } : t
+      ));
+    }
+    // Switch to new tab
+    setActiveTabId(tabId);
+    const newTab = tabs().find(t => t.id === tabId);
+    if (newTab) {
+      setNodes(newTab.nodes);
+      setEdges(newTab.edges);
+      setTargetMcu(newTab.targetMcu);
+      setSelectedNode(null);
+    }
+  };
+
+  const renameTab = (tabId: string, newName: string) => {
+    setTabs(prev => prev.map(t => t.id === tabId ? { ...t, name: newName } : t));
+  };
+
+  const duplicateTab = (tabId: string) => {
+    const tab = tabs().find(t => t.id === tabId);
+    if (tab) {
+      const newTab: CanvasTab = {
+        ...tab,
+        id: `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: `${tab.name} (copy)`,
+        nodes: tab.nodes.map(n => ({ ...n })),
+        edges: tab.edges.map(e => ({ ...e })),
+      };
+      setTabs(prev => [...prev, newTab]);
+      setActiveTabId(newTab.id);
+      addLog("SYSTEM", `Duplicated tab: ${tab.name}`, "success");
+    }
+  };
+
+  const hasChanges = () => {
+    // Simple check for unsaved changes
+    return nodes().length > 0;
+  };
+
+  // State - now derived from current tab
   const [projectName, setProjectName] = createSignal("Untitled Project");
+  const [activeWorkspacePath, setActiveWorkspacePath] = createSignal<string | null>(null);
+  const [currentProjectPath, setCurrentProjectPath] = createSignal<string | null>(null);
+  const [projectPassword, setProjectPassword] = createSignal<string | null>(null); // Encryption password
   const [targetMcu, setTargetMcu] = createSignal("STM32F401");
   const [simStatus, setSimStatus] = createSignal<"idle" | "running" | "paused">("idle");
   
@@ -432,6 +331,9 @@ function App() {
   // Panel state
   const [activePanel, setActivePanel] = createSignal("nodes");
   const [activeBottomTab, setActiveBottomTab] = createSignal("console");
+  const [activeSidePanel, setActiveSidePanel] = createSignal<string | null>(null); // VS Code-style left panel
+  
+  const isRightPanelActive = () => !["terminal", "console", "problems", "output"].includes(activeBottomTab());
   
   // AI Chat state
   const [chatMessages, setChatMessages] = createSignal<ChatMessage[]>([]);
@@ -635,6 +537,11 @@ function App() {
           setSelectedNode(newNode.id);
           addLog("CANVAS", `Duplicated node: ${node.label}`, "success");
         }
+      }
+      // Ctrl+P - Quick Open
+      else if (e.key === "p" && !e.shiftKey) {
+        e.preventDefault();
+        setShowQuickOpen(true);
       }
     }
     
@@ -1281,14 +1188,19 @@ function App() {
   };
 
   // Button handlers
+  // Button handlers
   const handleNewProject = async () => {
-    try {
-      const project = await invoke("create_project", { name: "New Project", targetMcu: "stm32f401" });
-      setProjectName((project as any).name);
+      // Confirm if there are unsaved changes? (Skipping for now for speed)
+      setProjectName("Untitled Project");
+      setNodes([
+          { id: "1", label: "START", type: "input", x: 300, y: 80 },
+      ]);
+      setEdges([]);
+      setCurrentProjectPath(null);
+      setActiveWorkspacePath(null);
+      setTabs([createNewTab("Main Design")]);
+      setActiveTabId(tabs()[0].id);
       addLog("PROJECT", "Created new project", "success");
-    } catch (e) {
-      addLog("ERROR", `${e}`, "error");
-    }
   };
 
   const handleSimulate = () => {
@@ -1335,7 +1247,7 @@ function App() {
         language: codeLanguage(),
       });
       setGeneratedCode(code as string);
-      setActivePanel("code");
+      setActiveBottomTab("code");
       addLog("CODEGEN", `Generated ${codeLanguage()} code (${(code as string).length} chars)`, "success");
     } catch (e) {
       addLog("ERROR", `Code generation failed: ${e}`, "error");
@@ -1354,7 +1266,7 @@ function App() {
           target: codeLanguage().toLowerCase(),
         });
         setGeneratedCode((fallback as any).code);
-        setActivePanel("code");
+        setActiveBottomTab("code");
         addLog("CODEGEN", "Used template generation (AI unavailable)", "warning");
       } catch (e2) {
         addLog("ERROR", `Template generation also failed: ${e2}`, "error");
@@ -1377,7 +1289,7 @@ function App() {
           addLog("HW", `  → ${p.name}: ${info.type}`, "info");
         }
       });
-      setActivePanel("hardware");
+      setActiveBottomTab("hardware");
     } catch (e) {
       addLog("ERROR", `${e}`, "error");
     }
@@ -1513,678 +1425,679 @@ function App() {
     setIsGeneratingDriver(false);
   };
 
+  // ========== FILE MENU HANDLERS ==========
+  // ========== FILE MENU HANDLERS ==========
+  
+  const handleOpenFolder = async () => {
+    const path = await FileSystem.openFolder();
+    if (path) {
+        setActiveWorkspacePath(path);
+        setProjectName(path.split(/[\\/]/).pop() || "Project");
+        addLog("SYSTEM", `Opened workspace: ${path}`, "success");
+        // Ensure side panel is showing explorer/git/etc where explorer makes sense
+        if (activeSidePanel() === null || activeSidePanel() === "nodes") { 
+             setActiveSidePanel("files"); 
+        }
+    }
+  };
+
+  const handleOpenFile = async (path: string, name: string) => {
+      try {
+          // Try loading securely 
+          let content: string;
+          try {
+              // Try loading without password first (this will auto-decrypt if using default key)
+              content = await invoke("secure_load_project", { path, password: null });
+          } catch (e: any) {
+              const err = e.toString();
+              if (err.includes("TRAP_PASSWORD_REQUIRED")) {
+                  // Password required for this specific file
+                  let pwd = prompt(`This project is password protected.\nEnter password for "${name}":`);
+                  if (!pwd) return; 
+                  
+                  // Retry with password
+                  try {
+                       content = await invoke("secure_load_project", { path, password: pwd });
+                       setProjectPassword(pwd); // Remember it for saving
+                  } catch (e2: any) {
+                      const err2 = e2.toString();
+                      if (err2.includes("TRAP_WRONG_PASSWORD")) {
+                          alert("Incorrect password.");
+                          return;
+                      }
+                      throw e2;
+                  }
+              } else if (err.includes("TRAP_PLAINTEXT")) {
+                   // Fallback for legacy plain text files (or non-project files)
+                   content = await FileSystem.readFile(path);
+              } else {
+                  throw e;
+              }
+          }
+
+          addLog("SYSTEM", `Opened file: ${name}`, "success");
+          
+          // Check if tab already exists
+          const existingTab = tabs().find(t => t.id === path);
+          if (existingTab) {
+              setActiveTabId(path);
+              return;
+          }
+
+          // Create new tab for file
+          const newTab: CanvasTab = {
+              id: path, // Use path as ID for files
+              name: name,
+              nodes: [], 
+              edges: [],
+              targetMcu: targetMcu(),
+              modified: false,
+              content: content // Store file content
+          };
+          
+          setTabs(prev => [...prev, newTab]);
+          setActiveTabId(path);
+
+      } catch (e) {
+          addLog("ERROR", `Failed to open file: ${e}`, "error");
+      }
+  };
+
+  const handleOpenProject = handleOpenFolder; // Reusing folder open logic for now as "Project"
+  /* Old handleOpenProject code ... removed/replaced */
+
+  const handleSaveAs = async () => {
+    try {
+      const projectData = {
+        name: projectName(),
+        targetMcu: targetMcu(),
+        nodes: nodes(),
+        edges: edges(),
+        savedAt: new Date().toISOString(),
+      };
+      
+      const content = JSON.stringify(projectData, null, 2);
+      let path = await FileSystem.saveFile({
+        title: "Save Project As",
+        defaultPath: `${projectName()}.nbproj`,
+        filters: [{ name: "NeuroBench Project", extensions: ["nbproj", "json"] }]
+      });
+
+      if (path) {
+          // Enforce Project Folder Structure
+          // If user picked "C:/Docs/MyPro.nbproj", we want "C:/Docs/MyPro/MyPro.nbproj"
+          const parts = path.split(/[\\/]/);
+          const filename = parts.pop()!;
+          const name = filename.replace(/\.(nbproj|json)$/, "");
+          const parentDir = parts.join(path.includes("\\") ? "\\" : "/");
+          const parentDirName = parts.pop(); // The folder name containing the file
+
+          // Check if parent directory name matches the project name
+          // If NOT, we assume we need to create the folder wrapper.
+          if (parentDirName !== name) {
+             const separator = path.includes("\\") ? "\\" : "/";
+             // Reconstruct path: parentDir + separator + name + separator + filename
+             // We use 'parts' (which is now the grandparent dir because of pop())
+             
+             // Safer reconstruction using parentDir string
+             // parentDir is "C:/Docs"
+             path = `${parentDir}${separator}${name}${separator}${filename}`;
+          }
+
+          // Always encrypt. 
+          // If projectPassword() is set (via 'Advanced' settings), use it.
+          // If null, backend uses internal Default Key (Transparent Encryption).
+          const pwd = projectPassword();
+
+          // Use secure save command (Backend now ensures folder creation)
+          await invoke("secure_save_project", { 
+              projectJson: content, 
+              path, 
+              password: pwd || null 
+          });
+          
+          setCurrentProjectPath(path);
+          setProjectName(name || "Project"); // Update name to match file
+          
+          if (pwd) {
+              addLog("SYSTEM", `Project saved (User Encrypted) to: ${path}`, "success");
+          } else {
+              addLog("SYSTEM", `Project saved (Auto Encrypted) to: ${path}`, "success");
+          }
+      }
+    } catch (e) {
+      addLog("ERROR", `Failed to save project: ${e}`, "error");
+    }
+  };
+
+  const handleSaveProject = async () => {
+      if (currentProjectPath()) {
+          try {
+              const projectData = {
+                name: projectName(),
+                targetMcu: targetMcu(),
+                nodes: nodes(),
+                edges: edges(),
+                savedAt: new Date().toISOString(),
+              };
+              const content = JSON.stringify(projectData, null, 2);
+              
+              // Use secure save command
+              await invoke("secure_save_project", { 
+                  projectJson: content, 
+                  path: currentProjectPath()!, 
+                  password: projectPassword() || null 
+              });
+              
+              addLog("SYSTEM", `Project saved`, "success");
+          } catch (e) {
+              addLog("ERROR", `Failed to save: ${e}`, "error");
+          }
+      } else {
+          await handleSaveAs();
+      }
+  };
+
+  // Replaces the old blob download logic
+  const handleExportCode = async () => {
+    // First generate code if not already done
+    if (!generatedCode()) {
+      await handleGenerateCode();
+    }
+    try {
+      const ext = codeLanguage() === "C" ? "c" : codeLanguage() === "Cpp" ? "cpp" : "rs";
+      
+      const path = await FileSystem.saveFile({
+          title: "Export Code",
+          defaultPath: `${projectName()}_fsm.${ext}`,
+          filters: [{ name: "Source Code", extensions: [ext] }]
+      });
+
+      if (path) {
+          await FileSystem.writeFile(path, generatedCode());
+          addLog("SYSTEM", `Code exported to ${path}`, "success");
+      }
+    } catch (e) {
+      addLog("ERROR", `Failed to export code: ${e}`, "error");
+    }
+  };
+
+  // ========== EDIT MENU HANDLERS ==========
+  const [clipboard, setClipboard] = createSignal<{ nodes: FSMNode[]; edges: FSMEdge[] } | null>(null);
+
+  const handleCut = () => {
+    const selected = selectedNode();
+    if (!selected) {
+      addLog("EDIT", "No node selected to cut", "warning");
+      return;
+    }
+    // Copy to clipboard first
+    const nodesToCut = nodes().filter(n => n.id === selected);
+    const edgesToCut = edges().filter(e => e.source === selected || e.target === selected);
+    setClipboard({ nodes: nodesToCut, edges: edgesToCut });
+    // Then delete
+    pushHistory();
+    setNodes(prev => prev.filter(n => n.id !== selected));
+    setEdges(prev => prev.filter(e => e.source !== selected && e.target !== selected));
+    setSelectedNode(null);
+    addLog("EDIT", "Cut node to clipboard", "success");
+  };
+
+  const handleCopy = () => {
+    const selected = selectedNode();
+    if (!selected) {
+      addLog("EDIT", "No node selected to copy", "warning");
+      return;
+    }
+    const nodesToCopy = nodes().filter(n => n.id === selected);
+    const edgesToCopy = edges().filter(e => e.source === selected || e.target === selected);
+    setClipboard({ nodes: nodesToCopy, edges: edgesToCopy });
+    addLog("EDIT", "Copied node to clipboard", "success");
+  };
+
+  const handlePaste = () => {
+    const clip = clipboard();
+    if (!clip || clip.nodes.length === 0) {
+      addLog("EDIT", "Clipboard is empty", "warning");
+      return;
+    }
+    pushHistory();
+    // Create new nodes with new IDs and offset positions
+    const idMap: Record<string, string> = {};
+    const newNodes = clip.nodes.map(n => {
+      const newId = `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      idMap[n.id] = newId;
+      return { ...n, id: newId, x: n.x + 50, y: n.y + 50, label: `${n.label}_copy` };
+    });
+    // Create new edges with updated IDs
+    const newEdges = clip.edges.map(e => ({
+      ...e,
+      source: idMap[e.source] || e.source,
+      target: idMap[e.target] || e.target,
+    })).filter(e => idMap[e.source] && idMap[e.target]);
+    
+    setNodes(prev => [...prev, ...newNodes]);
+    setEdges(prev => [...prev, ...newEdges]);
+    addLog("EDIT", `Pasted ${newNodes.length} node(s)`, "success");
+  };
+
+  const handleDeleteSelected = () => {
+    const selected = selectedNode();
+    if (!selected) {
+      addLog("EDIT", "No node selected to delete", "warning");
+      return;
+    }
+    pushHistory();
+    setNodes(prev => prev.filter(n => n.id !== selected));
+    setEdges(prev => prev.filter(e => e.source !== selected && e.target !== selected));
+    setSelectedNode(null);
+    addLog("EDIT", "Deleted selected node", "success");
+  };
+
+  const handleSelectAll = () => {
+    // For now, just log - multi-select would need more complex state
+    addLog("EDIT", `${nodes().length} nodes in canvas (multi-select coming soon)`, "info");
+  };
+
+  // ========== VIEW MENU HANDLERS ==========
+  const [showGrid, setShowGrid] = createSignal(true);
+  const [showRulers, setShowRulers] = createSignal(false);
+
+  const handleZoomIn = () => {
+    setZoom(Math.min(3, zoom() + 0.1));
+    addLog("VIEW", `Zoom: ${Math.round(zoom() * 100)}%`, "info");
+  };
+
+  const handleZoomOut = () => {
+    setZoom(Math.max(0.25, zoom() - 0.1));
+    addLog("VIEW", `Zoom: ${Math.round(zoom() * 100)}%`, "info");
+  };
+
+  const handleZoomReset = () => {
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
+    addLog("VIEW", "Zoom reset to 100%", "info");
+  };
+
+  const handleToggleGrid = () => {
+    setShowGrid(!showGrid());
+    addLog("VIEW", `Grid: ${showGrid() ? "ON" : "OFF"}`, "info");
+  };
+
+  const handleToggleMinimap = () => {
+    setShowMinimap(!showMinimap());
+    addLog("VIEW", `Minimap: ${showMinimap() ? "ON" : "OFF"}`, "info");
+  };
+
+  const handleToggleRulers = () => {
+    setShowRulers(!showRulers());
+    addLog("VIEW", `Rulers: ${showRulers() ? "ON" : "OFF"}`, "info");
+  };
+
+  // ========== BUILD MENU HANDLERS ==========
+  const handleBuildProject = async () => {
+    addLog("BUILD", "Starting build...", "info");
+    try {
+      // Generate code first
+      await handleGenerateCode();
+      // Then invoke build command
+      const result = await invoke("build_project", {
+        targetMcu: targetMcu(),
+        code: generatedCode(),
+      });
+      addLog("BUILD", `Build completed: ${result}`, "success");
+    } catch (e) {
+      addLog("BUILD", `Build failed: ${e}`, "error");
+    }
+  };
+
+  const handleCleanBuild = async () => {
+    addLog("BUILD", "Cleaning build artifacts...", "info");
+    try {
+      await invoke("clean_build");
+      addLog("BUILD", "Build cleaned successfully", "success");
+    } catch (e) {
+      addLog("BUILD", `Clean failed: ${e}`, "error");
+    }
+  };
+
+  const handleFlashToDevice = async () => {
+    addLog("BUILD", "Flashing to device...", "info");
+    try {
+      const result = await invoke("flash_device", {
+        targetMcu: targetMcu(),
+        binary: generatedCode(), // Would be actual binary in real impl
+      });
+      addLog("BUILD", `Flash completed: ${result}`, "success");
+    } catch (e) {
+      addLog("BUILD", `Flash failed: ${e}`, "error");
+    }
+  };
+
+  // ========== SIMULATION HANDLERS ==========
+  const handleSimReset = () => {
+    setSimStatus("idle");
+    addLog("SIM", "Simulation reset", "info");
+  };
+
+  // ========== HELP MENU HANDLERS ==========
+  const handleShowHelp = () => {
+    window.open("https://github.com/neurobench/docs", "_blank");
+    addLog("HELP", "Opening documentation in browser", "info");
+  };
+
+  const handleShowAbout = () => {
+    addLog("HELP", `
+╔══════════════════════════════════════════╗
+║           NEUROBENCH v0.1.0              ║
+║   Industrial FSM Designer for Embedded   ║
+╠══════════════════════════════════════════╣
+║  🔧 Supports: STM32, ESP32, RP2040       ║
+║  ⚡ Code Gen: C, C++, Rust               ║
+║  🎯 HAL Simulation                       ║
+║  🤖 AI-Assisted Design                   ║
+╚══════════════════════════════════════════╝
+    `.trim(), "info");
+  };
+
   return (
     <div class="app">
-      {/* Header */}
-      <header class="header">
-        <div class="header-logo">
-          <Icons.brain />
-          <span>NeuroBench</span>
-        </div>
-        
-        <div class="header-divider" />
-        
-        <div class="header-toolbar">
-          <button class="toolbar-btn" onClick={handleNewProject} title="New Project">
-            <Icons.newFile />
-            <span>New</span>
-          </button>
-          <button class="toolbar-btn" title="Save Project">
-            <Icons.save />
-            <span>Save</span>
-          </button>
-          <button class="toolbar-btn" title="Open Project">
-            <Icons.folder />
-            <span>Open</span>
-          </button>
-        </div>
-        
-        <div class="header-divider" />
-        
-        <div class="header-toolbar">
-          <button 
-            class={`toolbar-btn ${simStatus() === "running" ? "active" : "success"}`}
-            onClick={handleSimulate}
-          >
-            <Show when={simStatus() === "running"} fallback={<Icons.play />}>
-              <Icons.pause />
-            </Show>
-            <span>{simStatus() === "running" ? "Pause" : "Run"}</span>
-          </button>
-          <button class="toolbar-btn" onClick={handleStep}><Icons.step /></button>
-          <button class="toolbar-btn danger" onClick={handleStop}><Icons.stop /></button>
-        </div>
-        
-        <div class="header-divider" />
-        
-        <div class="header-toolbar">
-          <button class="toolbar-btn" onClick={handleGenerateCode}><Icons.code /><span>Generate</span></button>
-          <button class="toolbar-btn" onClick={handleDetectDevices}><Icons.chip /><span>Devices</span></button>
-          <button class="toolbar-btn success" onClick={() => setShowDescriptionModal(true)}><Icons.brain /><span>AI Magic</span></button>
-        </div>
-        
-        <div class="header-divider" />
-        
-        {/* Canvas Tools */}
-        <div class="header-toolbar">
-          <div class="toolbar-dropdown">
-            <button class="toolbar-btn" title="Auto-Layout">
-              <Icons.layout />
-              <span>Layout</span>
-            </button>
-            <div class="dropdown-menu">
-              <button class="dropdown-item" onClick={() => handleAutoLayout("hierarchical")}>
-                Hierarchical (Top-Down)
-              </button>
-              <button class="dropdown-item" onClick={() => handleAutoLayout("force_directed")}>
-                Force-Directed (Spring)
-              </button>
-              <button class="dropdown-item" onClick={() => handleAutoLayout("grid")}>
-                Grid Layout
-              </button>
-            </div>
-          </div>
-          <button class="toolbar-btn" onClick={handleValidate} title="Validate Graph">
-            <Icons.validate />
-            <span>Validate</span>
-          </button>
-        </div>
-        
-        <div class="header-spacer" />
-        
-        <div class="header-status">
-          {/* IDE Selector */}
-          <select class="ide-selector" title="IDE Target">
-            <option value="stm32cubeide">STM32CubeIDE</option>
-            <option value="keil">Keil MDK</option>
-            <option value="iar">IAR Workbench</option>
-            <option value="arduino">Arduino IDE</option>
-            <option value="platformio">PlatformIO</option>
-            <option value="vscode">VS Code</option>
-          </select>
-          
-          {/* Status Indicator */}
-          <div class="status-item">
-            <span class={`status-dot ${simStatus() === "running" ? "active" : simStatus() === "paused" ? "warning" : ""}`} />
-            <span>{simStatus().toUpperCase()}</span>
-          </div>
-          
-          {/* MCU Badge */}
-          <select class="mcu-selector" value={targetMcu()} onChange={(e) => setTargetMcu(e.currentTarget.value)}>
-            <option value="STM32F401">STM32F401</option>
-            <option value="STM32F103">STM32F103</option>
-            <option value="ATMega328P">ATMega328P</option>
-            <option value="ESP32">ESP32</option>
-            <option value="RP2040">RP2040</option>
-            <option value="nRF52840">nRF52840</option>
-          </select>
-        </div>
-      </header>
+      {/* Industrial Menubar */}
+      <IndustrialMenuBar
+        projectName={projectName()}
+        targetMcu={targetMcu()}
+        simStatus={simStatus()}
+        onNewProject={handleNewProject}
+        onOpenProject={handleOpenProject}
+        onSaveProject={handleSaveProject}
+        onSaveAs={handleSaveAs}
+        onExport={handleExportCode}
+        onUndo={undo}
+        onRedo={redo}
+        onCut={handleCut}
+        onCopy={handleCopy}
+        onPaste={handlePaste}
+        onDelete={handleDeleteSelected}
+        onSelectAll={handleSelectAll}
+        onSettings={() => setShowSettingsModal(true)}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onZoomReset={handleZoomReset}
+        onToggleGrid={handleToggleGrid}
+        onToggleMinimap={handleToggleMinimap}
+        onToggleRulers={handleToggleRulers}
+        onBuild={handleBuildProject}
+        onClean={handleCleanBuild}
+        onFlash={handleFlashToDevice}
+        onSimStart={handleSimulate}
+        onSimPause={handleSimulate}
+        onSimStop={handleStop}
+        onSimStep={handleStep}
+        onSimReset={handleSimReset}
+        onGenerateCode={handleGenerateCode}
+        onValidate={handleValidate}
+        onAutoLayout={(type) => handleAutoLayout(type as "hierarchical" | "force_directed" | "grid")}
+        onDetectDevices={handleDetectDevices}
+        onHelp={handleShowHelp}
+        onAbout={handleShowAbout}
+        onTargetChange={(mcu) => setTargetMcu(mcu)}
+        // Layout customization props
+        onCustomizeLayout={() => setShowLayoutCustomizer(true)}
+        onToggleActivityBar={layout.toggleActivityBar}
+        onTogglePrimarySideBar={layout.togglePrimarySideBar}
+        onTogglePanel={layout.togglePanel}
+        onToggleStatusBar={layout.toggleStatusBar}
+        showActivityBar={layout.config().showActivityBar}
+        showPrimarySideBar={layout.config().showPrimarySideBar}
+        showPanel={layout.config().showPanel}
+        showStatusBar={layout.config().showStatusBar}
+        // New Actions
+        onToggleRightPanel={() => setShowRightPanel(prev => !prev)}
+        showRightPanel={showRightPanel()}
+        onOpenAgentManager={() => setShowAgentManager(true)}
+        onQuickOpen={() => setShowQuickOpen(true)}
+      />
+      
+      {/* Agent Manager Overlay */}
+      <Show when={showAgentManager()}>
+        <AgentManager onClose={() => setShowAgentManager(false)} />
+      </Show>
+
+      {/* Quick Open Overlay */}
+      <QuickOpen 
+        isOpen={showQuickOpen()} 
+        onClose={() => setShowQuickOpen(false)}
+        workspacePath={activeWorkspacePath() || undefined}
+        onSelectFile={(path) => {
+          handleOpenFile(path, path.split(/[\\/]/).pop() || "file");
+          setShowQuickOpen(false);
+        }}
+      />
       
       {/* Main Content */}
-      <div class="main-content">
-        {/* Sidebar */}
-        <nav class="sidebar">
-          <button class={`sidebar-btn ${activePanel() === "nodes" ? "active" : ""}`} onClick={() => setActivePanel("nodes")}><Icons.layers /></button>
-          <button class={`sidebar-btn ${activePanel() === "chat" ? "active" : ""}`} onClick={() => setActivePanel("chat")}><Icons.message /></button>
-          <button class={`sidebar-btn ${activePanel() === "hardware" ? "active" : ""}`} onClick={() => setActivePanel("hardware")}><Icons.chip /></button>
-          <button class={`sidebar-btn ${activePanel() === "code" ? "active" : ""}`} onClick={() => setActivePanel("code")}><Icons.code /></button>
-          <button class={`sidebar-btn ${activePanel() === "drivers" ? "active" : ""}`} onClick={() => setActivePanel("drivers")}><Icons.plug /></button>
-          <button class={`sidebar-btn ${activePanel() === "pins" ? "active" : ""}`} onClick={() => setActivePanel("pins")}><Icons.cpu /></button>
-          <button class={`sidebar-btn ${activePanel() === "rtos" ? "active" : ""}`} onClick={() => setActivePanel("rtos")} title="RTOS"><Icons.tasks /></button>
-          <button class={`sidebar-btn ${activePanel() === "wireless" ? "active" : ""}`} onClick={() => setActivePanel("wireless")} title="Wireless"><Icons.wifi /></button>
-          <button class={`sidebar-btn ${activePanel() === "dsp" ? "active" : ""}`} onClick={() => setActivePanel("dsp")} title="DSP"><Icons.activity /></button>
-          <button class={`sidebar-btn ${activePanel() === "security" ? "active" : ""}`} onClick={() => setActivePanel("security")} title="Security"><Icons.lock /></button>
-          <button class={`sidebar-btn ${activePanel() === "agents" ? "active" : ""}`} onClick={() => setActivePanel("agents")} title="AI Agents"><Icons.brain /></button>
-          {/* NEW: Additional panel buttons */}
-          <button class={`sidebar-btn ${activePanel() === "simulator" ? "active" : ""}`} onClick={() => setActivePanel("simulator")} title="Simulator"><Icons.simulator /></button>
-          <button class={`sidebar-btn ${activePanel() === "debug" ? "active" : ""}`} onClick={() => setActivePanel("debug")} title="Debug"><Icons.debug /></button>
-          <button class={`sidebar-btn ${activePanel() === "performance" ? "active" : ""}`} onClick={() => setActivePanel("performance")} title="Performance"><Icons.performance /></button>
-          <button class={`sidebar-btn ${activePanel() === "build" ? "active" : ""}`} onClick={() => setActivePanel("build")} title="Build"><Icons.build /></button>
-          <button class={`sidebar-btn ${activePanel() === "workflow" ? "active" : ""}`} onClick={() => setActivePanel("workflow")} title="Workflow"><Icons.workflow /></button>
-          <button class={`sidebar-btn ${activePanel() === "git" ? "active" : ""}`} onClick={() => setActivePanel("git")} title="Git"><Icons.gitBranch /></button>
-          <button class={`sidebar-btn ${activePanel() === "serial" ? "active" : ""}`} onClick={() => setActivePanel("serial")} title="Serial"><Icons.serial /></button>
-          <button class={`sidebar-btn ${activePanel() === "memory" ? "active" : ""}`} onClick={() => setActivePanel("memory")} title="Memory"><Icons.memory /></button>
-          <button class={`sidebar-btn ${activePanel() === "profiler" ? "active" : ""}`} onClick={() => setActivePanel("profiler")} title="Profiler"><Icons.profiler /></button>
-          <button class={`sidebar-btn ${activePanel() === "power" ? "active" : ""}`} onClick={() => setActivePanel("power")} title="Power"><Icons.power /></button>
-          <button class={`sidebar-btn ${activePanel() === "validation" ? "active" : ""}`} onClick={() => setActivePanel("validation")} title="Validation"><Icons.validate /></button>
-          <button class={`sidebar-btn ${activePanel() === "history" ? "active" : ""}`} onClick={() => setActivePanel("history")} title="History">📜</button>
-          <button class={`sidebar-btn ${activePanel() === "scheduler" ? "active" : ""}`} onClick={() => setActivePanel("scheduler")} title="Scheduler">⚡</button>
-          <div class="sidebar-spacer" />
-          <button class="sidebar-btn" onClick={() => setShowSettingsModal(true)} title="Settings"><Icons.settings /></button>
-        </nav>
-        
-        {/* Canvas Area - Unified Canvas */}
-        <UnifiedCanvas 
-          projectName={projectName()} 
-        />
+      <div class="main-content" style={{ display: "flex", flex: "1", overflow: "hidden" }}>
+        {/* Sidebar - Activity Bar (controls left panel) */}
+        <Show when={layout.config().showActivityBar}>
+          <nav class="sidebar">
 
-        {/* Right Panel */}
-        <aside class="right-panel">
-          {/* NOTE: Properties Panel removed - handled by UnifiedCanvas */}
-          
-          {/* AI Chat Panel */}
-          <Show when={activePanel() === "chat"}>
-            <div class="panel-header"><Icons.message /><span>AI Assistant</span></div>
-            <div class="panel-content" style="display:flex;flex-direction:column;padding:0;">
-              <div style="flex:1;overflow-y:auto;padding:12px;">
-                <For each={chatMessages()}>
-                  {(msg) => (
-                    <div style={`margin-bottom:12px;padding:8px 10px;border-radius:8px;${msg.role === "user" ? "background:#0f3460;margin-left:20px;" : "background:#1f1f3a;margin-right:20px;"}`}>
-                      <div style={`font-size:10px;font-weight:600;margin-bottom:4px;color:${msg.role === "user" ? "#00d4ff" : "#a0a0a0"}`}>
-                        {msg.role === "user" ? "You" : "NeuroBench AI"}
-                      </div>
-                      <div style="font-size:12px;white-space:pre-wrap;">{msg.content}</div>
-                    </div>
-                  )}
-                </For>
-                <Show when={isAiLoading()}>
-                  <div style="color:#666;font-size:12px;">Thinking...</div>
-                </Show>
-              </div>
-              <div style="padding:12px;border-top:1px solid #2a2a4a;display:flex;gap:8px;">
-                <input 
-                  class="panel-input" 
-                  style="flex:1" 
-                  placeholder="Ask about FSM design..." 
-                  value={chatInput()} 
-                  onInput={(e) => setChatInput(e.currentTarget.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                />
-                <button class="btn-primary" onClick={handleSendChat} disabled={isAiLoading()}>
-                  <Icons.send />
-                </button>
-              </div>
+            <button class={`sidebar-btn ${activeSidePanel() === "files" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "files" ? null : "files")} title="Explorer"><Icons.folder /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "hardware" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "hardware" ? null : "hardware")} title="Hardware"><Icons.chip /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "code" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "code" ? null : "code")} title="Code"><Icons.code /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "build" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "build" ? null : "build")} title="Build"><Icons.build /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "drivers" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "drivers" ? null : "drivers")} title="Drivers"><Icons.plug /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "debug" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "debug" ? null : "debug")} title="Debug"><Icons.debug /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "serial" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "serial" ? null : "serial")} title="Serial"><Icons.serial /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "git" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "git" ? null : "git")} title="Git"><Icons.gitBranch /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "rtos" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "rtos" ? null : "rtos")} title="RTOS"><Icons.tasks /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "wireless" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "wireless" ? null : "wireless")} title="Wireless"><Icons.wifi /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "dsp" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "dsp" ? null : "dsp")} title="DSP"><Icons.activity /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "security" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "security" ? null : "security")} title="Security"><Icons.lock /></button>
+
+            <button class={`sidebar-btn ${activeSidePanel() === "simulator" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "simulator" ? null : "simulator")} title="Simulator"><Icons.simulator /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "performance" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "performance" ? null : "performance")} title="Performance"><Icons.performance /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "workflow" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "workflow" ? null : "workflow")} title="Workflow"><Icons.workflow /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "memory" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "memory" ? null : "memory")} title="Memory"><Icons.memory /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "profiler" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "profiler" ? null : "profiler")} title="Profiler"><Icons.profiler /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "power" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "power" ? null : "power")} title="Power"><Icons.power /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "validation" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "validation" ? null : "validation")} title="Validation"><Icons.validate /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "history" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "history" ? null : "history")} title="History"><Icons.history /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "scheduler" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "scheduler" ? null : "scheduler")} title="Scheduler"><Icons.calendar /></button>
+            <div class="sidebar-spacer" />
+            <button class="sidebar-btn" onClick={() => setShowSettingsModal(true)} title="Settings"><Icons.settings /></button>
+          </nav>
+        </Show>
+        
+        {/* Left Panel - VS Code-style sidebar */}
+        <Show when={activeSidePanel() !== null}>
+          <aside class="left-panel" style={{ width: `${leftPanelWidth()}px`, 'min-width': 'unset', 'flex-shrink': 0 }}>
+            {/* Panel Header */}
+            <div class="left-panel-header">
+            <span class="left-panel-title">
+                {activeSidePanel() === "files" && <><Icons.folder /> Explorer</>}
+                {activeSidePanel() === "nodes" && <><Icons.package /> Nodes</>}
+                {/* AI Assistant removed from here */}
+                {activeSidePanel() === "hardware" && <><Icons.chip /> Hardware</>}
+                {activeSidePanel() === "code" && <><Icons.code /> Code</>}
+                {activeSidePanel() === "drivers" && <><Icons.plug /> Drivers</>}
+                {activeSidePanel() === "pins" && <><Icons.pin /> Pins</>}
+                {activeSidePanel() === "rtos" && <><Icons.tasks /> RTOS</>}
+                {activeSidePanel() === "wireless" && <><Icons.wifi /> Wireless</>}
+                {activeSidePanel() === "dsp" && <><Icons.waveform /> DSP</>}
+                {activeSidePanel() === "security" && <><Icons.lock /> Security</>}
+                {activeSidePanel() === "simulator" && <><Icons.simulator /> Simulator</>}
+                {activeSidePanel() === "debug" && <><Icons.debug /> Debug</>}
+                {activeSidePanel() === "performance" && <><Icons.performance /> Performance</>}
+                {activeSidePanel() === "build" && <><Icons.build /> Build</>}
+                {activeSidePanel() === "workflow" && <><Icons.workflow /> Workflow</>}
+                {activeSidePanel() === "git" && <><Icons.gitBranch /> Git</>}
+                {activeSidePanel() === "serial" && <><Icons.serial /> Serial</>}
+                {activeSidePanel() === "memory" && <><Icons.memory /> Memory</>}
+                {activeSidePanel() === "profiler" && <><Icons.profiler /> Profiler</>}
+                {activeSidePanel() === "power" && <><Icons.power /> Power</>}
+                {activeSidePanel() === "validation" && <><Icons.validate /> Validation</>}
+                {activeSidePanel() === "history" && <><Icons.history /> History</>}
+                {activeSidePanel() === "scheduler" && <><Icons.calendar /> Scheduler</>}
+              </span>
+              <button class="left-panel-close" onClick={() => setActiveSidePanel(null)}>✕</button>
             </div>
-          </Show>
-          
-          {/* Hardware Panel */}
-          <Show when={activePanel() === "hardware"}>
-            <div class="panel-header"><Icons.chip /><span>Hardware</span></div>
-            <div class="panel-content">
-              <div class="panel-section">
-                <div class="panel-section-title">Target MCU</div>
-                <select class="panel-input" value={targetMcu()} onChange={(e) => setTargetMcu(e.currentTarget.value)}>
-                  <option value="STM32F401">STM32F401 BlackPill</option>
-                  <option value="STM32F103">STM32F103 BluePill</option>
-                  <option value="ESP32">ESP32-WROOM</option>
-                  <option value="RP2040">Raspberry Pi Pico</option>
-                  <option value="ATmega328P">Arduino Uno</option>
-                </select>
-              </div>
-              <div class="panel-section">
-                <div class="panel-section-title">Serial Ports</div>
-                <button class="btn-primary" style="width:100%;margin-bottom:8px;" onClick={handleDetectDevices}>
-                  Scan Ports
-                </button>
-                <Show when={serialPorts().length > 0} fallback={
-                  <div style="color:#666;font-size:11px;">No ports detected. Click Scan.</div>
-                }>
-                  <For each={serialPorts()}>
-                    {(port) => (
-                      <div style="padding:8px;background:#1f1f3a;border-radius:4px;margin-bottom:4px;">
-                        <div style="font-weight:600;font-size:12px;color:#00d4ff;">{port.name}</div>
-                        <div style="font-size:10px;color:#666;">
-                          {port.info.type === "USB" ? `${port.info.product || 'USB'} [${port.info.vid}:${port.info.pid}]` : port.info.type}
-                        </div>
-                      </div>
-                    )}
-                  </For>
-                </Show>
-              </div>
-            </div>
-          </Show>
-          
-          {/* Code Panel */}
-          <Show when={activePanel() === "code"}>
-            <div class="panel-header"><Icons.code /><span>Generated Code</span></div>
-            <div class="panel-content" style="padding:0;display:flex;flex-direction:column;">
-              <div style="padding:8px 12px;border-bottom:1px solid #2a2a4a;display:flex;gap:8px;align-items:center;">
-                <select class="panel-input" style="flex:1" value={codeLanguage()} onChange={(e) => setCodeLanguage(e.currentTarget.value)}>
-                  <option value="C">C</option>
-                  <option value="Cpp">C++</option>
-                  <option value="Rust">Rust</option>
-                  <option value="Python">Python</option>
-                </select>
-                <button class="btn-primary" onClick={handleGenerateCode} disabled={isGenerating()}>
-                  {isGenerating() ? "..." : "Generate"}
-                </button>
-              </div>
-              <div style="flex:1;overflow:auto;padding:8px;">
-                <Show when={generatedCode()} fallback={
-                  <div style="color:#666;font-size:11px;text-align:center;padding:20px;">
-                    Click Generate to create code from your FSM
+            
+            {/* Panel Content */}
+            <div class="left-panel-content">
+              
+              <Show when={activeSidePanel() === "files"}>
+                  <FileExplorer 
+                    workspacePath={activeWorkspacePath() || ""} 
+                    onFileSelect={(path, name) => handleOpenFile(path, name)} 
+                  />
+              </Show>
+
+              <Show when={activeSidePanel() === "hardware"}>
+                <div class="panel-section"><div class="panel-section-title">Target MCU</div>
+                  <select class="panel-input" value={targetMcu()} onChange={(e) => setTargetMcu(e.currentTarget.value)}>
+                    <option value="STM32F401">STM32F401</option>
+                    <option value="STM32F103">STM32F103</option>
+                    <option value="ESP32">ESP32</option>
+                    <option value="RP2040">RP2040</option>
+                  </select>
+                </div>
+                <div class="panel-section"><div class="panel-section-title">Serial Ports</div>
+                  <button class="btn-primary" onClick={handleDetectDevices}>Scan Ports</button>
+                  <For each={serialPorts()}>{(p) => <div class="port-item">{p.name}</div>}</For>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "code"}>
+                <div class="panel-section">
+                  <div class="code-toolbar">
+                    <select class="panel-input" value={codeLanguage()} onChange={(e) => setCodeLanguage(e.currentTarget.value)}>
+                      <option value="C">C</option><option value="Cpp">C++</option><option value="Rust">Rust</option>
+                    </select>
+                    <button class="btn-primary" onClick={handleGenerateCode} disabled={isGenerating()}>{isGenerating() ? "..." : "Generate"}</button>
                   </div>
-                }>
-                  <pre style="font-family:var(--font-mono);font-size:10px;white-space:pre-wrap;color:#eaeaea;margin:0;">
-                    {generatedCode()}
-                  </pre>
-                </Show>
-              </div>
+                  <pre class="code-output">{generatedCode() || "// Click Generate"}</pre>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "drivers"}>
+                <div class="panel-section"><div class="panel-section-title">Peripheral</div>
+                  <select class="panel-input" value={driverType()} onChange={(e) => setDriverType(e.currentTarget.value as any)}>
+                    <option value="GPIO">GPIO</option><option value="UART">UART</option><option value="SPI">SPI</option><option value="I2C">I2C</option>
+                  </select>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "build"}><BuildPanel /></Show>
+              <Show when={activeSidePanel() === "debug"}><DebugPanel /></Show>
+              <Show when={activeSidePanel() === "serial"}><SerialPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "rtos"}><RTOSPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "wireless"}><WirelessPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "dsp"}><DSPPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "security"}><SecurityPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "git"}><GitPanel projectPath="." onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "memory"}><MemoryPanel /></Show>
+              <Show when={activeSidePanel() === "profiler"}><ProfilerPanel /></Show>
+              <Show when={activeSidePanel() === "performance"}><PerformancePanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "simulator"}><SimulationDashboard onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "power"}><PowerPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "validation"}><ValidationPanel code={generatedCode() || ""} language={codeLanguage()} onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "history"}><HistoryPanel /></Show>
+              <Show when={activeSidePanel() === "scheduler"}><SchedulerPanel /></Show>
+              <Show when={activeSidePanel() === "workflow"}><WorkflowPanel /></Show>
             </div>
-          </Show>
-          
-          {/* Drivers Panel */}
-          <Show when={activePanel() === "drivers"}>
-            <div class="panel-header"><Icons.plug /><span>Driver Generator</span></div>
-            <div class="panel-content">
-              <div class="panel-section">
-                <div class="panel-section-title">Peripheral Type</div>
-                <select class="panel-input" value={driverType()} onChange={(e) => setDriverType(e.currentTarget.value as "GPIO" | "UART" | "SPI" | "I2C" | "CAN" | "Modbus")}>
-                  <option value="GPIO">GPIO</option>
-                  <option value="UART">UART</option>
-                  <option value="SPI">SPI</option>
-                  <option value="I2C">I2C</option>
-                  <option value="CAN">CAN Bus</option>
-                  <option value="Modbus">Modbus RTU</option>
-                </select>
-              </div>
-              
-              <Show when={driverType() === "GPIO"}>
-                <div class="panel-section">
-                  <div class="panel-section-title">Port</div>
-                  <select class="panel-input" value={gpioPort()} onChange={(e) => setGpioPort(e.currentTarget.value)}>
-                    <option value="A">Port A</option>
-                    <option value="B">Port B</option>
-                    <option value="C">Port C</option>
-                    <option value="D">Port D</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">Pin</div>
-                  <input class="panel-input" type="number" min="0" max="15" value={gpioPin()} onInput={(e) => setGpioPin(parseInt(e.currentTarget.value) || 0)} />
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">Mode</div>
-                  <select class="panel-input" value={gpioMode()} onChange={(e) => setGpioMode(e.currentTarget.value)}>
-                    <option value="output">Output</option>
-                    <option value="input">Input</option>
-                    <option value="analog">Analog</option>
-                    <option value="alternate">Alternate Function</option>
-                  </select>
-                </div>
-              </Show>
-              
-              <Show when={driverType() === "UART"}>
-                <div class="panel-section">
-                  <div class="panel-section-title">Instance</div>
-                  <select class="panel-input" value={uartInstance()} onChange={(e) => setUartInstance(e.currentTarget.value)}>
-                    <option value="USART1">USART1</option>
-                    <option value="USART2">USART2</option>
-                    <option value="USART3">USART3</option>
-                    <option value="UART4">UART4</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">Baud Rate</div>
-                  <select class="panel-input" value={uartBaud()} onChange={(e) => setUartBaud(parseInt(e.currentTarget.value))}>
-                    <option value="9600">9600</option>
-                    <option value="19200">19200</option>
-                    <option value="38400">38400</option>
-                    <option value="57600">57600</option>
-                    <option value="115200">115200</option>
-                    <option value="230400">230400</option>
-                    <option value="460800">460800</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;">
-                    <input type="checkbox" checked={uartDma()} onChange={(e) => setUartDma(e.currentTarget.checked)} />
-                    Enable DMA
-                  </label>
-                </div>
-              </Show>
-              
-              <Show when={driverType() === "SPI"}>
-                <div class="panel-section">
-                  <div class="panel-section-title">Instance</div>
-                  <select class="panel-input" value={spiInstance()} onChange={(e) => setSpiInstance(e.currentTarget.value)}>
-                    <option value="SPI1">SPI1</option>
-                    <option value="SPI2">SPI2</option>
-                    <option value="SPI3">SPI3</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">Clock Speed</div>
-                  <select class="panel-input" value={spiClock()} onChange={(e) => setSpiClock(parseInt(e.currentTarget.value))}>
-                    <option value="1000000">1 MHz</option>
-                    <option value="2000000">2 MHz</option>
-                    <option value="4000000">4 MHz</option>
-                    <option value="8000000">8 MHz</option>
-                    <option value="16000000">16 MHz</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">SPI Mode</div>
-                  <select class="panel-input" value={spiMode()} onChange={(e) => setSpiMode(parseInt(e.currentTarget.value))}>
-                    <option value="0">Mode 0 (CPOL=0, CPHA=0)</option>
-                    <option value="1">Mode 1 (CPOL=0, CPHA=1)</option>
-                    <option value="2">Mode 2 (CPOL=1, CPHA=0)</option>
-                    <option value="3">Mode 3 (CPOL=1, CPHA=1)</option>
-                  </select>
-                </div>
-              </Show>
-              
-              <Show when={driverType() === "I2C"}>
-                <div class="panel-section">
-                  <div class="panel-section-title">Instance</div>
-                  <select class="panel-input" value={i2cInstance()} onChange={(e) => setI2cInstance(e.currentTarget.value)}>
-                    <option value="I2C1">I2C1</option>
-                    <option value="I2C2">I2C2</option>
-                    <option value="I2C3">I2C3</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">Speed</div>
-                  <select class="panel-input" value={i2cSpeed()} onChange={(e) => setI2cSpeed(e.currentTarget.value)}>
-                    <option value="standard">Standard (100 kHz)</option>
-                    <option value="fast">Fast (400 kHz)</option>
-                    <option value="fastplus">Fast+ (1 MHz)</option>
-                  </select>
-                </div>
-              </Show>
-              
-              <Show when={driverType() === "CAN"}>
-                <div class="panel-section">
-                  <div class="panel-section-title">Instance</div>
-                  <select class="panel-input" value={canInstance()} onChange={(e) => setCanInstance(e.currentTarget.value)}>
-                    <option value="CAN1">CAN1</option>
-                    <option value="CAN2">CAN2</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">Bitrate</div>
-                  <select class="panel-input" value={canBitrate()} onChange={(e) => setCanBitrate(parseInt(e.currentTarget.value))}>
-                    <option value="125000">125 kbps</option>
-                    <option value="250000">250 kbps</option>
-                    <option value="500000">500 kbps</option>
-                    <option value="1000000">1 Mbps</option>
-                  </select>
-                </div>
-              </Show>
-              
-              <Show when={driverType() === "Modbus"}>
-                <div class="panel-section">
-                  <div class="panel-section-title">Mode</div>
-                  <select class="panel-input" value={modbusMode()} onChange={(e) => setModbusMode(e.currentTarget.value)}>
-                    <option value="master">RTU Master</option>
-                    <option value="slave">RTU Slave</option>
-                  </select>
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">Slave Address</div>
-                  <input class="panel-input" type="number" min="1" max="247" value={modbusAddress()} onInput={(e) => setModbusAddress(parseInt(e.currentTarget.value) || 1)} />
-                </div>
-                <div class="panel-section">
-                  <div class="panel-section-title">UART</div>
-                  <select class="panel-input" value={uartInstance()} onChange={(e) => setUartInstance(e.currentTarget.value)}>
-                    <option value="USART1">USART1</option>
-                    <option value="USART2">USART2</option>
-                    <option value="USART3">USART3</option>
-                  </select>
-                </div>
-              </Show>
-              
-              <div class="panel-section">
-                <div class="panel-section-title">Language</div>
-                <select class="panel-input" value={driverLanguage()} onChange={(e) => setDriverLanguage(e.currentTarget.value)}>
-                  <option value="C">C</option>
-                  <option value="Cpp">C++</option>
-                  <option value="Rust">Rust</option>
-                </select>
-              </div>
-              
-              <button class="btn-primary" style="width:100%;margin-top:12px;" onClick={handleGenerateDriver} disabled={isGeneratingDriver()}>
-                {isGeneratingDriver() ? "Generating..." : "Generate Driver"}
-              </button>
-              
-              <Show when={generatedDriver()}>
-                <div style="margin-top:12px;padding:8px;background:#1a1a2e;border-radius:4px;max-height:200px;overflow:auto;">
-                  <div style="font-size:10px;color:#00d4ff;margin-bottom:4px;">Generated Code:</div>
-                  <pre style="font-family:var(--font-mono);font-size:9px;color:#eaeaea;margin:0;white-space:pre-wrap;">
-                    {generatedDriver()?.source || ""}
-                  </pre>
-                </div>
-              </Show>
-            </div>
-          </Show>
-          
-          {/* Pins Panel - Visual MCU Pin Configurator */}
-          <Show when={activePanel() === "pins"}>
-            <div class="panel-header"><Icons.cpu /><span>MCU Pins</span></div>
-            <div class="panel-content" style="padding:4px;">
-              <PinDiagram 
-                mcuId="STM32F401"
-                onPinSelect={(pin, func) => {
-                  addLog("PINS", `Configured ${pin.name} as ${func}`, "success");
+          </aside>
+          <ResizableSplitter 
+            direction="horizontal" 
+            onResize={(x) => setLeftPanelWidth(Math.max(200, Math.min(600, x - 48)))} 
+          />
+        </Show>
+        
+        {/* Canvas Area - Konva Canvas */}
+        <div class="editor-area" style={{ flex: 1, display: "flex", "flex-direction": "column", overflow: "hidden", position: "relative" }}>
+          <EditorTabBar 
+            tabs={tabs().map(t => ({ id: t.id, name: t.name, modified: t.modified }))}
+            activeTabId={activeTabId()}
+            onTabClick={switchTab}
+            onTabClose={closeTab}
+            onAddTab={() => addNewTab()}
+          />
+          <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+            <KonvaCanvas />
+          </div>
+        </div>
+
+        {/* Dedicated AI Assistant Right Panel */}
+        <Show when={showRightPanel()}>
+          <ResizableSplitter direction="horizontal" onResize={(val) => setRightPanelWidth(Math.max(300, window.innerWidth - val))} />
+          <aside class="right-panel" style={{ width: `${rightPanelWidth()}px`, 'flex-shrink': 0, display: 'flex', 'flex-direction': 'column', 'background': '#13131f', 'border-left': '1px solid #333' }}>
+             <AgentPanel 
+                onToolAction={handleToolAction} 
+                hideHeader={false}
+                context={{
+                  projectName: projectName(),
+                  mcuTarget: targetMcu(),
+                  language: codeLanguage(),
+                  nodeCount: nodes().length,
+                  edgeCount: edges().length,
+                  selectedNodeId: selectedNode(),
+                  selectedNodeLabel: selectedNode() ? getNodeById(selectedNode()!)?.label || null : null
                 }}
               />
-            </div>
-          </Show>
-          
-          {/* RTOS Panel */}
-          <Show when={activePanel() === "rtos"}>
-            <div class="panel-header"><Icons.tasks /><span>RTOS Tasks</span></div>
-            <div class="panel-content">
-              <div class="panel-section">
-                <div class="panel-section-title">FreeRTOS Configuration</div>
-                <div style="font-size:11px;color:#aaa;margin-bottom:8px;">
-                  Generate RTOS task scaffolding with priorities and scheduling.
-                </div>
-              </div>
-              
-              <div class="panel-section">
-                <div class="panel-section-title">Example Tasks</div>
-                <div style="font-size:10px;color:#666;padding:8px;background:#1a1a2e;border-radius:4px;">
-                  <div style="margin-bottom:4px;">• <span style="color:#4CAF50;">LED_Task</span> - Priority 1, 256 words</div>
-                  <div style="margin-bottom:4px;">• <span style="color:#2196F3;">UART_Task</span> - Priority 2, 512 words</div>
-                  <div>• <span style="color:#FF9800;">Sensor_Task</span> - Priority 3, 256 words</div>
-                </div>
-              </div>
-              
-              <div class="panel-section">
-                <div class="panel-section-title">Heap Size</div>
-                <select class="panel-input">
-                  <option value="8">8 KB</option>
-                  <option value="16" selected>16 KB</option>
-                  <option value="32">32 KB</option>
-                  <option value="64">64 KB</option>
-                </select>
-              </div>
-              
-              <div class="panel-section">
-                <div class="panel-section-title">Language</div>
-                <select class="panel-input" value={driverLanguage()} onChange={(e) => setDriverLanguage(e.currentTarget.value)}>
-                  <option value="C">C</option>
-                  <option value="Cpp">C++</option>
-                  <option value="Rust">Rust</option>
-                </select>
-              </div>
-              
-              <button class="btn-primary" style="width:100%;margin-top:12px;" onClick={async () => {
-                try {
-                  addLog("RTOS", "Generating FreeRTOS code...", "info");
-                  const result = await invoke("generate_rtos_code", {
-                    tasks: [
-                      { name: "LED", priority: 1, stackSize: 256, periodMs: 500, handler: "LED_Handler" },
-                      { name: "UART", priority: 2, stackSize: 512, periodMs: 100, handler: "UART_Handler" },
-                      { name: "Sensor", priority: 3, stackSize: 256, periodMs: 50, handler: "Sensor_Handler" },
-                    ],
-                    heapSizeKb: 16,
-                    language: driverLanguage(),
-                  });
-                  setGeneratedDriver(result);
-                  addLog("RTOS", "Generated FreeRTOS code successfully!", "success");
-                } catch (e) {
-                  addLog("ERROR", `RTOS generation failed: ${e}`, "error");
-                }
-              }}>
-                Generate RTOS Code
-              </button>
-              
-              <Show when={generatedDriver()?.peripheral === "RTOS"}>
-                <div style="margin-top:12px;padding:8px;background:#1a1a2e;border-radius:4px;max-height:200px;overflow:auto;">
-                  <div style="font-size:10px;color:#00d4ff;margin-bottom:4px;">Generated RTOS Code:</div>
-                  <pre style="font-family:var(--font-mono);font-size:9px;color:#eaeaea;margin:0;white-space:pre-wrap;">
-                    {generatedDriver()?.source || ""}
-                  </pre>
-                </div>
-              </Show>
-            </div>
-          </Show>
-          
-          {/* AI Agents Panel */}
-          <Show when={activePanel() === "agents"}>
-            <AgentPanel onToolAction={handleToolAction} />
-          </Show>
-          
-          {/* Timers & Interrupts Panel */}
-          <Show when={activePanel() === "timers"}>
-            <TimersPanel onLog={addLog} />
-          </Show>
-          
-          {/* Serial Peripherals Panel */}
-          <Show when={activePanel() === "peripherals"}>
-            <PeripheralsPanel onLog={addLog} />
-          </Show>
-          
-          {/* Clock & Power Panel */}
-          <Show when={activePanel() === "clock"}>
-            <ClockPanel onLog={addLog} />
-          </Show>
-          
-          {/* Analog I/O Panel */}
-          <Show when={activePanel() === "analog"}>
-            <AnalogPanel onLog={addLog} />
-          </Show>
-          
-          {/* MCU Selector Panel */}
-          <Show when={activePanel() === "mcu"}>
-            <McuSelector onLog={addLog} />
-          </Show>
-          
-          {/* RTOS Panel */}
-          <Show when={activePanel() === "rtos"}>
-            <RTOSPanel onLog={addLog} />
-          </Show>
-          
-          {/* Wireless Panel */}
-          <Show when={activePanel() === "wireless"}>
-            <WirelessPanel onLog={addLog} />
-          </Show>
-          
-          {/* DSP Panel */}
-          <Show when={activePanel() === "dsp"}>
-            <DSPPanel onLog={addLog} />
-          </Show>
-          
-          {/* Security Panel */}
-          <Show when={activePanel() === "security"}>
-            <SecurityPanel onLog={addLog} />
-          </Show>
-          
-          {/* NEW: Additional Panels */}
-          <Show when={activePanel() === "simulator"}>
-            <SimulatorPanel onLog={addLog} />
-          </Show>
-          
-          <Show when={activePanel() === "debug"}>
-            <DebugPanel />
-          </Show>
-          
-          <Show when={activePanel() === "performance"}>
-            <PerformancePanel onLog={addLog} />
-          </Show>
-          
-          <Show when={activePanel() === "build"}>
-            <BuildPanel />
-          </Show>
-          
-          <Show when={activePanel() === "workflow"}>
-            <WorkflowPanel />
-          </Show>
-          
-          <Show when={activePanel() === "git"}>
-            <GitPanel projectPath="." onLog={addLog} />
-          </Show>
-          
-          <Show when={activePanel() === "serial"}>
-            <SerialPanel onLog={addLog} />
-          </Show>
-          
-          <Show when={activePanel() === "memory"}>
-            <MemoryPanel />
-          </Show>
-          
-          <Show when={activePanel() === "profiler"}>
-            <ProfilerPanel />
-          </Show>
-          
-          <Show when={activePanel() === "power"}>
-            <PowerPanel onLog={addLog} />
-          </Show>
-          
-          <Show when={activePanel() === "validation"}>
-            <ValidationPanel code={generatedCode() || ""} language={codeLanguage()} onLog={addLog} />
-          </Show>
-          
-          <Show when={activePanel() === "history"}>
-            <HistoryPanel />
-          </Show>
-          
-          <Show when={activePanel() === "scheduler"}>
-            <SchedulerPanel />
-          </Show>
-        </aside>
+          </aside>
+        </Show>
+
       </div>
       
       {/* Bottom Panel */}
-      <div class="bottom-panel">
-        <div class="bottom-panel-tabs">
-          <button class={`bottom-panel-tab ${activeBottomTab() === "terminal" ? "active" : ""}`} onClick={() => setActiveBottomTab("terminal")}>Terminal</button>
-          <button class={`bottom-panel-tab ${activeBottomTab() === "console" ? "active" : ""}`} onClick={() => setActiveBottomTab("console")}>Console</button>
-          <button class={`bottom-panel-tab ${activeBottomTab() === "problems" ? "active" : ""}`} onClick={() => setActiveBottomTab("problems")}>Problems</button>
-          <button class={`bottom-panel-tab ${activeBottomTab() === "output" ? "active" : ""}`} onClick={() => setActiveBottomTab("output")}>Output</button>
+      <Show when={layout.config().showPanel}>
+        <ResizableSplitter direction="vertical" onResize={(y) => setBottomPanelHeight(Math.max(100, window.innerHeight - y))} />
+        <div class="bottom-panel" style={{ height: `${bottomPanelHeight()}px`, 'flex-shrink': 0 }}>
+          <div class="bottom-panel-tabs">
+            <button class={`bottom-panel-tab ${activeBottomTab() === "terminal" ? "active" : ""}`} onClick={() => setActiveBottomTab("terminal")}>Terminal</button>
+            <button class={`bottom-panel-tab ${activeBottomTab() === "console" ? "active" : ""}`} onClick={() => setActiveBottomTab("console")}>Console</button>
+            <button class={`bottom-panel-tab ${activeBottomTab() === "problems" ? "active" : ""}`} onClick={() => setActiveBottomTab("problems")}>Problems</button>
+            <button class={`bottom-panel-tab ${activeBottomTab() === "output" ? "active" : ""}`} onClick={() => setActiveBottomTab("output")}>Output</button>
+          </div>
+          
+          <Show when={activeBottomTab() === "terminal"}>
+            <div class="terminal-panel">
+              <Terminal onCommand={(cmd, output) => {
+                addLog("TERMINAL", `> ${cmd}`, "info");
+              }} />
+            </div>
+          </Show>
+          
+          <Show when={activeBottomTab() === "console"}>
+            <div class="console-content">
+              <For each={logs()}>
+                {(log) => (
+                  <div class="console-line">
+                    <span class="console-time">{log.time}</span>
+                    <span class={`console-tag ${log.type}`}>{log.source}</span>
+                    <span class="console-message">{log.message}</span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </Show>
+          
+          <Show when={activeBottomTab() === "problems"}>
+            <div class="console-content">
+              <div class="console-line info">
+                <span class="console-message" style="color:#888;">No problems detected</span>
+              </div>
+            </div>
+          </Show>
+          
+          <Show when={activeBottomTab() === "output"}>
+            <div class="console-content">
+              <div class="console-line">
+                <span class="console-message" style="color:#888;">Build output will appear here...</span>
+              </div>
+            </div>
+          </Show>
         </div>
-        
-        <Show when={activeBottomTab() === "terminal"}>
-          <div class="terminal-panel">
-            <Terminal onCommand={(cmd, output) => {
-              addLog("TERMINAL", `> ${cmd}`, "info");
-            }} />
-          </div>
-        </Show>
-        
-        <Show when={activeBottomTab() === "console"}>
-          <div class="console-content">
-            <For each={logs()}>
-              {(log) => (
-                <div class="console-line">
-                  <span class="console-time">{log.time}</span>
-                  <span class={`console-tag ${log.type}`}>{log.source}</span>
-                  <span class="console-message">{log.message}</span>
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
-        
-        <Show when={activeBottomTab() === "problems"}>
-          <div class="console-content">
-            <div class="console-line info">
-              <span class="console-message" style="color:#888;">No problems detected</span>
-            </div>
-          </div>
-        </Show>
-        
-        <Show when={activeBottomTab() === "output"}>
-          <div class="console-content">
-            <div class="console-line">
-              <span class="console-message" style="color:#888;">Build output will appear here...</span>
-            </div>
-          </div>
-        </Show>
-      </div>
+      </Show>
       
       {/* FSM from Description Modal */}
       <Show when={showDescriptionModal()}>
@@ -2223,12 +2136,42 @@ function App() {
         <SettingsPanel 
           onClose={() => setShowSettingsModal(false)}
           onLog={addLog}
+          projectPassword={projectPassword()}
+          setProjectPassword={setProjectPassword}
         />
       </Show>
       
+      {/* Status Bar - Bottom of app */}
+      <Show when={layout.config().showStatusBar}>
+        <StatusBar 
+          projectName={projectName()}
+          targetMcu={targetMcu()}
+          connectionStatus="disconnected"
+          buildStatus="idle"
+          nodeCount={nodes().length}
+          edgeCount={edges().length}
+          zoom={1}
+        />
+      </Show>
+      
+      {/* Layout Customizer Modal */}
+      <LayoutCustomizer 
+        isOpen={showLayoutCustomizer()} 
+        onClose={() => setShowLayoutCustomizer(false)} 
+      />
 
     </div>
   );
 }
 
-export default App;
+// Wrap App with LayoutProvider to provide layout context throughout the app
+function AppWithLayout() {
+  return (
+    <LayoutProvider>
+      <App />
+    </LayoutProvider>
+  );
+}
+
+export default AppWithLayout;
+

@@ -323,3 +323,20 @@ pub mod esp32;
 pub mod rp2040;
 pub mod nordic;
 pub mod nxp;
+
+// New MCU families
+pub mod gd32;      // GigaDevice (ARM + RISC-V)
+pub mod ch32;      // WCH RISC-V
+pub mod avr;       // Microchip AVR (ATmega, ATtiny)
+pub mod ti;        // Texas Instruments (MSP430, MSP432, CC)
+pub mod renesas;   // Renesas (RA, RX, RL78)
+pub mod pic;       // Microchip PIC (PIC16, PIC18, PIC24, dsPIC)
+
+// Re-export new family types
+pub use gd32::{Gd32Variant, get_gd32_variants};
+pub use ch32::{Ch32Variant, get_ch32_variants};
+pub use avr::{AvrVariant, get_avr_variants};
+pub use ti::{TiVariant, get_ti_variants};
+pub use renesas::{RenesasVariant, get_renesas_variants};
+pub use pic::{PicVariant, get_pic_variants};
+

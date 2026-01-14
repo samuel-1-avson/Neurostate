@@ -1,0 +1,186 @@
+/* BottomDock - VS Code-style Dockable Bottom Panel */
+
+.bottom-dock {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  transition: height 0.2s ease;
+  position: relative;
+  z-index: 50;
+}
+
+.bottom-dock.minimized {
+  height: 32px !important;
+}
+
+.bottom-dock.resizing {
+  transition: none;
+  user-select: none;
+}
+
+/* Resize Handle */
+.dock-resize-handle {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  z-index: 10;
+}
+
+.dock-resize-handle:hover {
+  background: linear-gradient(to bottom, var(--accent-dim), transparent);
+}
+
+/* Tab Bar */
+.dock-tabs {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 8px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  gap: 2px;
+}
+
+.dock-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.dock-tab:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.dock-tab.active {
+  background: var(--bg-panel);
+  color: var(--accent);
+}
+
+.dock-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.tab-icon {
+  font-size: 14px;
+}
+
+.tab-label {
+  font-weight: 500;
+}
+
+.dock-tabs-spacer {
+  flex: 1;
+}
+
+.dock-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 10px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: all 0.15s;
+}
+
+.dock-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* Content Area */
+.dock-content {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg-panel);
+}
+
+/* Panel Content Styling */
+.dock-panel {
+  padding: 12px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.dock-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dock-panel-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dock-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.dock-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.dock-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* Terminal-like output */
+.dock-terminal {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  height: 100%;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  color: var(--text-secondary);
+}
+
+.dock-terminal .log-info { color: var(--status-info); }
+.dock-terminal .log-success { color: var(--status-success); }
+.dock-terminal .log-warning { color: var(--status-warning); }
+.dock-terminal .log-error { color: var(--status-error); }

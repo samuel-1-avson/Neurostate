@@ -1,0 +1,96 @@
+/* Minimal Retro Calm Theme 
+ * A clean, muted aesthetic with warm greys and soft accents.
+ * Replaces the heavy "Industrial" look.
+ */
+
+:root {
+  /* === PALETTE: CALM RETRO === */
+  
+  /* Backgrounds */
+  /* Warm off-white/grey base for a paper-like feel, or a very muted dark grey */
+  /* Decision: 'Dark Mode' Retro (Braun/Sony 80s style) is often cleaner for devs than bright white, 
+     but "minimal calm" requests often imply light. I will provide a Muted Dark theme that is easy on eyes. */
+  
+  --bg-base: #232326;     /* Deep warm charcoal */
+  --bg-panel: #2a2a2d;    /* Slightly lighter panel background */
+  --bg-surface: #323236;   /* Card/Surface background */
+  --bg-input: #1b1b1e;    /* Deepest input background */
+  --bg-elevated: #3e3e42; /* Popups/Menus */
+  
+  /* Accents - Muted, not neon */
+  --accent: #d4a373;      /* Warm Tan/Paper */
+  --accent-dim: #b88b5c;
+  --accent-subtle: rgba(212, 163, 115, 0.15);
+  --accent-glow: rgba(212, 163, 115, 0.2); 
+  
+  /* Status Colors - Pastel/Muted */
+  --status-success: #81b29a; /* Sage Green */
+  --status-warning: #e07a5f; /* Terracotta */
+  --status-error: #d62828;   /* Muted Red */
+  --status-info: #8d99ae;    /* Steel Blue */
+  
+  /* Text */
+  --text-primary: #e8e8e6;   /* Warm White */
+  --text-secondary: #a0a0a0; /* Muted Grey */
+  --text-dim: #6e6e72;       /* Dark Grey */
+  --text-accent: var(--accent);
+
+  /* Borders */
+  --border: #38383c;
+  --border-strong: #45454a;
+  --border-accent: var(--accent-dim);
+  
+  /* Typography - Clean Sans */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* Sizing & Radius */
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-sm: 4px;
+  
+  /* Shadow - Soft, diffused */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.2);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.2);
+  
+  /* === COMPATIBILITY: Map Industrial Vars to Retro Vars === */
+  --accent-primary: var(--accent);
+  --accent-primary-dim: var(--accent-dim);
+  --accent-primary-glow: var(--accent-glow);
+  --accent-primary-bg: var(--accent-subtle);
+  
+  --status-critical: var(--status-error);
+  --status-critical-dim: #c0392b; /* Helper if needed */
+  --status-critical-glow: rgba(214, 40, 40, 0.4);
+  --status-critical-bg: rgba(214, 40, 40, 0.15);
+  
+  --status-ok: var(--status-success);
+  --status-ok-dim: #5f8d7a;
+  --status-ok-glow: rgba(129, 178, 154, 0.4);
+  --status-ok-bg: rgba(129, 178, 154, 0.15);
+  
+  --bg-hover: var(--bg-surface); /* Approximate */
+}
+
+/* Scrollbar Styling for WebKit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* Global Selection */
+::selection {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}

@@ -1,0 +1,426 @@
+   Compiling neurobench v0.1.0 (C:\Users\samue\Desktop\project\Neurostate\neurobench\src-tauri)
+error[E0428]: the name `tests` is defined multiple times
+   --> src\simulation\mod.rs:169:1
+    |
+ 47 | mod tests;
+    | ---------- previous definition of the module `tests` here
+...
+169 | mod tests {
+    | ^^^^^^^^^ `tests` redefined here
+    |
+    = note: `tests` must be defined only once in the type namespace of this module
+
+error[E0432]: unresolved import `super::peripherals`
+ --> src\simulation\peripherals\can.rs:5:12
+  |
+5 | use super::peripherals::Peripheral;
+  |            ^^^^^^^^^^^ could not find `peripherals` in `super`
+
+error[E0432]: unresolved import `crate::simulation::debug::WatchType`
+   --> src\simulation\tests.rs:318:70
+    |
+318 |     use crate::simulation::debug::{Debugger, Breakpoint, Watchpoint, WatchType};
+    |                                                                      ^^^^^^^^^ no `WatchType` in `simulation::debug`
+
+warning: unused import: `TracedOperation`
+  --> src\ai\router.rs:17:50
+   |
+17 | use super::observability::{ObservabilityManager, TracedOperation};
+   |                                                  ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `ModelResponse`
+  --> src\ai\rag_pipeline.rs:10:50
+   |
+10 | use crate::ai::providers::{AIModel, ChatMessage, ModelResponse, Role};
+   |                                                  ^^^^^^^^^^^^^
+
+warning: unused imports: `SearchResult` and `VectorStoreError`
+  --> src\ai\rag_pipeline.rs:11:44
+   |
+11 | use crate::ai::vector_store::{VectorStore, VectorStoreError, SearchResult, EmbeddingProvider};
+   |                                            ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+
+warning: unused import: `TerminalResult`
+ --> src\terminal\executor.rs:7:13
+  |
+7 | use super::{TerminalResult, TerminalLine};
+  |             ^^^^^^^^^^^^^^
+
+warning: unused import: `AgentContext`
+  --> src\agents\director.rs:10:31
+   |
+10 | use super::{Agent, AgentInfo, AgentContext, AgentResponse, ToolCall};
+   |                               ^^^^^^^^^^^^
+
+warning: unused import: `AgentModelRegistry`
+  --> src\agents\canvas_agent.rs:10:35
+   |
+10 | use crate::ai::{AgentModelConfig, AgentModelRegistry};
+   |                                   ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `TaskStatus`
+ --> src\agents\plan_executor.rs:8:62
+  |
+8 | use super::task_queue::{TaskQueue, BackgroundTask, TaskType, TaskStatus};
+  |                                                              ^^^^^^^^^^
+
+warning: unused imports: `AgentInfo`, `AgentResponse`, and `Agent`
+ --> src\agents\collaboration.rs:6:13
+  |
+6 | use super::{AgentInfo, AgentResponse, Agent};
+  |             ^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^
+
+warning: unused imports: `TaskStatus` and `Task`
+  --> src\agents\hierarchical_planner.rs:10:31
+   |
+10 | use crate::agents::director::{Task, TaskStatus};
+   |                               ^^^^  ^^^^^^^^^^
+
+warning: unused import: `VecDeque`
+  --> src\agents\hierarchical_planner.rs:13:42
+   |
+13 | use std::collections::{HashMap, HashSet, VecDeque};
+   |                                          ^^^^^^^^
+
+warning: unused import: `std::sync::Arc`
+  --> src\agents\hierarchical_planner.rs:14:5
+   |
+14 | use std::sync::Arc;
+   |     ^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> src\agents\self_reflection.rs:12:5
+   |
+12 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `super::*`
+ --> src\agents\tests.rs:6:9
+  |
+6 |     use super::*;
+  |         ^^^^^^^^
+
+warning: unused imports: `AgentCapabilities`, `AgentInfo`, and `ContextEdge`
+  --> src\agents\tests.rs:8:45
+   |
+ 8 |         Agent, AgentContext, AgentRegistry, AgentInfo, AgentCapabilities,
+   |                                             ^^^^^^^^^  ^^^^^^^^^^^^^^^^^
+...
+15 |         context::{ContextNode, ContextEdge, McuConfig, ProjectContext},
+   |                                ^^^^^^^^^^^
+
+warning: unused import: `PROTOCOL_VERSION`
+  --> src\jobs\flash.rs:15:51
+   |
+15 |     JobTerminal, CancelReason, InternalErrorCode, PROTOCOL_VERSION,
+   |                                                   ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `AtomicUsize` and `Ordering`
+   --> src\jobs\flash.rs:574:29
+    |
+574 |     use std::sync::atomic::{AtomicUsize, Ordering};
+    |                             ^^^^^^^^^^^  ^^^^^^^^
+
+warning: unused import: `std::collections::VecDeque`
+  --> src\jobs\rtt.rs:10:5
+   |
+10 | use std::collections::VecDeque;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `AtomicU64`
+   --> src\jobs\rtt.rs:574:29
+    |
+574 |     use std::sync::atomic::{AtomicU64, Ordering};
+    |                             ^^^^^^^^^
+
+warning: unused import: `std::sync::Arc`
+ --> src\jobs\scheduler.rs:8:5
+  |
+8 | use std::sync::Arc;
+  |     ^^^^^^^^^^^^^^
+
+warning: unused import: `tokio::sync::RwLock`
+ --> src\jobs\scheduler.rs:9:5
+  |
+9 | use tokio::sync::RwLock;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::path::PathBuf`
+ --> src\jobs\probe_rs_backend.rs:8:5
+  |
+8 | use std::path::PathBuf;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::time::Duration`
+  --> src\jobs\probe_rs_backend.rs:10:5
+   |
+10 | use std::time::Duration;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Error`, `ObjectType`, `Oid`, and `Time`
+ --> src\git.rs:5:26
+  |
+5 |     Commit, DiffOptions, Error, IndexAddOption, ObjectType, Oid, Repository, 
+  |                          ^^^^^                  ^^^^^^^^^^  ^^^
+6 |     Signature, StatusOptions, StatusShow, Time,
+  |                                           ^^^^
+
+warning: unused import: `std::fs`
+   --> src\git.rs:325:9
+    |
+325 |     use std::fs;
+    |         ^^^^^^^
+
+warning: unused import: `Write`
+ --> src\qemu.rs:5:35
+  |
+5 | use std::io::{BufRead, BufReader, Write};
+  |                                   ^^^^^
+
+warning: variant `Olimex_Stm32_H405` should have an upper camel case name
+  --> src\qemu.rs:20:5
+   |
+20 |     Olimex_Stm32_H405,    // Olimex STM32-H405
+   |     ^^^^^^^^^^^^^^^^^ help: convert the identifier to upper camel case: `OlimexStm32H405`
+   |
+   = note: `#[warn(non_camel_case_types)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: unused import: `DateTime`
+ --> src\cloud.rs:8:14
+  |
+8 | use chrono::{DateTime, Utc};
+  |              ^^^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\serial.rs:6:17
+  |
+6 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: unused import: `std::time::Duration`
+ --> src\serial.rs:7:5
+  |
+7 | use std::time::Duration;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: `serial`
+  --> src\serial.rs:52:11
+   |
+52 |     #[cfg(feature = "serial")]
+   |           ^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `default`, `hardware`, and `probe-rs`
+   = help: consider adding `serial` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: `serial`
+  --> src\serial.rs:74:15
+   |
+74 |     #[cfg(not(feature = "serial"))]
+   |               ^^^^^^^^^^^^^^^^^^
+   |
+   = note: expected values for `feature` are: `default`, `hardware`, and `probe-rs`
+   = help: consider adding `serial` as a feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+
+warning: unused import: `Pid`
+ --> src\performance.rs:5:40
+  |
+5 | use sysinfo::{System, Disks, Networks, Pid, ProcessesToUpdate};
+  |                                        ^^^
+
+warning: unused import: `ToolchainError`
+ --> src\toolchain\discovery.rs:4:43
+  |
+4 | use super::{ToolchainInfo, ToolchainType, ToolchainError};
+  |                                           ^^^^^^^^^^^^^^
+
+warning: unused import: `probe_rs::flashing`
+   --> src\toolchain\probe.rs:277:17
+    |
+277 |             use probe_rs::flashing;
+    |                 ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `PathBuf`
+ --> src\project.rs:9:23
+  |
+9 | use std::path::{Path, PathBuf};
+  |                       ^^^^^^^
+
+warning: unused import: `NodeUpdate`
+ --> src\canvas\undo.rs:5:44
+  |
+5 | use super::types::{CanvasNode, CanvasEdge, NodeUpdate};
+  |                                            ^^^^^^^^^^
+
+warning: unused import: `CanvasEdge`
+ --> src\canvas\batch.rs:7:32
+  |
+7 | use super::types::{CanvasNode, CanvasEdge, NodeMove, NodeUpdate};
+  |                                ^^^^^^^^^^
+
+warning: unused import: `VecDeque`
+ --> src\canvas\analysis.rs:6:42
+  |
+6 | use std::collections::{HashMap, HashSet, VecDeque};
+  |                                          ^^^^^^^^
+
+warning: unused import: `PortDirection`
+ --> src\canvas\templates.rs:8:34
+  |
+8 | use crate::canvas::ports::{Port, PortDirection, PortDataType, PortPosition, PortTemplate};
+  |                                  ^^^^^^^^^^^^^
+
+warning: unused imports: `PortType` and `PropertyDef`
+  --> src\canvas\node_integration.rs:11:5
+   |
+11 |     PortType, PortDef, NodePorts, PortDirection,
+   |     ^^^^^^^^
+12 |     PropertyValue, PropertyDef, default_properties,
+   |                    ^^^^^^^^^^^
+
+warning: unused import: `CanvasEdge`
+  --> src\canvas\node_integration.rs:15:32
+   |
+15 | use super::types::{CanvasNode, CanvasEdge, CanvasError};
+   |                                ^^^^^^^^^^
+
+warning: unused import: `PortDirection`
+   --> src\canvas\node_integration.rs:458:60
+    |
+458 |         use crate::shared::port_types::{PortDef, PortType, PortDirection};
+    |                                                            ^^^^^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+  --> src\canvas\mod.rs:47:13
+   |
+47 | use serde::{Serialize, Deserialize};
+   |             ^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused import: `std::time::Duration`
+ --> src\transitions\transition_types.rs:6:5
+  |
+6 | use std::time::Duration;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Deserialize`
+ --> src\transitions\transition_engine.rs:6:13
+  |
+6 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^
+
+warning: unused import: `ConnectionPoint`
+ --> src\transitions\transition_engine.rs:7:77
+  |
+7 | use super::transition_types::{Transition, TransitionUpdate, TransitionInfo, ConnectionPoint};
+  |                                                                             ^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::transitions::transition_types::TransitionEvent`
+   --> src\transitions\validation.rs:244:9
+    |
+244 |     use crate::transitions::transition_types::TransitionEvent;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+ --> src\simulation\peripherals\gpio.rs:6:13
+  |
+6 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^  ^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+ --> src\simulation\peripherals\watchdog.rs:6:13
+  |
+6 | use serde::{Deserialize, Serialize};
+  |             ^^^^^^^^^^^  ^^^^^^^^^
+
+warning: unused import: `SimulationState`
+ --> src\simulation\qemu_bridge.rs:5:39
+  |
+5 | use super::engine::{SimulationConfig, SimulationState};
+  |                                       ^^^^^^^^^^^^^^^
+
+warning: unused import: `SimulationCommand`
+ --> src\simulation\qemu_bridge.rs:6:30
+  |
+6 | use super::{SimulationEvent, SimulationCommand};
+  |                              ^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `BufReader` and `Write`
+  --> src\simulation\qemu_bridge.rs:10:24
+   |
+10 | use std::io::{BufRead, BufReader, Write};
+   |                        ^^^^^^^^^  ^^^^^
+
+warning: unused import: `crate::simulation::memory::MemoryController`
+ --> src\simulation\tests.rs:8:9
+  |
+8 |     use crate::simulation::memory::MemoryController;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `MemoryAccess`
+  --> src\simulation\tests.rs:98:55
+   |
+98 |     use crate::simulation::memory::{MemoryController, MemoryAccess};
+   |                                                       ^^^^^^^^^^^^
+
+warning: unused import: `InterruptPriority`
+   --> src\simulation\tests.rs:236:62
+    |
+236 |     use crate::simulation::interrupts::{InterruptController, InterruptPriority};
+    |                                                              ^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Breakpoint` and `Watchpoint`
+   --> src\simulation\tests.rs:318:46
+    |
+318 |     use crate::simulation::debug::{Debugger, Breakpoint, Watchpoint, WatchType};
+    |                                              ^^^^^^^^^^  ^^^^^^^^^^
+
+warning: unused import: `TaskState`
+   --> src\simulation\tests.rs:654:50
+    |
+654 |     use crate::simulation::rtos::{RtosScheduler, TaskState};
+    |                                                  ^^^^^^^^^
+
+warning: unused imports: `Esp32Sim`, `Lpc55Sim`, `Nrf52Sim`, and `Rp2040Sim`
+    --> src\simulation\tests.rs:1457:46
+     |
+1457 |     use crate::simulation::mcu::{Stm32F4Sim, Esp32Sim, Rp2040Sim, Nrf52Sim, Lpc55Sim};
+     |                                              ^^^^^^^^  ^^^^^^^^^  ^^^^^^^^  ^^^^^^^^
+
+warning: unused import: `super::*`
+   --> src\simulation\mod.rs:170:9
+    |
+170 |     use super::*;
+    |         ^^^^^^^^
+
+warning: unused imports: `TerminalLine` and `TerminalResult`
+  --> src\lib.rs:44:16
+   |
+44 | use terminal::{TerminalResult, TerminalLine};
+   |                ^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+
+warning: unused import: `BuildId`
+    --> src\lib.rs:3196:68
+     |
+3196 | use toolchain::streaming_build::{StreamingBuildConfig, BuildEvent, BuildId};
+     |                                                                    ^^^^^^^
+
+warning: unused import: `PatchOperations`
+    --> src\lib.rs:3644:47
+     |
+3644 | use agents::diff_engine::{Patch, PatchTarget, PatchOperations, JsonPatchOp};
+     |                                               ^^^^^^^^^^^^^^^
+
+warning: unused imports: `SimulationConfig` and `SimulationState as SimState`
+    --> src\lib.rs:5120:26
+     |
+5120 | use simulation::engine::{SimulationConfig, SimulationState as SimState};
+     |                          ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Some errors have detailed explanations: E0428, E0432.
+For more information about an error, try `rustc --explain E0428`.
+warning: `neurobench` (lib test) generated 63 warnings
+error: could not compile `neurobench` (lib test) due to 3 previous errors; 63 warnings emitted

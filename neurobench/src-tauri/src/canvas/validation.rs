@@ -75,7 +75,12 @@ pub struct ValidationResult {
 
 impl ValidationResult {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            issues: Vec::new(),
+            valid: true,
+            error_count: 0,
+            warning_count: 0,
+        }
     }
 
     pub fn add_issue(&mut self, issue: ValidationIssue) {
@@ -250,6 +255,207 @@ impl FsmValidator {
         }
 
         result
+    }
+    
+    /// Detect cycles in the graph using Tarjan's SCC algorithm
+    /// Returns list of strongly connected components (cycles)
+    pub fn detect_cycles(
+        nodes: &HashMap<String, super::types::CanvasNode>,
+        edges: &HashMap<String, super::types::CanvasEdge>,
+    ) -> Vec<CycleInfo> {
+        CycleDetector::new(nodes, edges).find_cycles()
+    }
+    
+    /// Check for resource conflicts (same GPIO pin used multiple times, etc.)
+    pub fn check_resource_conflicts(
+        nodes: &HashMap<String, super::types::CanvasNode>,
+    ) -> Vec<ResourceConflict> {
+        let mut conflicts = Vec::new();
+        let mut gpio_usage: HashMap<String, Vec<String>> = HashMap::new();
+        let mut timer_usage: HashMap<String, Vec<String>> = HashMap::new();
+        let mut uart_usage: HashMap<String, Vec<String>> = HashMap::new();
+        
+        for (id, node) in nodes {
+            let category = node.node_type.category();
+            
+            // Track GPIO/Timer/UART resource usage
+            match category {
+                "GPIO" => {
+                    // Use node label as resource identifier (would be property in full impl)
+                    gpio_usage.entry(node.label.clone()).or_default().push(id.clone());
+                }
+                "Timer" => {
+                    timer_usage.entry(node.label.clone()).or_default().push(id.clone());
+                }
+                "Communication" => {
+                    if matches!(node.node_type, super::types::NodeType::Uart) {
+                        uart_usage.entry(node.label.clone()).or_default().push(id.clone());
+                    }
+                }
+                _ => {}
+            }
+        }
+        
+        // Find conflicts
+        for (resource, users) in gpio_usage {
+            if users.len() > 1 {
+                conflicts.push(ResourceConflict {
+                    resource_type: "GPIO".into(),
+                    resource_id: resource,
+                    node_ids: users,
+                    message: "GPIO pin used by multiple nodes".into(),
+                });
+            }
+        }
+        
+        for (resource, users) in timer_usage {
+            if users.len() > 1 {
+                conflicts.push(ResourceConflict {
+                    resource_type: "Timer".into(),
+                    resource_id: resource,
+                    node_ids: users,
+                    message: "Timer used by multiple nodes".into(),
+                });
+            }
+        }
+        
+        conflicts
+    }
+}
+
+/// Information about a detected cycle
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CycleInfo {
+    /// Node IDs in the cycle (in order)
+    pub node_ids: Vec<String>,
+    /// Edge IDs forming the cycle
+    pub edge_ids: Vec<String>,
+    /// Whether this is likely intentional (e.g., loop state)
+    pub is_loop_state: bool,
+}
+
+/// Resource conflict information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceConflict {
+    /// Type of resource (GPIO, Timer, UART, etc.)
+    pub resource_type: String,
+    /// Resource identifier (pin, timer name, etc.)
+    pub resource_id: String,
+    /// Nodes that conflict
+    pub node_ids: Vec<String>,
+    /// Description of conflict
+    pub message: String,
+}
+
+/// Cycle detection using Tarjan's strongly connected components algorithm
+struct CycleDetector<'a> {
+    nodes: &'a HashMap<String, super::types::CanvasNode>,
+    edges: &'a HashMap<String, super::types::CanvasEdge>,
+    adjacency: HashMap<String, Vec<(String, String)>>, // node_id -> [(target_id, edge_id)]
+    index_counter: usize,
+    stack: Vec<String>,
+    on_stack: HashSet<String>,
+    indices: HashMap<String, usize>,
+    low_links: HashMap<String, usize>,
+    sccs: Vec<Vec<String>>,
+}
+
+impl<'a> CycleDetector<'a> {
+    fn new(
+        nodes: &'a HashMap<String, super::types::CanvasNode>,
+        edges: &'a HashMap<String, super::types::CanvasEdge>,
+    ) -> Self {
+        // Build adjacency list
+        let mut adjacency: HashMap<String, Vec<(String, String)>> = HashMap::new();
+        for (edge_id, edge) in edges {
+            adjacency.entry(edge.source.clone())
+                .or_default()
+                .push((edge.target.clone(), edge_id.clone()));
+        }
+        
+        Self {
+            nodes,
+            edges,
+            adjacency,
+            index_counter: 0,
+            stack: Vec::new(),
+            on_stack: HashSet::new(),
+            indices: HashMap::new(),
+            low_links: HashMap::new(),
+            sccs: Vec::new(),
+        }
+    }
+    
+    fn find_cycles(mut self) -> Vec<CycleInfo> {
+        // Run Tarjan's algorithm on all unvisited nodes
+        let node_ids: Vec<_> = self.nodes.keys().cloned().collect();
+        for node_id in node_ids {
+            if !self.indices.contains_key(&node_id) {
+                self.strong_connect(&node_id);
+            }
+        }
+        
+        // Convert SCCs with size > 1 to CycleInfo
+        self.sccs.into_iter()
+            .filter(|scc| scc.len() > 1)
+            .map(|scc| {
+                // Find edges within the cycle
+                let scc_set: HashSet<_> = scc.iter().cloned().collect();
+                let edge_ids: Vec<_> = self.edges.iter()
+                    .filter(|(_, e)| scc_set.contains(&e.source) && scc_set.contains(&e.target))
+                    .map(|(id, _)| id.clone())
+                    .collect();
+                
+                // Check if this looks like an intentional loop (self-loop or simple 2-node cycle)
+                let is_loop_state = scc.len() <= 2;
+                
+                CycleInfo {
+                    node_ids: scc,
+                    edge_ids,
+                    is_loop_state,
+                }
+            })
+            .collect()
+    }
+    
+    fn strong_connect(&mut self, node_id: &str) {
+        self.indices.insert(node_id.to_string(), self.index_counter);
+        self.low_links.insert(node_id.to_string(), self.index_counter);
+        self.index_counter += 1;
+        self.stack.push(node_id.to_string());
+        self.on_stack.insert(node_id.to_string());
+        
+        // Visit successors
+        if let Some(successors) = self.adjacency.get(node_id).cloned() {
+            for (successor, _) in successors {
+                if !self.indices.contains_key(&successor) {
+                    // Not visited yet, recurse
+                    self.strong_connect(&successor);
+                    let succ_low = self.low_links.get(&successor).copied().unwrap_or(0);
+                    let node_low = self.low_links.get(node_id).copied().unwrap_or(0);
+                    self.low_links.insert(node_id.to_string(), node_low.min(succ_low));
+                } else if self.on_stack.contains(&successor) {
+                    // Successor is on stack, part of SCC
+                    let succ_idx = self.indices.get(&successor).copied().unwrap_or(0);
+                    let node_low = self.low_links.get(node_id).copied().unwrap_or(0);
+                    self.low_links.insert(node_id.to_string(), node_low.min(succ_idx));
+                }
+            }
+        }
+        
+        // Root of SCC
+        if self.low_links.get(node_id) == self.indices.get(node_id) {
+            let mut scc = Vec::new();
+            loop {
+                let w = self.stack.pop().unwrap();
+                self.on_stack.remove(&w);
+                scc.push(w.clone());
+                if w == node_id {
+                    break;
+                }
+            }
+            self.sccs.push(scc);
+        }
     }
 }
 

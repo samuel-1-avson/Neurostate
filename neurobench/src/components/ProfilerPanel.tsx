@@ -1,5 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
+import "./ProfilerPanel.css";
 
 interface PerformanceIssue {
   severity: string;
@@ -76,7 +78,7 @@ export function ProfilerPanel(props: ProfilerPanelProps) {
   return (
     <div class="profiler-panel">
       <div class="panel-header">
-        <h3>📊 Performance Profiler</h3>
+        {Icons.chart()} <span>Performance Profiler</span>
       </div>
 
       <div class="config-row">
@@ -136,7 +138,7 @@ export function ProfilerPanel(props: ProfilerPanelProps) {
                       <span class="issue-category">{issue.category}</span>
                     </div>
                     <p class="issue-message">{issue.message}</p>
-                    <p class="issue-suggestion">💡 {issue.suggestion}</p>
+                    <p class="issue-suggestion"><span class="icon-inline">{Icons.lightbulb()}</span> {issue.suggestion}</p>
                   </div>
                 )}
               </For>
@@ -148,125 +150,13 @@ export function ProfilerPanel(props: ProfilerPanelProps) {
             <h4>Optimization Tips</h4>
             <For each={result()!.suggestions}>
               {(suggestion) => (
-                <div class="suggestion-item">✓ {suggestion}</div>
+                <div class="suggestion-item"><span class="icon-inline">{Icons.check()}</span> {suggestion}</div>
               )}
             </For>
           </div>
         </div>
       </Show>
 
-      <style>{`
-        .profiler-panel {
-          background: var(--bg-secondary, #1a1a2e);
-          border: 1px solid var(--border, #333);
-          border-radius: 8px;
-          padding: 12px;
-        }
-
-        .panel-header { margin-bottom: 12px; }
-        .panel-header h3 { margin: 0; font-size: 14px; }
-
-        .config-row { margin-bottom: 12px; }
-        .config-row label {
-          display: block;
-          color: #888;
-          font-size: 11px;
-          margin-bottom: 6px;
-        }
-
-        .config-row input {
-          width: 100%;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid #333;
-          color: #fff;
-          padding: 8px 12px;
-          border-radius: 6px;
-        }
-
-        .analyze-btn {
-          width: 100%;
-          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-          color: white;
-          border: none;
-          padding: 10px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-          margin-bottom: 12px;
-        }
-
-        .results {
-          background: rgba(0,0,0,0.2);
-          border-radius: 6px;
-          padding: 12px;
-        }
-
-        .score-display {
-          text-align: center;
-          padding: 16px;
-          border: 3px solid;
-          border-radius: 50%;
-          width: 80px;
-          height: 80px;
-          margin: 0 auto 16px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-
-        .score-value { font-size: 28px; font-weight: 700; }
-        .score-label { font-size: 12px; color: #888; }
-
-        .metrics {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-
-        .metric {
-          text-align: center;
-          padding: 8px;
-          background: rgba(255,255,255,0.03);
-          border-radius: 6px;
-        }
-
-        .metric-value { display: block; font-weight: 600; font-size: 16px; }
-        .metric-label { font-size: 10px; color: #888; }
-
-        .issues h4, .suggestions h4 {
-          margin: 0 0 8px 0;
-          font-size: 12px;
-          color: #888;
-        }
-
-        .issue-item {
-          padding: 8px;
-          background: rgba(0,0,0,0.2);
-          border-radius: 4px;
-          border-left: 3px solid;
-          margin-bottom: 8px;
-        }
-
-        .issue-header {
-          display: flex;
-          gap: 8px;
-          font-size: 10px;
-          margin-bottom: 4px;
-        }
-
-        .issue-severity { font-weight: 600; }
-        .issue-category { color: #888; }
-        .issue-message { margin: 0; font-size: 12px; color: #ccc; }
-        .issue-suggestion { margin: 4px 0 0 0; font-size: 11px; color: #888; }
-
-        .suggestions { margin-top: 12px; }
-        .suggestion-item {
-          font-size: 11px;
-          color: #4ade80;
-          padding: 4px 0;
-        }
-      `}</style>
     </div>
   );
 }
