@@ -3,9 +3,9 @@
 //! Provides intelligent connection handling with port compatibility.
 
 use serde::{Serialize, Deserialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use crate::canvas::types::{CanvasEdge, CanvasNode};
-use crate::canvas::ports::{Port, PortDirection, PortDataType};
+use crate::canvas::ports::{Port, PortDataType};
 
 /// Connection rule for validating connections
 #[derive(Debug, Clone, Serialize, Deserialize)]

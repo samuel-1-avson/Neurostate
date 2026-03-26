@@ -185,3 +185,16 @@ pub mod filters;
 pub mod fft;
 pub mod pid;
 pub mod buffer;
+
+// New DSP modules
+pub mod matrix;     // Matrix operations
+pub mod cmsis_dsp;  // CMSIS-DSP integration
+pub mod nn;         // TinyML/Neural network inference
+pub mod audio;      // Audio processing
+
+// Re-exports
+pub use matrix::{MatrixConfig, generate_matrix_driver};
+pub use cmsis_dsp::{CmsisDspConfig, CortexCore, generate_cmsis_dsp_driver};
+pub use nn::{NnConfig, NnFramework, generate_nn_driver};
+pub use audio::{AudioConfig, AudioCodec, generate_audio_driver};
+

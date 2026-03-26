@@ -2,7 +2,6 @@
 // Dynamic autocomplete for commands, paths, pins, and peripherals
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Completion item with metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]

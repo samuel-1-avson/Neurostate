@@ -434,10 +434,11 @@ mod tests {
     fn test_connect_nodes() {
         let mut engine = NodeEngine::new();
         let gpio = engine.create_node(NodeType::Gpio, 0.0, 0.0);
-        let led = engine.create_node(NodeType::Led, 200.0, 0.0);
+        // Decision node has a 'condition' input of type Digital
+        let decision = engine.create_node(NodeType::Decision, 200.0, 0.0);
         
         // This should work (digital -> digital)
-        let result = engine.connect(&gpio, "read", &led, "in");
+        let result = engine.connect(&gpio, "read", &decision, "condition");
         assert!(result.is_ok());
     }
     

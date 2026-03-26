@@ -41,6 +41,7 @@ anyhow = "1"
 
 # Lazy static for global HAL
 lazy_static = "1.4"
+once_cell = "1.19"
 
 # File system utilities
 dirs = "5"

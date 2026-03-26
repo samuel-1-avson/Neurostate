@@ -226,6 +226,203 @@ impl Default for PersistedMemoryManager {
     }
 }
 
+// =============================================================================
+// SEMANTIC MEMORY MANAGER
+// =============================================================================
+
+use crate::ai::vector_store::{VectorStore, EmbeddingProvider};
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
+/// Semantic memory manager with vector embeddings
+/// Combines traditional memory with semantic search capabilities
+pub struct SemanticMemoryManager {
+    /// Traditional memory manager
+    manager: PersistedMemoryManager,
+    /// Vector store for semantic search
+    vector_store: Arc<RwLock<VectorStore>>,
+    /// Whether the vector store is synced with memories
+    synced: bool,
+}
+
+impl SemanticMemoryManager {
+    /// Create with default Ollama embeddings
+    pub fn new() -> Self {
+        Self {
+            manager: PersistedMemoryManager::new(),
+            vector_store: Arc::new(RwLock::new(VectorStore::new())),
+            synced: false,
+        }
+    }
+
+    /// Create with specific embedding provider
+    pub fn with_provider(provider: EmbeddingProvider) -> Self {
+        Self {
+            manager: PersistedMemoryManager::new(),
+            vector_store: Arc::new(RwLock::new(VectorStore::with_provider(provider))),
+            synced: false,
+        }
+    }
+
+    /// Get or create memory for an agent
+    pub fn get_or_create(&mut self, agent_id: &str) -> &mut AgentMemory {
+        self.synced = false; // Memory changed, need to resync
+        self.manager.get_or_create(agent_id)
+    }
+
+    /// Get memory for an agent (read-only)
+    pub fn get(&self, agent_id: &str) -> Option<&AgentMemory> {
+        self.manager.get(agent_id)
+    }
+
+    /// Semantic search across all agent memories
+    pub async fn semantic_search(&self, query: &str, limit: usize) -> Result<Vec<SemanticSearchResult>, String> {
+        let store = self.vector_store.read().await;
+        
+        let results = store.search(query, limit).await
+            .map_err(|e| e.to_string())?;
+
+        Ok(results.into_iter().map(|r| {
+            let agent_id = r.entry.metadata.get("agent_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+            let memory_id = r.entry.metadata.get("memory_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let category = r.entry.metadata.get("category")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+
+            SemanticSearchResult {
+                content: r.entry.text,
+                score: r.score,
+                agent_id,
+                memory_id,
+                category,
+            }
+        }).collect())
+    }
+
+    /// Sync all memories to vector store (batch operation)
+    pub async fn sync_to_vector_store(&mut self) -> Result<usize, String> {
+        let mut store = self.vector_store.write().await;
+        let mut indexed_count = 0;
+
+        // Get all agent IDs we track
+        let agent_ids = vec!["director", "code", "debug", "hardware", "fsm", "canvas", "build", "deploy", "docs", "voice", "nexus"];
+
+        for agent_id in agent_ids {
+            if let Some(memory) = self.manager.get(agent_id) {
+                for entry in memory.long_term.all_entries() {
+                    let vector_id = format!("{}::{}", agent_id, entry.id);
+                    
+                    // Skip if already indexed
+                    if store.get(&vector_id).is_some() {
+                        continue;
+                    }
+
+                    let mut metadata = std::collections::HashMap::new();
+                    metadata.insert("agent_id".to_string(), serde_json::json!(agent_id));
+                    metadata.insert("memory_id".to_string(), serde_json::json!(entry.id));
+                    metadata.insert("category".to_string(), serde_json::json!(format!("{:?}", entry.category)));
+                    metadata.insert("importance".to_string(), serde_json::json!(entry.importance));
+
+                    if let Err(e) = store.store(&vector_id, &entry.content, metadata).await {
+                        log::warn!("Failed to index memory {}: {}", vector_id, e);
+                        continue;
+                    }
+                    indexed_count += 1;
+                }
+            }
+        }
+
+        self.synced = true;
+        Ok(indexed_count)
+    }
+
+    /// Store a memory with automatic vector indexing
+    pub async fn store_with_semantic(
+        &mut self,
+        agent_id: &str,
+        content: &str,
+        category: super::memory::MemoryCategory,
+        importance: f32,
+    ) -> Result<String, String> {
+        let memory = self.manager.get_or_create(agent_id);
+        let entry = super::memory::MemoryEntry::new(content, category.clone(), importance);
+        let entry_id = entry.id.clone();
+        memory.long_term.store(entry);
+
+        // Also index in vector store
+        let vector_id = format!("{}::{}", agent_id, entry_id);
+        let mut metadata = std::collections::HashMap::new();
+        metadata.insert("agent_id".to_string(), serde_json::json!(agent_id));
+        metadata.insert("memory_id".to_string(), serde_json::json!(entry_id));
+        metadata.insert("category".to_string(), serde_json::json!(format!("{:?}", category)));
+        metadata.insert("importance".to_string(), serde_json::json!(importance));
+
+        let mut store = self.vector_store.write().await;
+        store.store(&vector_id, content, metadata).await
+            .map_err(|e| e.to_string())?;
+
+        Ok(entry_id)
+    }
+
+    /// Save all memories to disk
+    pub fn save(&mut self) -> Result<(), String> {
+        self.manager.save()
+    }
+
+    /// Check if embedding provider is available
+    pub async fn check_provider(&self) -> Result<bool, String> {
+        let store = self.vector_store.read().await;
+        store.check_provider().await.map_err(|e| e.to_string())
+    }
+
+    /// Get statistics
+    pub async fn stats(&self) -> SemanticMemoryStats {
+        let store = self.vector_store.read().await;
+        let file_stats = self.manager.stats();
+
+        SemanticMemoryStats {
+            file_count: file_stats.file_count,
+            total_bytes: file_stats.total_bytes,
+            vector_entries: store.len(),
+            vector_dimension: store.stats().dimension,
+            is_synced: self.synced,
+        }
+    }
+}
+
+impl Default for SemanticMemoryManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Result of semantic search
+#[derive(Debug, Clone)]
+pub struct SemanticSearchResult {
+    pub content: String,
+    pub score: f32,
+    pub agent_id: String,
+    pub memory_id: String,
+    pub category: String,
+}
+
+/// Statistics for semantic memory
+#[derive(Debug, Clone)]
+pub struct SemanticMemoryStats {
+    pub file_count: usize,
+    pub total_bytes: u64,
+    pub vector_entries: usize,
+    pub vector_dimension: Option<usize>,
+    pub is_synced: bool,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,4 +447,14 @@ mod tests {
         let loaded = loaded.unwrap();
         assert_eq!(loaded.agent_id, "test_agent");
     }
+
+    #[tokio::test]
+    async fn test_semantic_memory_manager() {
+        let manager = SemanticMemoryManager::new();
+        
+        // Check if stats work
+        let stats = manager.stats().await;
+        assert_eq!(stats.vector_entries, 0);
+    }
 }
+

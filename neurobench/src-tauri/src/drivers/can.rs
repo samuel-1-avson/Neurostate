@@ -27,6 +27,7 @@ pub fn generate_can_driver(config: &CanConfig, _arch: &McuArch, lang: &DriverLan
         DriverLanguage::C => generate_can_c(config),
         DriverLanguage::Cpp => generate_can_cpp(config),
         DriverLanguage::Rust => generate_can_rust(config),
+        _ => generate_can_c(config), // Default to C for new languages
     }
 }
 

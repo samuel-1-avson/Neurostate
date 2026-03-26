@@ -163,13 +163,13 @@ impl Port {
 
     /// Check if this port can connect to another
     pub fn can_connect_to(&self, other: &Port) -> bool {
-        // Direction check: output -> input or bidirectional
+        // Direction check: output -> input only (connections flow from output to input)
+        // Bidirectional ports can connect either way
         let direction_ok = match (&self.direction, &other.direction) {
             (PortDirection::Output, PortDirection::Input) => true,
-            (PortDirection::Input, PortDirection::Output) => true,
             (PortDirection::Bidirectional, _) => true,
             (_, PortDirection::Bidirectional) => true,
-            _ => false,
+            _ => false, // Input -> Output not allowed (inputs don't initiate)
         };
 
         if !direction_ok {

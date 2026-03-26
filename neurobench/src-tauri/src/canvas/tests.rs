@@ -75,9 +75,9 @@ mod integration_tests {
         assert!(found.is_some());
 
         // Test undo/redo
-        engine.undo().unwrap();
+        assert!(engine.undo());
         assert_eq!(engine.edges().len(), 5);
-        engine.redo().unwrap();
+        assert!(engine.redo());
         assert_eq!(engine.edges().len(), 6);
     }
 
@@ -103,15 +103,15 @@ mod integration_tests {
         }
 
         let result = engine.execute_batch(batch).unwrap();
-        assert_eq!(result.added_nodes.len(), 10);
+        assert_eq!(result.nodes_added, 10);
         assert_eq!(engine.nodes().len(), 10);
 
         // Single undo should revert entire batch
-        engine.undo().unwrap();
+        assert!(engine.undo());
         assert_eq!(engine.nodes().len(), 0, "Batch undo should remove all nodes");
 
         // Redo brings them back
-        engine.redo().unwrap();
+        assert!(engine.redo());
         assert_eq!(engine.nodes().len(), 10);
     }
 

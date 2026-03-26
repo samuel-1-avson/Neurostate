@@ -1,0 +1,122 @@
+/**
+ * CanvasRulers Styles - Professional measurement rulers
+ */
+
+.canvas-rulers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* Corner square */
+.ruler-corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--bg-elevated, #323843);
+  border-right: 1px solid var(--border, #2a2f38);
+  border-bottom: 1px solid var(--border, #2a2f38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.corner-unit {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text-dim, #64748b);
+  text-transform: uppercase;
+}
+
+/* Rulers */
+.ruler {
+  position: absolute;
+  background: var(--bg-elevated, #323843);
+  overflow: hidden;
+}
+
+.ruler-horizontal {
+  top: 0;
+  border-bottom: 1px solid var(--border, #2a2f38);
+}
+
+.ruler-vertical {
+  left: 0;
+  border-right: 1px solid var(--border, #2a2f38);
+}
+
+/* Ticks */
+.ruler-tick-major {
+  stroke: var(--text-secondary, #94a3b8);
+  stroke-width: 1;
+}
+
+.ruler-tick-minor {
+  stroke: var(--border-strong, #3a4150);
+  stroke-width: 1;
+}
+
+/* Labels */
+.ruler-label {
+  fill: var(--text-dim, #64748b);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.ruler-label-vertical {
+  text-anchor: start;
+}
+
+/* ============================================================================
+   Alignment Guides
+   ============================================================================ */
+
+.alignment-guides {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 45;
+}
+
+.alignment-guide {
+  position: absolute;
+  opacity: 0.8;
+}
+
+.alignment-guide.horizontal {
+  left: 0;
+  right: 0;
+  height: 1px;
+  box-shadow: 0 0 4px currentColor;
+}
+
+.alignment-guide.vertical {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  box-shadow: 0 0 4px currentColor;
+}
+
+/* Smart guides that appear during drag */
+.alignment-guide.smart {
+  animation: guideFlash 0.3s ease-out;
+}
+
+@keyframes guideFlash {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+}

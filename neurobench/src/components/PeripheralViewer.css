@@ -1,0 +1,251 @@
+.peripheral-viewer {
+  background: var(--bg-secondary, #1a1a2e);
+  border: 1px solid var(--border, #333);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.viewer-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Tabs */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #888;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: #ccc;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+/* UART */
+.uart-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.uart-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.uart-header label {
+  font-size: 12px;
+  color: #888;
+}
+
+.uart-header select {
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+}
+
+.uart-terminal {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.terminal-output {
+  height: 120px;
+  padding: 10px;
+  overflow-y: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+.terminal-output pre {
+  margin: 0;
+  color: #4ade80;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.terminal-output .empty {
+  color: #555;
+  font-style: italic;
+}
+
+.terminal-input {
+  display: flex;
+  border-top: 1px solid #333;
+}
+
+.terminal-input input {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: #fff;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.terminal-input input::placeholder {
+  color: #555;
+}
+
+.terminal-input button {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border: none;
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.terminal-input button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Timers */
+.timer-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.timer-card {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.timer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.timer-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.timer-status {
+  font-size: 10px;
+  color: #888;
+}
+
+.timer-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  transition: width 0.1s;
+}
+
+.timer-value {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: #888;
+}
+
+/* ADC */
+.adc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adc-channel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.channel-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  min-width: 30px;
+}
+
+.adc-channel input[type="range"] {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  -webkit-appearance: none;
+}
+
+.adc-channel input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.adc-channel input[type="range"]:disabled::-webkit-slider-thumb {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.channel-value {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: #4ade80;
+  min-width: 40px;
+  text-align: right;
+}
+
+.channel-voltage {
+  font-size: 10px;
+  color: #888;
+  min-width: 45px;
+  text-align: right;
+}

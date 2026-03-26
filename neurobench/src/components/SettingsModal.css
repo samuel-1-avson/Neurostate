@@ -1,0 +1,282 @@
+/** SettingsModal.css */
+
+.settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* Slightly lighter backdrop than main manager */
+    backdrop-filter: blur(2px);
+    z-index: 10000; /* Above AgentManager */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.settings-modal-container {
+    width: 900px;
+    height: 650px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    overflow: hidden;
+}
+
+/* Title Bar */
+.sm-title-bar {
+    height: 40px;
+    /* background: #161616; */ /* Cleaner look without distinct header bg? or keep it subtle */
+    border-bottom: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 13px;
+    color: #ccc;
+    font-weight: 500;
+}
+
+.sm-close-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    padding: 4px;
+    border-radius: 4px;
+}
+.sm-close-btn:hover { color: #fff; background: #333; }
+.sm-close-btn svg { width: 16px; height: 16px; }
+
+/* Body */
+.sm-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sm-sidebar {
+    width: 220px;
+    background: #161616; /* Slightly lighter than content */
+    border-right: 1px solid #222;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sm-sidebar-item {
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #888;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.sm-sidebar-item:hover {
+    color: #ccc;
+    background: #222;
+}
+
+.sm-sidebar-item.active {
+    background: #2a2a2a;
+    color: #fff;
+    font-weight: 500;
+}
+
+.sm-sidebar-footer {
+    margin-top: auto;
+    font-size: 12px;
+    color: #666;
+    padding: 0 12px;
+    cursor: pointer;
+}
+.sm-sidebar-footer:hover { text-decoration: underline; }
+
+/* Content */
+.sm-content {
+    flex: 1;
+    background: #111;
+    padding: 0; /* Padding inside scroll area */
+    overflow: hidden;
+    position: relative;
+}
+
+.sm-content-scroll {
+    height: 100%;
+    overflow-y: auto;
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.sm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sm-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.sm-setting-card {
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.sm-setting-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.sm-setting-info {
+    flex: 1;
+}
+
+.sm-setting-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #ddd;
+    margin-bottom: 6px;
+}
+
+.sm-setting-desc {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.5;
+}
+
+/* Controls */
+.sm-toggle-switch {
+    width: 36px;
+    height: 20px;
+    background: #444;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+
+.sm-toggle-switch.active {
+    background: #fff; /* or accent color */
+}
+
+.sm-toggle-knob {
+    width: 16px;
+    height: 16px;
+    background: #fff; /* #000 if active? */
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+}
+
+.sm-toggle-switch.active .sm-toggle-knob {
+    transform: translateX(16px);
+    background: #000;
+}
+
+/* Dropdowns */
+.sm-select-wrapper {
+    position: relative;
+    width: 160px;
+}
+
+.sm-select-wrapper select {
+    width: 100%;
+    background: #252525;
+    border: 1px solid #444;
+    color: #ddd;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    outline: none;
+}
+.sm-select-wrapper select:hover { border-color: #666; }
+
+.sm-select-arrow {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: #888;
+    pointer-events: none;
+}
+
+/* Buttons */
+.sm-btn-primary {
+    background: #333;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.sm-btn-primary:hover { background: #444; }
+
+.sm-btn-outline {
+    background: transparent;
+    border: 1px solid #444;
+    color: #ccc;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.sm-btn-outline:hover { border-color: #666; color: #fff; }
+
+.sm-btn-small {
+    background: #252525;
+    border: 1px solid #444;
+    color: #ccc;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* Inputs */
+.sm-list-input {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sm-list-input input {
+    background: #0f0f0f;
+    border: 1px solid #333;
+    padding: 8px;
+    border-radius: 4px;
+    color: #aaa;
+    font-family: monospace;
+    font-size: 12px;
+}

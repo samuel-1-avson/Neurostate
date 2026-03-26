@@ -2,7 +2,6 @@
 // Visual MCU pin assignment and configuration
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Pin function type
 #[derive(Debug, Clone, Serialize, Deserialize)]

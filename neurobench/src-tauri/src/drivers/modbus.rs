@@ -24,6 +24,7 @@ pub fn generate_modbus_driver(config: &ModbusConfig, _arch: &McuArch, lang: &Dri
         DriverLanguage::C => generate_modbus_c(config),
         DriverLanguage::Cpp => generate_modbus_cpp(config),
         DriverLanguage::Rust => generate_modbus_rust(config),
+        _ => generate_modbus_c(config), // Default to C for new languages
     }
 }
 

@@ -186,6 +186,115 @@ pub fn get_all_mcus() -> Vec<McuDefinition> {
             description: "RISC-V general purpose MCU".to_string(),
             specs: McuSpec { flash_kb: 128, ram_kb: 32, freq_mhz: 108, voltage: 3.3 },
         },
+        
+        // NXP LPC Series
+        McuDefinition {
+            id: "lpc1768".to_string(),
+            name: "LPC1768 (mbed)".to_string(),
+            family: McuFamily::Stm32, // Using Stm32 as placeholder - would add Lpc family
+            arch: Architecture::ArmCortexM3,
+            debug_interface: DebugInterface::Swd,
+            description: "Classic mbed-enabled Cortex-M3".to_string(),
+            specs: McuSpec { flash_kb: 512, ram_kb: 64, freq_mhz: 100, voltage: 3.3 },
+        },
+        McuDefinition {
+            id: "lpc55s69".to_string(),
+            name: "LPC55S69".to_string(),
+            family: McuFamily::Stm32,
+            arch: Architecture::ArmCortexM33,
+            debug_interface: DebugInterface::Swd,
+            description: "Dual-core Cortex-M33 with TrustZone".to_string(),
+            specs: McuSpec { flash_kb: 640, ram_kb: 320, freq_mhz: 150, voltage: 3.3 },
+        },
+        
+        // More STM32 variants
+        McuDefinition {
+            id: "stm32l476".to_string(),
+            name: "STM32L476".to_string(),
+            family: McuFamily::Stm32,
+            arch: Architecture::ArmCortexM4,
+            debug_interface: DebugInterface::Swd,
+            description: "Ultra-low-power Cortex-M4".to_string(),
+            specs: McuSpec { flash_kb: 1024, ram_kb: 128, freq_mhz: 80, voltage: 1.8 },
+        },
+        McuDefinition {
+            id: "stm32g474".to_string(),
+            name: "STM32G474".to_string(),
+            family: McuFamily::Stm32,
+            arch: Architecture::ArmCortexM4,
+            debug_interface: DebugInterface::Swd,
+            description: "Motor control & digital power".to_string(),
+            specs: McuSpec { flash_kb: 512, ram_kb: 128, freq_mhz: 170, voltage: 3.3 },
+        },
+        McuDefinition {
+            id: "stm32wl55".to_string(),
+            name: "STM32WL55".to_string(),
+            family: McuFamily::Stm32,
+            arch: Architecture::ArmCortexM4,
+            debug_interface: DebugInterface::Swd,
+            description: "Dual-core with LoRa radio".to_string(),
+            specs: McuSpec { flash_kb: 256, ram_kb: 64, freq_mhz: 48, voltage: 3.3 },
+        },
+        
+        // More Nordic variants  
+        McuDefinition {
+            id: "nrf52832".to_string(),
+            name: "nRF52832".to_string(),
+            family: McuFamily::Nrf,
+            arch: Architecture::ArmCortexM4,
+            debug_interface: DebugInterface::Swd,
+            description: "Popular BLE 5.0 SoC".to_string(),
+            specs: McuSpec { flash_kb: 512, ram_kb: 64, freq_mhz: 64, voltage: 3.0 },
+        },
+        McuDefinition {
+            id: "nrf5340".to_string(),
+            name: "nRF5340".to_string(),
+            family: McuFamily::Nrf,
+            arch: Architecture::ArmCortexM33,
+            debug_interface: DebugInterface::Swd,
+            description: "Dual-core BLE 5.3 with TrustZone".to_string(),
+            specs: McuSpec { flash_kb: 1024, ram_kb: 512, freq_mhz: 128, voltage: 1.8 },
+        },
+        
+        // Microchip SAMD
+        McuDefinition {
+            id: "samd21".to_string(),
+            name: "SAMD21 (Arduino Zero)".to_string(),
+            family: McuFamily::Samd,
+            arch: Architecture::ArmCortexM0Plus,
+            debug_interface: DebugInterface::Swd,
+            description: "Popular maker-friendly MCU".to_string(),
+            specs: McuSpec { flash_kb: 256, ram_kb: 32, freq_mhz: 48, voltage: 3.3 },
+        },
+        McuDefinition {
+            id: "samd51".to_string(),
+            name: "SAMD51 (Metro M4)".to_string(),
+            family: McuFamily::Samd,
+            arch: Architecture::ArmCortexM4,
+            debug_interface: DebugInterface::Swd,
+            description: "Fast M4 with USB host".to_string(),
+            specs: McuSpec { flash_kb: 512, ram_kb: 192, freq_mhz: 120, voltage: 3.3 },
+        },
+        
+        // More ESP variants
+        McuDefinition {
+            id: "esp32c6".to_string(),
+            name: "ESP32-C6".to_string(),
+            family: McuFamily::Esp32,
+            arch: Architecture::RiscV32,
+            debug_interface: DebugInterface::UsbJtag,
+            description: "RISC-V with WiFi 6 + BLE 5".to_string(),
+            specs: McuSpec { flash_kb: 4096, ram_kb: 512, freq_mhz: 160, voltage: 3.3 },
+        },
+        McuDefinition {
+            id: "esp32h2".to_string(),
+            name: "ESP32-H2".to_string(),
+            family: McuFamily::Esp32,
+            arch: Architecture::RiscV32,
+            debug_interface: DebugInterface::UsbJtag,
+            description: "Thread/Zigbee/Matter certified".to_string(),
+            specs: McuSpec { flash_kb: 4096, ram_kb: 320, freq_mhz: 96, voltage: 3.3 },
+        },
     ]
 }
 

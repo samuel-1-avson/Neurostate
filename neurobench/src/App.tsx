@@ -1,5 +1,8 @@
 import { createSignal, For, Show, onMount, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import "./styles/IndustrialTheme.css"; // Industrial design system
+import "./styles/PanelComponents.css"; // Panel refinements
+import "./styles/Animations.css"; // Animations and polish
 import "./App.css";
 import { PinDiagram } from "./components/PinDiagram";
 import "./components/PinDiagram.css";
@@ -26,7 +29,7 @@ import "./components/DSPPanel.css";
 import { SecurityPanel } from "./components/SecurityPanel";
 import "./components/SecurityPanel.css";
 import { SettingsPanel } from "./components/SettingsPanel";
-import UnifiedCanvas from "./components/UnifiedCanvas";
+import KonvaCanvas from "./components/KonvaCanvas";
 
 // NEW: Import additional panels that exist but were not accessible
 import { SimulatorPanel } from "./components/SimulatorPanel";
@@ -45,274 +48,19 @@ import "./components/HistoryPanel.css";
 import { SchedulerPanel } from "./components/SchedulerPanel";
 import "./components/SchedulerPanel.css";
 
-// --- Icons (inline SVG for simplicity) ---
-const Icons = {
-  brain: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2a4 4 0 0 0-4 4c0 1.1.9 2 2 2h.5" />
-      <path d="M8 6a4 4 0 0 0-4 4c0 2.2 1.8 4 4 4h1" />
-      <path d="M12 22a4 4 0 0 0 4-4c0-1.1-.9-2-2-2h-.5" />
-      <path d="M16 18a4 4 0 0 0 4-4c0-2.2-1.8-4-4-4h-1" />
-      <path d="M12 2a4 4 0 0 1 4 4c0 1.1-.9 2-2 2h-.5" />
-      <path d="M16 6a4 4 0 0 1 4 4c0 2.2-1.8 4-4 4h-1" />
-      <path d="M12 22a4 4 0 0 1-4-4c0-1.1.9-2 2-2h.5" />
-      <path d="M8 18a4 4 0 0 1-4-4c0-2.2 1.8-4 4-4h1" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-  newFile: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14,2 14,8 20,8" />
-      <line x1="12" y1="18" x2="12" y2="12" />
-      <line x1="9" y1="15" x2="15" y2="15" />
-    </svg>
-  ),
-  save: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-      <polyline points="17 21 17 13 7 13 7 21" />
-      <polyline points="7 3 7 8 15 8" />
-    </svg>
-  ),
-  folder: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-    </svg>
-  ),
-  play: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <polygon points="5 3 19 12 5 21 5 3" />
-    </svg>
-  ),
-  pause: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <rect x="6" y="4" width="4" height="16" />
-      <rect x="14" y="4" width="4" height="16" />
-    </svg>
-  ),
-  step: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
-      <line x1="19" y1="5" x2="19" y2="19" />
-    </svg>
-  ),
-  stop: () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-    </svg>
-  ),
-  code: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="16 18 22 12 16 6" />
-      <polyline points="8 6 2 12 8 18" />
-    </svg>
-  ),
-  chip: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-      <rect x="9" y="9" width="6" height="6" />
-      <line x1="9" y1="1" x2="9" y2="4" />
-      <line x1="15" y1="1" x2="15" y2="4" />
-      <line x1="9" y1="20" x2="9" y2="23" />
-      <line x1="15" y1="20" x2="15" y2="23" />
-      <line x1="20" y1="9" x2="23" y2="9" />
-      <line x1="20" y1="14" x2="23" y2="14" />
-      <line x1="1" y1="9" x2="4" y2="9" />
-      <line x1="1" y1="14" x2="4" y2="14" />
-    </svg>
-  ),
-  layers: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polygon points="12 2 2 7 12 12 22 7 12 2" />
-      <polyline points="2 17 12 22 22 17" />
-      <polyline points="2 12 12 17 22 12" />
-    </svg>
-  ),
-  settings: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  ),
-  x: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  ),
-  message: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  ),
-  send: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="22" y1="2" x2="11" y2="13" />
-      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-    </svg>
-  ),
-  zoomIn: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      <line x1="11" y1="8" x2="11" y2="14" />
-      <line x1="8" y1="11" x2="14" y2="11" />
-    </svg>
-  ),
-  zoomOut: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      <line x1="8" y1="11" x2="14" y2="11" />
-    </svg>
-  ),
-  fitView: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-    </svg>
-  ),
-  plug: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2v10" />
-      <path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
-      <circle cx="12" cy="12" r="2" />
-    </svg>
-  ),
-  cpu: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-      <rect x="9" y="9" width="6" height="6" />
-      <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
-    </svg>
-  ),
-  tasks: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 11l3 3L22 4" />
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-    </svg>
-  ),
-  wifi: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M5 12.55a11 11 0 0 1 14.08 0" />
-      <path d="M1.42 9a16 16 0 0 1 21.16 0" />
-      <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
-      <circle cx="12" cy="20" r="1" fill="currentColor" />
-    </svg>
-  ),
-  activity: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  ),
-  lock: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  ),
-  grid: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-    </svg>
-  ),
-  minimap: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <rect x="14" y="14" width="5" height="5" fill="currentColor" opacity="0.5" />
-      <circle cx="8" cy="8" r="2" fill="currentColor" />
-      <circle cx="13" cy="10" r="1.5" fill="currentColor" />
-    </svg>
-  ),
-  layout: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="6" height="5" rx="1" />
-      <rect x="15" y="3" width="6" height="5" rx="1" />
-      <rect x="9" y="16" width="6" height="5" rx="1" />
-      <path d="M6 8v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V8" />
-      <path d="M12 14v2" />
-    </svg>
-  ),
-  validate: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 12l2 2 4-4" />
-      <circle cx="12" cy="12" r="10" />
-    </svg>
-  ),
-  // NEW ICONS for additional panels
-  debug: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2a3 3 0 0 0-3 3v2a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-      <path d="M18 12h-3M9 12H6M18 8h-3M9 8H6M18 16h-3M9 16H6" />
-      <rect x="9" y="9" width="6" height="13" rx="2" />
-    </svg>
-  ),
-  performance: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  build: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
-  ),
-  gitBranch: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="6" y1="3" x2="6" y2="15" />
-      <circle cx="18" cy="6" r="3" />
-      <circle cx="6" cy="18" r="3" />
-      <path d="M18 9a9 9 0 0 1-9 9" />
-    </svg>
-  ),
-  power: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
-      <line x1="12" y1="2" x2="12" y2="12" />
-    </svg>
-  ),
-  serial: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="4" y="4" width="16" height="6" rx="1" />
-      <rect x="4" y="14" width="16" height="6" rx="1" />
-      <path d="M8 10v4M12 10v4M16 10v4" />
-    </svg>
-  ),
-  memory: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="6" width="20" height="12" rx="2" />
-      <path d="M6 6V4M10 6V4M14 6V4M18 6V4M6 18v2M10 18v2M14 18v2M18 18v2" />
-      <line x1="6" y1="10" x2="6" y2="14" />
-      <line x1="18" y1="10" x2="18" y2="14" />
-    </svg>
-  ),
-  profiler: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
-    </svg>
-  ),
-  workflow: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="4" width="6" height="6" rx="1" />
-      <rect x="15" y="4" width="6" height="6" rx="1" />
-      <rect x="9" y="14" width="6" height="6" rx="1" />
-      <path d="M6 10v2a2 2 0 0 0 2 2h2M18 10v2a2 2 0 0 1-2 2h-2" />
-    </svg>
-  ),
-  simulator: () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="3" width="20" height="14" rx="2" />
-      <line x1="8" y1="21" x2="16" y2="21" />
-      <line x1="12" y1="17" x2="12" y2="21" />
-    </svg>
-  ),
-};
+// --- Icons imported from separate file ---
+import { Icons } from "./components/AppIcons";
+
+// --- NEW: Industrial UI Components ---
+import { CommandBar } from "./components/CommandBar";
+import { ActivityBar } from "./components/ActivityBar";
+import { CanvasRulers, AlignmentGuides } from "./components/CanvasRulers";
+import { StatusBar } from "./components/StatusBar";
+import "./components/StatusBar.css";
+import { SimulationDashboard } from "./components/SimulationDashboard";
+import "./components/SimulationDashboard.css";
+import { IndustrialMenuBar } from "./components/IndustrialMenuBar";
+import "./components/IndustrialMenuBar.css";
 
 // --- Types ---
 interface FSMNode {
@@ -376,7 +124,122 @@ const SNAP_THRESHOLD = 12;
 
 // --- App Component ---
 function App() {
-  // State
+  // ========== TAB SYSTEM FOR MULTIPLE DESIGNS ==========
+  interface CanvasTab {
+    id: string;
+    name: string;
+    nodes: FSMNode[];
+    edges: FSMEdge[];
+    targetMcu: string;
+    modified: boolean;
+  }
+
+  const createNewTab = (name: string = "Untitled"): CanvasTab => ({
+    id: `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name,
+    nodes: [
+      { id: "1", label: "START", type: "input", x: 300, y: 80 },
+      { id: "2", label: "IDLE", type: "process", x: 300, y: 200 },
+    ],
+    edges: [
+      { id: "e1", source: "1", target: "2", label: "init" },
+    ],
+    targetMcu: "STM32F401",
+    modified: false,
+  });
+
+  const [tabs, setTabs] = createSignal<CanvasTab[]>([
+    {
+      id: "tab_default",
+      name: "Main Design",
+      nodes: [
+        { id: "1", label: "START", type: "input", x: 300, y: 80 },
+        { id: "2", label: "INIT", type: "process", x: 300, y: 200, entryAction: "HAL.init();\nGPIO.setup(13, OUTPUT);" },
+        { id: "3", label: "RUNNING", type: "process", x: 300, y: 320, entryAction: "ledOn = true;" },
+        { id: "4", label: "END", type: "output", x: 300, y: 440 },
+      ],
+      edges: [
+        { id: "e1", source: "1", target: "2", label: "init" },
+        { id: "e2", source: "2", target: "3", label: "ready" },
+        { id: "e3", source: "3", target: "4", label: "done" },
+      ],
+      targetMcu: "STM32F401",
+      modified: false,
+    },
+  ]);
+  const [activeTabId, setActiveTabId] = createSignal<string>("tab_default");
+
+  // Get current tab
+  const currentTab = () => tabs().find(t => t.id === activeTabId()) || tabs()[0];
+
+  // Tab management functions
+  const addNewTab = (name?: string) => {
+    const newTab = createNewTab(name || `Design ${tabs().length + 1}`);
+    setTabs(prev => [...prev, newTab]);
+    setActiveTabId(newTab.id);
+    addLog("SYSTEM", `Created new tab: ${newTab.name}`, "success");
+  };
+
+  const closeTab = (tabId: string) => {
+    if (tabs().length <= 1) {
+      addLog("SYSTEM", "Cannot close the last tab", "warning");
+      return;
+    }
+    const tabIndex = tabs().findIndex(t => t.id === tabId);
+    setTabs(prev => prev.filter(t => t.id !== tabId));
+    // If closing active tab, switch to adjacent tab
+    if (activeTabId() === tabId) {
+      const newIndex = Math.min(tabIndex, tabs().length - 2);
+      setActiveTabId(tabs().filter(t => t.id !== tabId)[newIndex]?.id || tabs()[0].id);
+    }
+    addLog("SYSTEM", `Closed tab`, "info");
+  };
+
+  const switchTab = (tabId: string) => {
+    // Save current tab state
+    const current = currentTab();
+    if (current) {
+      setTabs(prev => prev.map(t => 
+        t.id === current.id ? { ...t, nodes: nodes(), edges: edges(), modified: t.modified || hasChanges() } : t
+      ));
+    }
+    // Switch to new tab
+    setActiveTabId(tabId);
+    const newTab = tabs().find(t => t.id === tabId);
+    if (newTab) {
+      setNodes(newTab.nodes);
+      setEdges(newTab.edges);
+      setTargetMcu(newTab.targetMcu);
+      setSelectedNode(null);
+    }
+  };
+
+  const renameTab = (tabId: string, newName: string) => {
+    setTabs(prev => prev.map(t => t.id === tabId ? { ...t, name: newName } : t));
+  };
+
+  const duplicateTab = (tabId: string) => {
+    const tab = tabs().find(t => t.id === tabId);
+    if (tab) {
+      const newTab: CanvasTab = {
+        ...tab,
+        id: `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: `${tab.name} (copy)`,
+        nodes: tab.nodes.map(n => ({ ...n })),
+        edges: tab.edges.map(e => ({ ...e })),
+      };
+      setTabs(prev => [...prev, newTab]);
+      setActiveTabId(newTab.id);
+      addLog("SYSTEM", `Duplicated tab: ${tab.name}`, "success");
+    }
+  };
+
+  const hasChanges = () => {
+    // Simple check for unsaved changes
+    return nodes().length > 0;
+  };
+
+  // State - now derived from current tab
   const [projectName, setProjectName] = createSignal("Untitled Project");
   const [targetMcu, setTargetMcu] = createSignal("STM32F401");
   const [simStatus, setSimStatus] = createSignal<"idle" | "running" | "paused">("idle");
@@ -432,6 +295,7 @@ function App() {
   // Panel state
   const [activePanel, setActivePanel] = createSignal("nodes");
   const [activeBottomTab, setActiveBottomTab] = createSignal("console");
+  const [activeSidePanel, setActiveSidePanel] = createSignal<string | null>(null); // VS Code-style left panel
   
   // AI Chat state
   const [chatMessages, setChatMessages] = createSignal<ChatMessage[]>([]);
@@ -1335,7 +1199,7 @@ function App() {
         language: codeLanguage(),
       });
       setGeneratedCode(code as string);
-      setActivePanel("code");
+      setActiveBottomTab("code");
       addLog("CODEGEN", `Generated ${codeLanguage()} code (${(code as string).length} chars)`, "success");
     } catch (e) {
       addLog("ERROR", `Code generation failed: ${e}`, "error");
@@ -1354,7 +1218,7 @@ function App() {
           target: codeLanguage().toLowerCase(),
         });
         setGeneratedCode((fallback as any).code);
-        setActivePanel("code");
+        setActiveBottomTab("code");
         addLog("CODEGEN", "Used template generation (AI unavailable)", "warning");
       } catch (e2) {
         addLog("ERROR", `Template generation also failed: ${e2}`, "error");
@@ -1377,7 +1241,7 @@ function App() {
           addLog("HW", `  → ${p.name}: ${info.type}`, "info");
         }
       });
-      setActivePanel("hardware");
+      setActiveBottomTab("hardware");
     } catch (e) {
       addLog("ERROR", `${e}`, "error");
     }
@@ -1513,158 +1377,478 @@ function App() {
     setIsGeneratingDriver(false);
   };
 
+  // ========== FILE MENU HANDLERS ==========
+  const handleOpenProject = async () => {
+    try {
+      // Try to load from localStorage first
+      const saved = localStorage.getItem("neurobench_project");
+      if (saved) {
+        const project = JSON.parse(saved);
+        if (project.nodes) setNodes(project.nodes);
+        if (project.edges) setEdges(project.edges);
+        if (project.name) setProjectName(project.name);
+        if (project.targetMcu) setTargetMcu(project.targetMcu);
+        addLog("SYSTEM", `Opened project: ${project.name || "Untitled"}`, "success");
+        pushHistory();
+      } else {
+        // Create file input for file selection
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json,.nbproj";
+        input.onchange = async (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (file) {
+            const text = await file.text();
+            const project = JSON.parse(text);
+            if (project.nodes) setNodes(project.nodes);
+            if (project.edges) setEdges(project.edges);
+            if (project.name) setProjectName(project.name);
+            if (project.targetMcu) setTargetMcu(project.targetMcu);
+            addLog("SYSTEM", `Opened project: ${file.name}`, "success");
+            pushHistory();
+          }
+        };
+        input.click();
+      }
+    } catch (e) {
+      addLog("ERROR", `Failed to open project: ${e}`, "error");
+    }
+  };
+
+  const handleSaveProject = async () => {
+    try {
+      const projectData = {
+        name: projectName(),
+        targetMcu: targetMcu(),
+        nodes: nodes(),
+        edges: edges(),
+        savedAt: new Date().toISOString(),
+      };
+      // Save to localStorage
+      localStorage.setItem("neurobench_project", JSON.stringify(projectData));
+      addLog("SYSTEM", `Project "${projectName()}" saved to browser storage`, "success");
+    } catch (e) {
+      addLog("ERROR", `Failed to save project: ${e}`, "error");
+    }
+  };
+
+  const handleSaveAs = async () => {
+    try {
+      const projectData = {
+        name: projectName(),
+        targetMcu: targetMcu(),
+        nodes: nodes(),
+        edges: edges(),
+        savedAt: new Date().toISOString(),
+      };
+      // Create downloadable file
+      const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${projectName()}.nbproj`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addLog("SYSTEM", `Project downloaded as ${projectName()}.nbproj`, "success");
+    } catch (e) {
+      addLog("ERROR", `Failed to save project: ${e}`, "error");
+    }
+  };
+
+  const handleExportCode = async () => {
+    // First generate code if not already done
+    if (!generatedCode()) {
+      await handleGenerateCode();
+    }
+    try {
+      const ext = codeLanguage() === "C" ? "c" : codeLanguage() === "Cpp" ? "cpp" : "rs";
+      const blob = new Blob([generatedCode()], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${projectName()}_fsm.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addLog("SYSTEM", `Code exported as ${projectName()}_fsm.${ext}`, "success");
+    } catch (e) {
+      addLog("ERROR", `Failed to export code: ${e}`, "error");
+    }
+  };
+
+  // ========== EDIT MENU HANDLERS ==========
+  const [clipboard, setClipboard] = createSignal<{ nodes: FSMNode[]; edges: FSMEdge[] } | null>(null);
+
+  const handleCut = () => {
+    const selected = selectedNode();
+    if (!selected) {
+      addLog("EDIT", "No node selected to cut", "warning");
+      return;
+    }
+    // Copy to clipboard first
+    const nodesToCut = nodes().filter(n => n.id === selected);
+    const edgesToCut = edges().filter(e => e.source === selected || e.target === selected);
+    setClipboard({ nodes: nodesToCut, edges: edgesToCut });
+    // Then delete
+    pushHistory();
+    setNodes(prev => prev.filter(n => n.id !== selected));
+    setEdges(prev => prev.filter(e => e.source !== selected && e.target !== selected));
+    setSelectedNode(null);
+    addLog("EDIT", "Cut node to clipboard", "success");
+  };
+
+  const handleCopy = () => {
+    const selected = selectedNode();
+    if (!selected) {
+      addLog("EDIT", "No node selected to copy", "warning");
+      return;
+    }
+    const nodesToCopy = nodes().filter(n => n.id === selected);
+    const edgesToCopy = edges().filter(e => e.source === selected || e.target === selected);
+    setClipboard({ nodes: nodesToCopy, edges: edgesToCopy });
+    addLog("EDIT", "Copied node to clipboard", "success");
+  };
+
+  const handlePaste = () => {
+    const clip = clipboard();
+    if (!clip || clip.nodes.length === 0) {
+      addLog("EDIT", "Clipboard is empty", "warning");
+      return;
+    }
+    pushHistory();
+    // Create new nodes with new IDs and offset positions
+    const idMap: Record<string, string> = {};
+    const newNodes = clip.nodes.map(n => {
+      const newId = `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      idMap[n.id] = newId;
+      return { ...n, id: newId, x: n.x + 50, y: n.y + 50, label: `${n.label}_copy` };
+    });
+    // Create new edges with updated IDs
+    const newEdges = clip.edges.map(e => ({
+      ...e,
+      source: idMap[e.source] || e.source,
+      target: idMap[e.target] || e.target,
+    })).filter(e => idMap[e.source] && idMap[e.target]);
+    
+    setNodes(prev => [...prev, ...newNodes]);
+    setEdges(prev => [...prev, ...newEdges]);
+    addLog("EDIT", `Pasted ${newNodes.length} node(s)`, "success");
+  };
+
+  const handleDeleteSelected = () => {
+    const selected = selectedNode();
+    if (!selected) {
+      addLog("EDIT", "No node selected to delete", "warning");
+      return;
+    }
+    pushHistory();
+    setNodes(prev => prev.filter(n => n.id !== selected));
+    setEdges(prev => prev.filter(e => e.source !== selected && e.target !== selected));
+    setSelectedNode(null);
+    addLog("EDIT", "Deleted selected node", "success");
+  };
+
+  const handleSelectAll = () => {
+    // For now, just log - multi-select would need more complex state
+    addLog("EDIT", `${nodes().length} nodes in canvas (multi-select coming soon)`, "info");
+  };
+
+  // ========== VIEW MENU HANDLERS ==========
+  const [showGrid, setShowGrid] = createSignal(true);
+  const [showRulers, setShowRulers] = createSignal(false);
+
+  const handleZoomIn = () => {
+    setZoom(Math.min(3, zoom() + 0.1));
+    addLog("VIEW", `Zoom: ${Math.round(zoom() * 100)}%`, "info");
+  };
+
+  const handleZoomOut = () => {
+    setZoom(Math.max(0.25, zoom() - 0.1));
+    addLog("VIEW", `Zoom: ${Math.round(zoom() * 100)}%`, "info");
+  };
+
+  const handleZoomReset = () => {
+    setZoom(1);
+    setPanX(0);
+    setPanY(0);
+    addLog("VIEW", "Zoom reset to 100%", "info");
+  };
+
+  const handleToggleGrid = () => {
+    setShowGrid(!showGrid());
+    addLog("VIEW", `Grid: ${showGrid() ? "ON" : "OFF"}`, "info");
+  };
+
+  const handleToggleMinimap = () => {
+    setShowMinimap(!showMinimap());
+    addLog("VIEW", `Minimap: ${showMinimap() ? "ON" : "OFF"}`, "info");
+  };
+
+  const handleToggleRulers = () => {
+    setShowRulers(!showRulers());
+    addLog("VIEW", `Rulers: ${showRulers() ? "ON" : "OFF"}`, "info");
+  };
+
+  // ========== BUILD MENU HANDLERS ==========
+  const handleBuildProject = async () => {
+    addLog("BUILD", "Starting build...", "info");
+    try {
+      // Generate code first
+      await handleGenerateCode();
+      // Then invoke build command
+      const result = await invoke("build_project", {
+        targetMcu: targetMcu(),
+        code: generatedCode(),
+      });
+      addLog("BUILD", `Build completed: ${result}`, "success");
+    } catch (e) {
+      addLog("BUILD", `Build failed: ${e}`, "error");
+    }
+  };
+
+  const handleCleanBuild = async () => {
+    addLog("BUILD", "Cleaning build artifacts...", "info");
+    try {
+      await invoke("clean_build");
+      addLog("BUILD", "Build cleaned successfully", "success");
+    } catch (e) {
+      addLog("BUILD", `Clean failed: ${e}`, "error");
+    }
+  };
+
+  const handleFlashToDevice = async () => {
+    addLog("BUILD", "Flashing to device...", "info");
+    try {
+      const result = await invoke("flash_device", {
+        targetMcu: targetMcu(),
+        binary: generatedCode(), // Would be actual binary in real impl
+      });
+      addLog("BUILD", `Flash completed: ${result}`, "success");
+    } catch (e) {
+      addLog("BUILD", `Flash failed: ${e}`, "error");
+    }
+  };
+
+  // ========== SIMULATION HANDLERS ==========
+  const handleSimReset = () => {
+    setSimStatus("idle");
+    addLog("SIM", "Simulation reset", "info");
+  };
+
+  // ========== HELP MENU HANDLERS ==========
+  const handleShowHelp = () => {
+    window.open("https://github.com/neurobench/docs", "_blank");
+    addLog("HELP", "Opening documentation in browser", "info");
+  };
+
+  const handleShowAbout = () => {
+    addLog("HELP", `
+╔══════════════════════════════════════════╗
+║           NEUROBENCH v0.1.0              ║
+║   Industrial FSM Designer for Embedded   ║
+╠══════════════════════════════════════════╣
+║  🔧 Supports: STM32, ESP32, RP2040       ║
+║  ⚡ Code Gen: C, C++, Rust               ║
+║  🎯 HAL Simulation                       ║
+║  🤖 AI-Assisted Design                   ║
+╚══════════════════════════════════════════╝
+    `.trim(), "info");
+  };
+
   return (
     <div class="app">
-      {/* Header */}
-      <header class="header">
-        <div class="header-logo">
-          <Icons.brain />
-          <span>NeuroBench</span>
-        </div>
-        
-        <div class="header-divider" />
-        
-        <div class="header-toolbar">
-          <button class="toolbar-btn" onClick={handleNewProject} title="New Project">
-            <Icons.newFile />
-            <span>New</span>
-          </button>
-          <button class="toolbar-btn" title="Save Project">
-            <Icons.save />
-            <span>Save</span>
-          </button>
-          <button class="toolbar-btn" title="Open Project">
-            <Icons.folder />
-            <span>Open</span>
-          </button>
-        </div>
-        
-        <div class="header-divider" />
-        
-        <div class="header-toolbar">
-          <button 
-            class={`toolbar-btn ${simStatus() === "running" ? "active" : "success"}`}
-            onClick={handleSimulate}
-          >
-            <Show when={simStatus() === "running"} fallback={<Icons.play />}>
-              <Icons.pause />
-            </Show>
-            <span>{simStatus() === "running" ? "Pause" : "Run"}</span>
-          </button>
-          <button class="toolbar-btn" onClick={handleStep}><Icons.step /></button>
-          <button class="toolbar-btn danger" onClick={handleStop}><Icons.stop /></button>
-        </div>
-        
-        <div class="header-divider" />
-        
-        <div class="header-toolbar">
-          <button class="toolbar-btn" onClick={handleGenerateCode}><Icons.code /><span>Generate</span></button>
-          <button class="toolbar-btn" onClick={handleDetectDevices}><Icons.chip /><span>Devices</span></button>
-          <button class="toolbar-btn success" onClick={() => setShowDescriptionModal(true)}><Icons.brain /><span>AI Magic</span></button>
-        </div>
-        
-        <div class="header-divider" />
-        
-        {/* Canvas Tools */}
-        <div class="header-toolbar">
-          <div class="toolbar-dropdown">
-            <button class="toolbar-btn" title="Auto-Layout">
-              <Icons.layout />
-              <span>Layout</span>
-            </button>
-            <div class="dropdown-menu">
-              <button class="dropdown-item" onClick={() => handleAutoLayout("hierarchical")}>
-                Hierarchical (Top-Down)
-              </button>
-              <button class="dropdown-item" onClick={() => handleAutoLayout("force_directed")}>
-                Force-Directed (Spring)
-              </button>
-              <button class="dropdown-item" onClick={() => handleAutoLayout("grid")}>
-                Grid Layout
-              </button>
-            </div>
-          </div>
-          <button class="toolbar-btn" onClick={handleValidate} title="Validate Graph">
-            <Icons.validate />
-            <span>Validate</span>
-          </button>
-        </div>
-        
-        <div class="header-spacer" />
-        
-        <div class="header-status">
-          {/* IDE Selector */}
-          <select class="ide-selector" title="IDE Target">
-            <option value="stm32cubeide">STM32CubeIDE</option>
-            <option value="keil">Keil MDK</option>
-            <option value="iar">IAR Workbench</option>
-            <option value="arduino">Arduino IDE</option>
-            <option value="platformio">PlatformIO</option>
-            <option value="vscode">VS Code</option>
-          </select>
-          
-          {/* Status Indicator */}
-          <div class="status-item">
-            <span class={`status-dot ${simStatus() === "running" ? "active" : simStatus() === "paused" ? "warning" : ""}`} />
-            <span>{simStatus().toUpperCase()}</span>
-          </div>
-          
-          {/* MCU Badge */}
-          <select class="mcu-selector" value={targetMcu()} onChange={(e) => setTargetMcu(e.currentTarget.value)}>
-            <option value="STM32F401">STM32F401</option>
-            <option value="STM32F103">STM32F103</option>
-            <option value="ATMega328P">ATMega328P</option>
-            <option value="ESP32">ESP32</option>
-            <option value="RP2040">RP2040</option>
-            <option value="nRF52840">nRF52840</option>
-          </select>
-        </div>
-      </header>
+      {/* Industrial Menubar */}
+      <IndustrialMenuBar
+        projectName={projectName()}
+        targetMcu={targetMcu()}
+        simStatus={simStatus()}
+        onNewProject={handleNewProject}
+        onOpenProject={handleOpenProject}
+        onSaveProject={handleSaveProject}
+        onSaveAs={handleSaveAs}
+        onExport={handleExportCode}
+        onUndo={undo}
+        onRedo={redo}
+        onCut={handleCut}
+        onCopy={handleCopy}
+        onPaste={handlePaste}
+        onDelete={handleDeleteSelected}
+        onSelectAll={handleSelectAll}
+        onSettings={() => setShowSettingsModal(true)}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onZoomReset={handleZoomReset}
+        onToggleGrid={handleToggleGrid}
+        onToggleMinimap={handleToggleMinimap}
+        onToggleRulers={handleToggleRulers}
+        onBuild={handleBuildProject}
+        onClean={handleCleanBuild}
+        onFlash={handleFlashToDevice}
+        onSimStart={handleSimulate}
+        onSimPause={handleSimulate}
+        onSimStop={handleStop}
+        onSimStep={handleStep}
+        onSimReset={handleSimReset}
+        onGenerateCode={handleGenerateCode}
+        onValidate={handleValidate}
+        onAutoLayout={(type) => handleAutoLayout(type as "hierarchical" | "force_directed" | "grid")}
+        onDetectDevices={handleDetectDevices}
+        onHelp={handleShowHelp}
+        onAbout={handleShowAbout}
+        onTargetChange={(mcu) => setTargetMcu(mcu)}
+      />
       
       {/* Main Content */}
       <div class="main-content">
-        {/* Sidebar */}
+        {/* Sidebar - Activity Bar (controls left panel) */}
         <nav class="sidebar">
-          <button class={`sidebar-btn ${activePanel() === "nodes" ? "active" : ""}`} onClick={() => setActivePanel("nodes")}><Icons.layers /></button>
-          <button class={`sidebar-btn ${activePanel() === "chat" ? "active" : ""}`} onClick={() => setActivePanel("chat")}><Icons.message /></button>
-          <button class={`sidebar-btn ${activePanel() === "hardware" ? "active" : ""}`} onClick={() => setActivePanel("hardware")}><Icons.chip /></button>
-          <button class={`sidebar-btn ${activePanel() === "code" ? "active" : ""}`} onClick={() => setActivePanel("code")}><Icons.code /></button>
-          <button class={`sidebar-btn ${activePanel() === "drivers" ? "active" : ""}`} onClick={() => setActivePanel("drivers")}><Icons.plug /></button>
-          <button class={`sidebar-btn ${activePanel() === "pins" ? "active" : ""}`} onClick={() => setActivePanel("pins")}><Icons.cpu /></button>
-          <button class={`sidebar-btn ${activePanel() === "rtos" ? "active" : ""}`} onClick={() => setActivePanel("rtos")} title="RTOS"><Icons.tasks /></button>
-          <button class={`sidebar-btn ${activePanel() === "wireless" ? "active" : ""}`} onClick={() => setActivePanel("wireless")} title="Wireless"><Icons.wifi /></button>
-          <button class={`sidebar-btn ${activePanel() === "dsp" ? "active" : ""}`} onClick={() => setActivePanel("dsp")} title="DSP"><Icons.activity /></button>
-          <button class={`sidebar-btn ${activePanel() === "security" ? "active" : ""}`} onClick={() => setActivePanel("security")} title="Security"><Icons.lock /></button>
-          <button class={`sidebar-btn ${activePanel() === "agents" ? "active" : ""}`} onClick={() => setActivePanel("agents")} title="AI Agents"><Icons.brain /></button>
-          {/* NEW: Additional panel buttons */}
-          <button class={`sidebar-btn ${activePanel() === "simulator" ? "active" : ""}`} onClick={() => setActivePanel("simulator")} title="Simulator"><Icons.simulator /></button>
-          <button class={`sidebar-btn ${activePanel() === "debug" ? "active" : ""}`} onClick={() => setActivePanel("debug")} title="Debug"><Icons.debug /></button>
-          <button class={`sidebar-btn ${activePanel() === "performance" ? "active" : ""}`} onClick={() => setActivePanel("performance")} title="Performance"><Icons.performance /></button>
-          <button class={`sidebar-btn ${activePanel() === "build" ? "active" : ""}`} onClick={() => setActivePanel("build")} title="Build"><Icons.build /></button>
-          <button class={`sidebar-btn ${activePanel() === "workflow" ? "active" : ""}`} onClick={() => setActivePanel("workflow")} title="Workflow"><Icons.workflow /></button>
-          <button class={`sidebar-btn ${activePanel() === "git" ? "active" : ""}`} onClick={() => setActivePanel("git")} title="Git"><Icons.gitBranch /></button>
-          <button class={`sidebar-btn ${activePanel() === "serial" ? "active" : ""}`} onClick={() => setActivePanel("serial")} title="Serial"><Icons.serial /></button>
-          <button class={`sidebar-btn ${activePanel() === "memory" ? "active" : ""}`} onClick={() => setActivePanel("memory")} title="Memory"><Icons.memory /></button>
-          <button class={`sidebar-btn ${activePanel() === "profiler" ? "active" : ""}`} onClick={() => setActivePanel("profiler")} title="Profiler"><Icons.profiler /></button>
-          <button class={`sidebar-btn ${activePanel() === "power" ? "active" : ""}`} onClick={() => setActivePanel("power")} title="Power"><Icons.power /></button>
-          <button class={`sidebar-btn ${activePanel() === "validation" ? "active" : ""}`} onClick={() => setActivePanel("validation")} title="Validation"><Icons.validate /></button>
-          <button class={`sidebar-btn ${activePanel() === "history" ? "active" : ""}`} onClick={() => setActivePanel("history")} title="History">📜</button>
-          <button class={`sidebar-btn ${activePanel() === "scheduler" ? "active" : ""}`} onClick={() => setActivePanel("scheduler")} title="Scheduler">⚡</button>
+          <button class={`sidebar-btn ${activeSidePanel() === "chat" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "chat" ? null : "chat")} title="AI Assistant"><Icons.message /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "hardware" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "hardware" ? null : "hardware")} title="Hardware"><Icons.chip /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "code" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "code" ? null : "code")} title="Code"><Icons.code /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "build" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "build" ? null : "build")} title="Build"><Icons.build /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "drivers" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "drivers" ? null : "drivers")} title="Drivers"><Icons.plug /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "debug" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "debug" ? null : "debug")} title="Debug"><Icons.debug /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "serial" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "serial" ? null : "serial")} title="Serial"><Icons.serial /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "git" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "git" ? null : "git")} title="Git"><Icons.gitBranch /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "rtos" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "rtos" ? null : "rtos")} title="RTOS"><Icons.tasks /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "wireless" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "wireless" ? null : "wireless")} title="Wireless"><Icons.wifi /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "dsp" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "dsp" ? null : "dsp")} title="DSP"><Icons.activity /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "security" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "security" ? null : "security")} title="Security"><Icons.lock /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "agents" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "agents" ? null : "agents")} title="AI Agents"><Icons.brain /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "simulator" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "simulator" ? null : "simulator")} title="Simulator"><Icons.simulator /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "performance" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "performance" ? null : "performance")} title="Performance"><Icons.performance /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "workflow" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "workflow" ? null : "workflow")} title="Workflow"><Icons.workflow /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "memory" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "memory" ? null : "memory")} title="Memory"><Icons.memory /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "profiler" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "profiler" ? null : "profiler")} title="Profiler"><Icons.profiler /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "power" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "power" ? null : "power")} title="Power"><Icons.power /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "validation" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "validation" ? null : "validation")} title="Validation"><Icons.validate /></button>
+          <button class={`sidebar-btn ${activeSidePanel() === "history" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "history" ? null : "history")} title="History">📜</button>
+          <button class={`sidebar-btn ${activeSidePanel() === "scheduler" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "scheduler" ? null : "scheduler")} title="Scheduler">⚡</button>
           <div class="sidebar-spacer" />
           <button class="sidebar-btn" onClick={() => setShowSettingsModal(true)} title="Settings"><Icons.settings /></button>
         </nav>
         
-        {/* Canvas Area - Unified Canvas */}
-        <UnifiedCanvas 
-          projectName={projectName()} 
-        />
+        {/* Left Panel - VS Code-style sidebar */}
+        <Show when={activeSidePanel() !== null}>
+          <aside class="left-panel">
+            {/* Panel Header */}
+            <div class="left-panel-header">
+              <span class="left-panel-title">
+                {activeSidePanel() === "nodes" && "📦 Nodes"}
+                {activeSidePanel() === "chat" && "🤖 AI Assistant"}
+                {activeSidePanel() === "hardware" && "🔧 Hardware"}
+                {activeSidePanel() === "code" && "📝 Code"}
+                {activeSidePanel() === "drivers" && "🔌 Drivers"}
+                {activeSidePanel() === "pins" && "📍 Pins"}
+                {activeSidePanel() === "rtos" && "🔄 RTOS"}
+                {activeSidePanel() === "wireless" && "📶 Wireless"}
+                {activeSidePanel() === "dsp" && "📈 DSP"}
+                {activeSidePanel() === "security" && "🔐 Security"}
+                {activeSidePanel() === "agents" && "🧠 AI Agents"}
+                {activeSidePanel() === "simulator" && "🎮 Simulator"}
+                {activeSidePanel() === "debug" && "🐛 Debug"}
+                {activeSidePanel() === "performance" && "⚡ Performance"}
+                {activeSidePanel() === "build" && "🔨 Build"}
+                {activeSidePanel() === "workflow" && "📊 Workflow"}
+                {activeSidePanel() === "git" && "🌿 Git"}
+                {activeSidePanel() === "serial" && "📡 Serial"}
+                {activeSidePanel() === "memory" && "💾 Memory"}
+                {activeSidePanel() === "profiler" && "📉 Profiler"}
+                {activeSidePanel() === "power" && "🔋 Power"}
+                {activeSidePanel() === "validation" && "✅ Validation"}
+                {activeSidePanel() === "history" && "📜 History"}
+                {activeSidePanel() === "scheduler" && "📅 Scheduler"}
+              </span>
+              <button class="left-panel-close" onClick={() => setActiveSidePanel(null)}>✕</button>
+            </div>
+            
+            {/* Panel Content */}
+            <div class="left-panel-content">
+              <Show when={activeSidePanel() === "chat"}>
+                <div class="chat-panel">
+                  <div class="chat-messages">
+                    <For each={chatMessages()}>
+                      {(msg) => (
+                        <div class={`chat-msg ${msg.role}`}>
+                          <div class="msg-role">{msg.role === "user" ? "You" : "AI"}</div>
+                          <div class="msg-content">{msg.content}</div>
+                        </div>
+                      )}
+                    </For>
+                    <Show when={isAiLoading()}><div class="chat-msg ai">Thinking...</div></Show>
+                  </div>
+                  <div class="chat-input-bar">
+                    <input class="panel-input" placeholder="Ask about FSM..." value={chatInput()} onInput={(e) => setChatInput(e.currentTarget.value)} onKeyDown={(e) => e.key === "Enter" && handleSendChat()} />
+                    <button class="btn-primary" onClick={handleSendChat} disabled={isAiLoading()}><Icons.send /></button>
+                  </div>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "hardware"}>
+                <div class="panel-section"><div class="panel-section-title">Target MCU</div>
+                  <select class="panel-input" value={targetMcu()} onChange={(e) => setTargetMcu(e.currentTarget.value)}>
+                    <option value="STM32F401">STM32F401</option>
+                    <option value="STM32F103">STM32F103</option>
+                    <option value="ESP32">ESP32</option>
+                    <option value="RP2040">RP2040</option>
+                  </select>
+                </div>
+                <div class="panel-section"><div class="panel-section-title">Serial Ports</div>
+                  <button class="btn-primary" onClick={handleDetectDevices}>Scan Ports</button>
+                  <For each={serialPorts()}>{(p) => <div class="port-item">{p.name}</div>}</For>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "code"}>
+                <div class="panel-section">
+                  <div class="code-toolbar">
+                    <select class="panel-input" value={codeLanguage()} onChange={(e) => setCodeLanguage(e.currentTarget.value)}>
+                      <option value="C">C</option><option value="Cpp">C++</option><option value="Rust">Rust</option>
+                    </select>
+                    <button class="btn-primary" onClick={handleGenerateCode} disabled={isGenerating()}>{isGenerating() ? "..." : "Generate"}</button>
+                  </div>
+                  <pre class="code-output">{generatedCode() || "// Click Generate"}</pre>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "drivers"}>
+                <div class="panel-section"><div class="panel-section-title">Peripheral</div>
+                  <select class="panel-input" value={driverType()} onChange={(e) => setDriverType(e.currentTarget.value as any)}>
+                    <option value="GPIO">GPIO</option><option value="UART">UART</option><option value="SPI">SPI</option><option value="I2C">I2C</option>
+                  </select>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "build"}><BuildPanel /></Show>
+              <Show when={activeSidePanel() === "debug"}><DebugPanel /></Show>
+              <Show when={activeSidePanel() === "serial"}><SerialPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "rtos"}><RTOSPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "wireless"}><WirelessPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "dsp"}><DSPPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "security"}><SecurityPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "git"}><GitPanel projectPath="." onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "memory"}><MemoryPanel /></Show>
+              <Show when={activeSidePanel() === "profiler"}><ProfilerPanel /></Show>
+              <Show when={activeSidePanel() === "performance"}><PerformancePanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "simulator"}><SimulationDashboard onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "power"}><PowerPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "validation"}><ValidationPanel code={generatedCode() || ""} language={codeLanguage()} onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "history"}><HistoryPanel /></Show>
+              <Show when={activeSidePanel() === "scheduler"}><SchedulerPanel /></Show>
+              <Show when={activeSidePanel() === "workflow"}><WorkflowPanel /></Show>
+              <Show when={activeSidePanel() === "agents"}><AgentPanel /></Show>
+            </div>
+          </aside>
+        </Show>
+        
+        {/* Canvas Area - Konva Canvas */}
+        <KonvaCanvas />
 
         {/* Right Panel */}
         <aside class="right-panel">
           {/* NOTE: Properties Panel removed - handled by UnifiedCanvas */}
           
           {/* AI Chat Panel */}
-          <Show when={activePanel() === "chat"}>
+          <Show when={activeBottomTab() === "chat"}>
             <div class="panel-header"><Icons.message /><span>AI Assistant</span></div>
             <div class="panel-content" style="display:flex;flex-direction:column;padding:0;">
               <div style="flex:1;overflow-y:auto;padding:12px;">
@@ -1699,7 +1883,7 @@ function App() {
           </Show>
           
           {/* Hardware Panel */}
-          <Show when={activePanel() === "hardware"}>
+          <Show when={activeBottomTab() === "hardware"}>
             <div class="panel-header"><Icons.chip /><span>Hardware</span></div>
             <div class="panel-content">
               <div class="panel-section">
@@ -1736,7 +1920,7 @@ function App() {
           </Show>
           
           {/* Code Panel */}
-          <Show when={activePanel() === "code"}>
+          <Show when={activeBottomTab() === "code"}>
             <div class="panel-header"><Icons.code /><span>Generated Code</span></div>
             <div class="panel-content" style="padding:0;display:flex;flex-direction:column;">
               <div style="padding:8px 12px;border-bottom:1px solid #2a2a4a;display:flex;gap:8px;align-items:center;">
@@ -1765,7 +1949,7 @@ function App() {
           </Show>
           
           {/* Drivers Panel */}
-          <Show when={activePanel() === "drivers"}>
+          <Show when={activeBottomTab() === "drivers"}>
             <div class="panel-header"><Icons.plug /><span>Driver Generator</span></div>
             <div class="panel-content">
               <div class="panel-section">
@@ -1950,7 +2134,7 @@ function App() {
           </Show>
           
           {/* Pins Panel - Visual MCU Pin Configurator */}
-          <Show when={activePanel() === "pins"}>
+          <Show when={activeBottomTab() === "pins"}>
             <div class="panel-header"><Icons.cpu /><span>MCU Pins</span></div>
             <div class="panel-content" style="padding:4px;">
               <PinDiagram 
@@ -1963,7 +2147,7 @@ function App() {
           </Show>
           
           {/* RTOS Panel */}
-          <Show when={activePanel() === "rtos"}>
+          <Show when={activeBottomTab() === "rtos"}>
             <div class="panel-header"><Icons.tasks /><span>RTOS Tasks</span></div>
             <div class="panel-content">
               <div class="panel-section">
@@ -2034,105 +2218,105 @@ function App() {
           </Show>
           
           {/* AI Agents Panel */}
-          <Show when={activePanel() === "agents"}>
+          <Show when={activeBottomTab() === "agents"}>
             <AgentPanel onToolAction={handleToolAction} />
           </Show>
           
           {/* Timers & Interrupts Panel */}
-          <Show when={activePanel() === "timers"}>
+          <Show when={activeBottomTab() === "timers"}>
             <TimersPanel onLog={addLog} />
           </Show>
           
           {/* Serial Peripherals Panel */}
-          <Show when={activePanel() === "peripherals"}>
+          <Show when={activeBottomTab() === "peripherals"}>
             <PeripheralsPanel onLog={addLog} />
           </Show>
           
           {/* Clock & Power Panel */}
-          <Show when={activePanel() === "clock"}>
+          <Show when={activeBottomTab() === "clock"}>
             <ClockPanel onLog={addLog} />
           </Show>
           
           {/* Analog I/O Panel */}
-          <Show when={activePanel() === "analog"}>
+          <Show when={activeBottomTab() === "analog"}>
             <AnalogPanel onLog={addLog} />
           </Show>
           
           {/* MCU Selector Panel */}
-          <Show when={activePanel() === "mcu"}>
+          <Show when={activeBottomTab() === "mcu"}>
             <McuSelector onLog={addLog} />
           </Show>
           
           {/* RTOS Panel */}
-          <Show when={activePanel() === "rtos"}>
+          <Show when={activeBottomTab() === "rtos"}>
             <RTOSPanel onLog={addLog} />
           </Show>
           
           {/* Wireless Panel */}
-          <Show when={activePanel() === "wireless"}>
+          <Show when={activeBottomTab() === "wireless"}>
             <WirelessPanel onLog={addLog} />
           </Show>
           
           {/* DSP Panel */}
-          <Show when={activePanel() === "dsp"}>
+          <Show when={activeBottomTab() === "dsp"}>
             <DSPPanel onLog={addLog} />
           </Show>
           
           {/* Security Panel */}
-          <Show when={activePanel() === "security"}>
+          <Show when={activeBottomTab() === "security"}>
             <SecurityPanel onLog={addLog} />
           </Show>
           
           {/* NEW: Additional Panels */}
-          <Show when={activePanel() === "simulator"}>
+          <Show when={activeBottomTab() === "simulator"}>
             <SimulatorPanel onLog={addLog} />
           </Show>
           
-          <Show when={activePanel() === "debug"}>
+          <Show when={activeBottomTab() === "debug"}>
             <DebugPanel />
           </Show>
           
-          <Show when={activePanel() === "performance"}>
+          <Show when={activeBottomTab() === "performance"}>
             <PerformancePanel onLog={addLog} />
           </Show>
           
-          <Show when={activePanel() === "build"}>
+          <Show when={activeBottomTab() === "build"}>
             <BuildPanel />
           </Show>
           
-          <Show when={activePanel() === "workflow"}>
+          <Show when={activeBottomTab() === "workflow"}>
             <WorkflowPanel />
           </Show>
           
-          <Show when={activePanel() === "git"}>
+          <Show when={activeBottomTab() === "git"}>
             <GitPanel projectPath="." onLog={addLog} />
           </Show>
           
-          <Show when={activePanel() === "serial"}>
+          <Show when={activeBottomTab() === "serial"}>
             <SerialPanel onLog={addLog} />
           </Show>
           
-          <Show when={activePanel() === "memory"}>
+          <Show when={activeBottomTab() === "memory"}>
             <MemoryPanel />
           </Show>
           
-          <Show when={activePanel() === "profiler"}>
+          <Show when={activeBottomTab() === "profiler"}>
             <ProfilerPanel />
           </Show>
           
-          <Show when={activePanel() === "power"}>
+          <Show when={activeBottomTab() === "power"}>
             <PowerPanel onLog={addLog} />
           </Show>
           
-          <Show when={activePanel() === "validation"}>
+          <Show when={activeBottomTab() === "validation"}>
             <ValidationPanel code={generatedCode() || ""} language={codeLanguage()} onLog={addLog} />
           </Show>
           
-          <Show when={activePanel() === "history"}>
+          <Show when={activeBottomTab() === "history"}>
             <HistoryPanel />
           </Show>
           
-          <Show when={activePanel() === "scheduler"}>
+          <Show when={activeBottomTab() === "scheduler"}>
             <SchedulerPanel />
           </Show>
         </aside>
@@ -2226,9 +2410,21 @@ function App() {
         />
       </Show>
       
+      {/* Status Bar - Bottom of app */}
+      <StatusBar 
+        projectName={projectName()}
+        targetMcu={targetMcu()}
+        connectionStatus="disconnected"
+        buildStatus="idle"
+        nodeCount={nodes().length}
+        edgeCount={edges().length}
+        zoom={1}
+      />
 
     </div>
   );
 }
 
 export default App;
+
+

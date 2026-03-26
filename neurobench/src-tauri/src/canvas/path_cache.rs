@@ -13,6 +13,10 @@ pub struct PathCache {
     dirty: HashSet<String>,
     /// Node positions at time of caching (for invalidation)
     node_positions: HashMap<String, (f64, f64)>,
+    /// Cache hit counter
+    hits: u64,
+    /// Cache miss counter
+    misses: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -31,6 +35,8 @@ impl PathCache {
             cache: HashMap::new(),
             dirty: HashSet::new(),
             node_positions: HashMap::new(),
+            hits: 0,
+            misses: 0,
         }
     }
 
@@ -42,11 +48,21 @@ impl PathCache {
     }
 
     /// Get cached path for an edge, or None if not cached/invalid
-    pub fn get(&self, edge_id: &str) -> Option<&str> {
+    pub fn get(&mut self, edge_id: &str) -> Option<&str> {
         if self.dirty.contains(edge_id) {
+            self.misses += 1;
             return None;
         }
-        self.cache.get(edge_id).map(|c| c.path.as_str())
+        match self.cache.get(edge_id) {
+            Some(cached) => {
+                self.hits += 1;
+                Some(cached.path.as_str())
+            }
+            None => {
+                self.misses += 1;
+                None
+            }
+        }
     }
 
     /// Store a computed path in the cache
@@ -116,11 +132,22 @@ impl PathCache {
 
     /// Get cache statistics
     pub fn stats(&self) -> CacheStats {
+        let total = self.hits + self.misses;
+        let hit_rate = if total > 0 { self.hits as f64 / total as f64 } else { 0.0 };
         CacheStats {
             total_entries: self.cache.len(),
             dirty_entries: self.dirty.len(),
-            valid_entries: self.cache.len() - self.dirty.len(),
+            valid_entries: self.cache.len().saturating_sub(self.dirty.len()),
+            hits: self.hits,
+            misses: self.misses,
+            hit_rate,
         }
+    }
+    
+    /// Reset hit/miss counters
+    pub fn reset_stats(&mut self) {
+        self.hits = 0;
+        self.misses = 0;
     }
 
     fn positions_match(&self, cached_pos: &(f64, f64), node_id: &str) -> bool {
@@ -138,6 +165,9 @@ pub struct CacheStats {
     pub total_entries: usize,
     pub dirty_entries: usize,
     pub valid_entries: usize,
+    pub hits: u64,
+    pub misses: u64,
+    pub hit_rate: f64,
 }
 
 impl Default for PathCache {

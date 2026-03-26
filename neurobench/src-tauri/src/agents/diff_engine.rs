@@ -253,7 +253,6 @@ impl DiffHunk {
 
 /// Create text diff between two strings
 pub fn create_text_diff(old: &str, new: &str) -> Vec<DiffHunk> {
-    // Simple line-by-line diff using LCS
     let old_lines: Vec<&str> = old.lines().collect();
     let new_lines: Vec<&str> = new.lines().collect();
     
@@ -272,20 +271,89 @@ pub fn create_text_diff(old: &str, new: &str) -> Vec<DiffHunk> {
             break;
         }
         
-        // Collect differing lines
+        // Found a differing position - collect differing lines
         let old_start = i + 1; // 1-indexed
         let new_start = j + 1;
         let mut old_chunk = Vec::new();
         let mut new_chunk = Vec::new();
         
-        // Find next matching point
-        while i < old_lines.len() && (j >= new_lines.len() || !old_lines[i..].contains(&new_lines.get(j).unwrap_or(&""))) {
-            old_chunk.push(old_lines[i].to_string());
-            i += 1;
-        }
-        while j < new_lines.len() && (i >= old_lines.len() || !new_lines[j..].contains(&old_lines.get(i).unwrap_or(&""))) {
-            new_chunk.push(new_lines[j].to_string());
-            j += 1;
+        // Simple approach: collect lines until we find the next matching line
+        // Look ahead to find next sync point
+        let mut found_sync = false;
+        while !found_sync && (i < old_lines.len() || j < new_lines.len()) {
+            // Check if current positions match
+            if i < old_lines.len() && j < new_lines.len() && old_lines[i] == new_lines[j] {
+                found_sync = true;
+            } else {
+                // Look for old_lines[i] in remaining new_lines
+                let old_in_new = if i < old_lines.len() {
+                    new_lines[j..].iter().position(|&l| l == old_lines[i])
+                } else {
+                    None
+                };
+                
+                // Look for new_lines[j] in remaining old_lines
+                let new_in_old = if j < new_lines.len() {
+                    old_lines[i..].iter().position(|&l| l == new_lines[j])
+                } else {
+                    None
+                };
+                
+                match (old_in_new, new_in_old) {
+                    (Some(oi), Some(ni)) => {
+                        // Both found - take the closer one
+                        if oi <= ni {
+                            // Consume new lines until we hit old_lines[i]
+                            for _ in 0..oi {
+                                if j < new_lines.len() {
+                                    new_chunk.push(new_lines[j].to_string());
+                                    j += 1;
+                                }
+                            }
+                        } else {
+                            // Consume old lines until we hit new_lines[j]
+                            for _ in 0..ni {
+                                if i < old_lines.len() {
+                                    old_chunk.push(old_lines[i].to_string());
+                                    i += 1;
+                                }
+                            }
+                        }
+                        found_sync = true;
+                    }
+                    (Some(oi), None) => {
+                        // old_lines[i] found in new, consume new lines up to it
+                        for _ in 0..oi {
+                            if j < new_lines.len() {
+                                new_chunk.push(new_lines[j].to_string());
+                                j += 1;
+                            }
+                        }
+                        found_sync = true;
+                    }
+                    (None, Some(ni)) => {
+                        // new_lines[j] found in old, consume old lines up to it
+                        for _ in 0..ni {
+                            if i < old_lines.len() {
+                                old_chunk.push(old_lines[i].to_string());
+                                i += 1;
+                            }
+                        }
+                        found_sync = true;
+                    }
+                    (None, None) => {
+                        // Neither found - consume both
+                        if i < old_lines.len() {
+                            old_chunk.push(old_lines[i].to_string());
+                            i += 1;
+                        }
+                        if j < new_lines.len() {
+                            new_chunk.push(new_lines[j].to_string());
+                            j += 1;
+                        }
+                    }
+                }
+            }
         }
         
         if !old_chunk.is_empty() || !new_chunk.is_empty() {

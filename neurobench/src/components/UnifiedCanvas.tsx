@@ -81,6 +81,12 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
   const [isDragging, setIsDragging] = createSignal(false);
   const [dragNodeId, setDragNodeId] = createSignal<string | null>(null);
   const [dragOffset, setDragOffset] = createSignal({ x: 0, y: 0 });
+  // Local position during drag for optimistic UI (avoids IPC lag)
+  const [draggedPosition, setDraggedPosition] = createSignal<{ x: number; y: number } | null>(null);
+  // Track when dragging from palette
+  const [isPaletteDragging, setIsPaletteDragging] = createSignal(false);
+  // Store the node info being dragged from palette (for mouse-based drop fallback)
+  const [draggedNodeInfo, setDraggedNodeInfo] = createSignal<NodeTypeInfo | null>(null);
   
   // Connection drawing
   const [isConnecting, setIsConnecting] = createSignal(false);
@@ -107,6 +113,13 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
   const [codeTab, setCodeTab] = createSignal<"preview" | "files">("preview");
   const [selectedFile, setSelectedFile] = createSignal<string | null>(null);
   
+  // Simulation state
+  const [isSimulating, setIsSimulating] = createSignal(false);
+  const [simState, setSimState] = createSignal<"idle" | "running" | "paused" | "completed">("idle");
+  const [simGpioState, setSimGpioState] = createSignal<Record<string, boolean>>({});
+  const [simLogs, setSimLogs] = createSignal<string[]>([]);
+  const [showSimPanel, setShowSimPanel] = createSignal(false);
+  
   // Refs
   let canvasRef: HTMLDivElement | undefined;
   let svgRef: SVGSVGElement | undefined;
@@ -116,9 +129,80 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
   // ============================================================================
 
   onMount(async () => {
-    await canvasEngine.init([], []);
-    await nodeEngine.loadPalette();
-    await nodeEngine.loadAllTypes();
+    console.log('[UnifiedCanvas] onMount starting...');
+    try {
+      await canvasEngine.init([], []);
+      console.log('[UnifiedCanvas] canvasEngine.init completed');
+    } catch (err) {
+      console.error('[UnifiedCanvas] canvasEngine.init failed:', err);
+    }
+    
+    try {
+      await nodeEngine.loadPalette();
+      console.log('[UnifiedCanvas] nodeEngine.loadPalette completed');
+    } catch (err) {
+      console.error('[UnifiedCanvas] nodeEngine.loadPalette failed:', err);
+    }
+    
+    try {
+      await nodeEngine.loadAllTypes();
+      console.log('[UnifiedCanvas] nodeEngine.loadAllTypes completed, types:', nodeEngine.allTypes().length);
+    } catch (err) {
+      console.error('[UnifiedCanvas] nodeEngine.loadAllTypes failed:', err);
+    }
+    console.log('[UnifiedCanvas] onMount complete');
+    
+    // Global mouseup handler for palette drop detection
+    // HTML5 drag/drop events can be unreliable in Tauri, so we use this fallback
+    const handleGlobalMouseUp = async (e: MouseEvent) => {
+      const nodeInfo = draggedNodeInfo();
+      if (!nodeInfo || !isPaletteDragging()) return;
+      
+      // Check if mouse is over the canvas
+      if (!canvasRef) return;
+      const rect = canvasRef.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || 
+          e.clientY < rect.top || e.clientY > rect.bottom) {
+        // Mouse is outside canvas, cancel
+        console.log('[UnifiedCanvas] Palette drop outside canvas, cancelling');
+        setIsPaletteDragging(false);
+        setDraggedNodeInfo(null);
+        return;
+      }
+      
+      console.log('[UnifiedCanvas] Palette drop detected via mouseup');
+      
+      // Calculate position
+      let x = (e.clientX - rect.left - pan().x) / zoom();
+      let y = (e.clientY - rect.top - pan().y) / zoom();
+      x = snapToGridValue(x);
+      y = snapToGridValue(y);
+      
+      // Create the node
+      const newNode: CanvasNode = {
+        id: `node_${Date.now()}`,
+        label: nodeInfo.name,
+        node_type: nodeInfo.node_type as NodeType,
+        x, y,
+        width: 180,
+        height: 100,
+      };
+      
+      try {
+        await canvasEngine.addNode(newNode);
+        console.log('[UnifiedCanvas] Node created via palette drop:', newNode.id);
+        setSelectedNodeId(newNode.id);
+      } catch (err) {
+        console.error('[UnifiedCanvas] Failed to create node:', err);
+      } finally {
+        setIsPaletteDragging(false);
+        setDraggedNodeInfo(null);
+      }
+    };
+    
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    // Cleanup on unmount
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
   });
 
   // Notify parent of changes
@@ -132,8 +216,18 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
   // Node Helpers
   // ============================================================================
 
-  const getNodeColor = (nodeType: string): string => {
-    const info = nodeEngine.allTypes().find(t => t.node_type === nodeType);
+  // Convert NodeType to string for lookups
+  const nodeTypeToString = (nodeType: NodeType): string => {
+    if (typeof nodeType === 'string') return nodeType;
+    if (typeof nodeType === 'object' && 'custom' in nodeType) {
+      return `custom:${nodeType.custom.category}`;
+    }
+    return 'process';
+  };
+
+  const getNodeColor = (nodeType: NodeType): string => {
+    const typeStr = nodeTypeToString(nodeType);
+    const info = nodeEngine.allTypes().find(t => t.node_type === typeStr);
     if (info) {
       return CATEGORY_INFO[info.category]?.color || "#4f46e5";
     }
@@ -141,11 +235,12 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
       input: "#4CAF50", output: "#F44336", process: "#2196F3",
       decision: "#FF9800", error: "#E91E63", hardware: "#9C27B0",
     };
-    return colors[nodeType] || "#4f46e5";
+    return colors[typeStr] || "#4f46e5";
   };
 
-  const getNodeIcon = (nodeType: string): string => {
-    const info = nodeEngine.allTypes().find(t => t.node_type === nodeType);
+  const getNodeIcon = (nodeType: NodeType): string => {
+    const typeStr = nodeTypeToString(nodeType);
+    const info = nodeEngine.allTypes().find(t => t.node_type === typeStr);
     return info?.icon || "●";
   };
 
@@ -190,14 +285,37 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
   // ============================================================================
 
   const handlePaletteDragStart = (e: DragEvent, nodeInfo: NodeTypeInfo) => {
-    e.dataTransfer?.setData("application/node-type", JSON.stringify(nodeInfo));
-    e.dataTransfer!.effectAllowed = "copy";
+    console.log('[UnifiedCanvas] Drag started:', nodeInfo.name, nodeInfo.node_type);
+    // Store node info for mouse-based fallback
+    setDraggedNodeInfo(nodeInfo);
+    if (e.dataTransfer) {
+      e.dataTransfer.setData("application/node-type", JSON.stringify(nodeInfo));
+      e.dataTransfer.effectAllowed = "copy";
+      // Set drag image (optional enhancement)
+      const dragImage = document.createElement('div');
+      dragImage.textContent = nodeInfo.name;
+      dragImage.style.cssText = 'position:absolute;left:-9999px;padding:8px;background:#333;color:#fff;border-radius:4px;';
+      document.body.appendChild(dragImage);
+      e.dataTransfer.setDragImage(dragImage, 0, 0);
+      setTimeout(() => dragImage.remove(), 0);
+    }
+    setIsPaletteDragging(true);
   };
 
   const handleCanvasDrop = async (e: DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('[UnifiedCanvas] Drop event triggered');
+    // DEBUG: Use alert to absolutely confirm drop fires
+    // window.alert('Drop event fired!');
+    
     const data = e.dataTransfer?.getData("application/node-type");
-    if (!data || !canvasRef) return;
+    console.log('[UnifiedCanvas] Drop data:', data);
+    if (!data || !canvasRef) {
+      console.log('[UnifiedCanvas] Drop failed - no data or no canvasRef');
+      setIsPaletteDragging(false);
+      return;
+    }
 
     const nodeInfo: NodeTypeInfo = JSON.parse(data);
     const rect = canvasRef.getBoundingClientRect();
@@ -207,30 +325,83 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
     x = snapToGridValue(x);
     y = snapToGridValue(y);
 
+    console.log('[UnifiedCanvas] Creating node at:', x, y, 'type:', nodeInfo.node_type);
+    
+    // Use node_type directly as string - Rust expects snake_case types matching its enum
+    // e.g., "state", "initial", "gpio", "uart" - NOT legacy types like "process", "input"
     const newNode: CanvasNode = {
       id: `node_${Date.now()}`,
       label: nodeInfo.name,
-      node_type: mapNodeType(nodeInfo.node_type),
+      node_type: nodeInfo.node_type as NodeType,  // Direct passthrough
       x, y,
       width: 180,
       height: 100,
     };
     
-    await canvasEngine.addNode(newNode);
-    setSelectedNodeId(newNode.id);
+    try {
+      await canvasEngine.addNode(newNode);
+      console.log('[UnifiedCanvas] Node added successfully:', newNode.id);
+      setSelectedNodeId(newNode.id);
+    } catch (err) {
+      console.error('[UnifiedCanvas] Failed to add node:', err);
+    } finally {
+      setIsPaletteDragging(false);
+    }
   };
 
   const handleCanvasDragOver = (e: DragEvent) => {
     e.preventDefault();
     e.dataTransfer!.dropEffect = "copy";
+    // DEBUG: Log that dragover is being received
+    console.log('[UnifiedCanvas] DragOver event on canvas');
+  };
+
+  // Handle drag leave to reset visual state
+  const handleCanvasDragLeave = () => {
+    console.log('[UnifiedCanvas] DragLeave event');
   };
 
   // ============================================================================
   // Canvas Interaction
   // ============================================================================
 
-  const handleCanvasClick = () => {
-    setSelectedNodeId(null);
+  const handleCanvasClick = async (e: MouseEvent) => {
+    // If we have a node selected from palette, place it here
+    const nodeInfo = draggedNodeInfo();
+    if (nodeInfo && canvasRef) {
+      console.log('[UnifiedCanvas] Click-to-place node:', nodeInfo.name);
+      const rect = canvasRef.getBoundingClientRect();
+      let x = (e.clientX - rect.left - pan().x) / zoom();
+      let y = (e.clientY - rect.top - pan().y) / zoom();
+      x = snapToGridValue(x);
+      y = snapToGridValue(y);
+      
+      const newNode: CanvasNode = {
+        id: `node_${Date.now()}`,
+        label: nodeInfo.name,
+        node_type: nodeInfo.node_type as NodeType,
+        x, y,
+        width: 180,
+        height: 100,
+      };
+      
+      try {
+        await canvasEngine.addNode(newNode);
+        console.log('[UnifiedCanvas] Node placed via click:', newNode.id);
+        setSelectedNodeId(newNode.id);
+      } catch (err) {
+        console.error('[UnifiedCanvas] Failed to place node:', err);
+      } finally {
+        setDraggedNodeInfo(null);
+        setIsPaletteDragging(false);
+      }
+      return;
+    }
+    
+    // Otherwise, deselect
+    if (!e.ctrlKey && !e.shiftKey) {
+      setSelectedNodeId(null);
+    }
     setContextMenu(null);
   };
 
@@ -261,25 +432,40 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
     e.stopPropagation();
     
     const node = canvasEngine.state().nodes.find(n => n.id === nodeId);
-    if (!node) return;
+    if (!node || !canvasRef) return;
+    
+    // Get canvas rect for proper coordinate calculation
+    const rect = canvasRef.getBoundingClientRect();
+    // Convert client coordinates to canvas coordinates (accounting for pan and zoom)
+    const canvasX = (e.clientX - rect.left - pan().x) / zoom();
+    const canvasY = (e.clientY - rect.top - pan().y) / zoom();
     
     setIsDragging(true);
     setDragNodeId(nodeId);
     setDragOffset({
-      x: e.clientX / zoom() - node.x,
-      y: e.clientY / zoom() - node.y,
+      x: canvasX - node.x,
+      y: canvasY - node.y,
     });
+    // Initialize dragged position with current node position
+    setDraggedPosition({ x: node.x, y: node.y });
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging() && dragNodeId()) {
-      let newX = e.clientX / zoom() - dragOffset().x;
-      let newY = e.clientY / zoom() - dragOffset().y;
+    if (isDragging() && dragNodeId() && canvasRef) {
+      const rect = canvasRef.getBoundingClientRect();
+      // Convert client coordinates to canvas coordinates
+      const canvasX = (e.clientX - rect.left - pan().x) / zoom();
+      const canvasY = (e.clientY - rect.top - pan().y) / zoom();
+      
+      let newX = canvasX - dragOffset().x;
+      let newY = canvasY - dragOffset().y;
       
       newX = snapToGridValue(newX);
       newY = snapToGridValue(newY);
       
-      canvasEngine.moveNode(dragNodeId()!, newX, newY);
+      // Update local state for immediate UI feedback (optimistic update)
+      setDraggedPosition({ x: newX, y: newY });
+      // Don't call canvasEngine.moveNode here - it causes IPC lag
     } else if (isPanning()) {
       setPan({
         x: e.clientX - panStart().x,
@@ -296,7 +482,13 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
   };
 
   const handleMouseUp = async () => {
-    if (isDragging()) {
+    if (isDragging() && dragNodeId()) {
+      const pos = draggedPosition();
+      if (pos) {
+        // Single IPC call at end of drag - sync final position to Rust backend
+        await canvasEngine.moveNode(dragNodeId()!, pos.x, pos.y);
+      }
+      setDraggedPosition(null);
       setIsDragging(false);
       setDragNodeId(null);
     }
@@ -304,7 +496,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
       setIsPanning(false);
     }
     if (isConnecting()) {
-      // TODO: Complete connection if over valid port
+      // Connection was not completed via port mouseup, cancel it
       setIsConnecting(false);
       setConnectionStart(null);
     }
@@ -563,6 +755,75 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
   };
 
   // ============================================================================
+  // Canvas Behavior Simulation
+  // ============================================================================
+
+  const startSimulation = async () => {
+    try {
+      const result = await invoke<any>("canvas_simulate_start");
+      if (result.success) {
+        setIsSimulating(true);
+        setSimState("running");
+        setSimGpioState(result.state?.gpio_state || {});
+        setSimLogs(["Simulation started"]);
+        setShowSimPanel(true);
+      }
+    } catch (e) {
+      console.error("Failed to start simulation:", e);
+      setSimLogs(prev => [...prev, `Error: ${e}`]);
+    }
+  };
+
+  const stopSimulation = async () => {
+    try {
+      await invoke("canvas_simulate_stop");
+      setIsSimulating(false);
+      setSimState("idle");
+      setSimLogs(prev => [...prev, "Simulation stopped"]);
+    } catch (e) {
+      console.error("Failed to stop simulation:", e);
+    }
+  };
+
+  const stepSimulation = async () => {
+    try {
+      const result = await invoke<any>("canvas_simulate_step");
+      if (result.success) {
+        setSimGpioState(result.state?.gpio_state || {});
+        // Add logs from actions
+        const actionLogs = (result.actions || []).map((a: any) => a.action);
+        setSimLogs(prev => [...prev, ...actionLogs]);
+        
+        // Check if completed
+        if (result.result?.includes("Completed")) {
+          setSimState("completed");
+          setSimLogs(prev => [...prev, "Simulation completed"]);
+        }
+      }
+    } catch (e: any) {
+      console.error("Step failed:", e);
+      setSimLogs(prev => [...prev, `Error: ${e}`]);
+    }
+  };
+
+  const toggleSimGpio = async (key: string) => {
+    const [port, ...pinParts] = key.split("");
+    const pin = parseInt(pinParts.join(""));
+    const currentState = simGpioState()[key] || false;
+    
+    try {
+      await invoke("canvas_simulate_inject_gpio", { 
+        port: port, 
+        pin: pin, 
+        value: !currentState 
+      });
+      setSimGpioState(prev => ({ ...prev, [key]: !currentState }));
+    } catch (e) {
+      console.error("Failed to inject GPIO:", e);
+    }
+  };
+
+  // ============================================================================
   // Selected Node Data
   // ============================================================================
 
@@ -589,7 +850,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
         <div class="palette-panel">
           <div class="palette-header">
             <h3>Nodes</h3>
-            <button class="toggle-btn" onClick={() => setShowPalette(false)}>◀</button>
+            <button class="toggle-btn" onClick={() => setShowPalette(false)} title="Collapse Palette">◀</button>
           </div>
           
           {/* Search */}
@@ -628,13 +889,46 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             <For each={filteredPalette()}>
               {(nodeInfo) => (
                 <div 
-                  class="palette-node"
+                  class={`palette-node ${draggedNodeInfo()?.node_type === nodeInfo.node_type ? 'selected' : ''}`}
                   draggable={true}
                   onDragStart={(e) => handlePaletteDragStart(e, nodeInfo)}
+                  onDragEnd={() => { console.log('[UnifiedCanvas] Drag ended'); setIsPaletteDragging(false); setDraggedNodeInfo(null); }}
                   style={{ "border-left-color": CATEGORY_INFO[nodeInfo.category]?.color }}
                 >
                   <span class="node-icon">{nodeInfo.icon}</span>
                   <span class="node-name">{nodeInfo.name}</span>
+                  <button 
+                    class="add-node-btn"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      console.log('[UnifiedCanvas] Add button clicked for:', nodeInfo.name);
+                      
+                      // Calculate center of visible canvas
+                      const centerX = canvasRef ? (canvasRef.clientWidth / 2 - pan().x) / zoom() : 300;
+                      const centerY = canvasRef ? (canvasRef.clientHeight / 2 - pan().y) / zoom() : 200;
+                      
+                      const newNode: CanvasNode = {
+                        id: `node_${Date.now()}`,
+                        label: nodeInfo.name,
+                        node_type: nodeInfo.node_type as NodeType,
+                        x: snapToGridValue(centerX),
+                        y: snapToGridValue(centerY),
+                        width: 180,
+                        height: 100,
+                      };
+                      
+                      try {
+                        await canvasEngine.addNode(newNode);
+                        console.log('[UnifiedCanvas] Node added via + button:', newNode.id);
+                        setSelectedNodeId(newNode.id);
+                      } catch (err) {
+                        console.error('[UnifiedCanvas] Failed to add node:', err);
+                      }
+                    }}
+                    title={`Add ${nodeInfo.name} to canvas`}
+                  >
+                    +
+                  </button>
                 </div>
               )}
             </For>
@@ -661,9 +955,9 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             <button onClick={() => canvasEngine.undo()} title="Undo">↶</button>
             <button onClick={() => canvasEngine.redo()} title="Redo">↷</button>
             <div class="toolbar-divider" />
-            <button onClick={() => setZoom(z => Math.max(0.25, z - 0.1))}>−</button>
+            <button onClick={() => setZoom(z => Math.max(0.25, z - 0.1))} title="Zoom Out">−</button>
             <span class="zoom-level">{Math.round(zoom() * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(3, z + 0.1))}>+</button>
+            <button onClick={() => setZoom(z => Math.min(3, z + 0.1))} title="Zoom In">+</button>
             <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }} title="Fit">⊙</button>
           </div>
           
@@ -671,6 +965,31 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             <button onClick={() => setSnapToGrid(!snapToGrid())} class={snapToGrid() ? "active" : ""} title="Snap">⊞</button>
             <button onClick={() => canvasEngine.autoLayout("hierarchical")} title="Layout">📐</button>
             <button onClick={() => setShowMinimap(!showMinimap())} class={showMinimap() ? "active" : ""} title="Minimap">🗺️</button>
+            <div class="toolbar-divider" />
+            
+            {/* Simulation Controls */}
+            <Show when={!isSimulating()}>
+              <button 
+                class="simulate-btn"
+                onClick={startSimulation}
+                disabled={canvasEngine.state().nodes.length === 0}
+                title="Simulate your FSM design"
+              >
+                🎮 Simulate
+              </button>
+            </Show>
+            <Show when={isSimulating()}>
+              <button class="sim-step-btn" onClick={stepSimulation} title="Step">⏭ Step</button>
+              <button class="sim-stop-btn" onClick={stopSimulation} title="Stop">⏹</button>
+              <button 
+                class={showSimPanel() ? "active" : ""} 
+                onClick={() => setShowSimPanel(!showSimPanel())}
+                title="Toggle Simulation Panel"
+              >
+                📊
+              </button>
+            </Show>
+            
             <div class="toolbar-divider" />
             <Show when={props.onToggleMode}>
               <button onClick={props.onToggleMode} title="Switch to Classic Layout">
@@ -695,6 +1014,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             <button 
               class={showCodePanel() ? "active" : ""}
               onClick={() => setShowCodePanel(!showCodePanel())}
+              title="Toggle Code Panel"
             >
               📄
             </button>
@@ -703,15 +1023,39 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
 
         {/* Canvas Container */}
         <div 
-          class="canvas-viewport"
+          class={`canvas-viewport ${isPaletteDragging() ? 'drop-zone-active' : ''}`}
           ref={canvasRef}
           onDrop={handleCanvasDrop}
           onDragOver={handleCanvasDragOver}
+          onDragLeave={handleCanvasDragLeave}
           onClick={handleCanvasClick}
           onContextMenu={handleCanvasRightClick}
           onMouseDown={handleCanvasMouseDown}
           onWheel={handleWheel}
         >
+          {/* Drop Overlay - ALWAYS present but only active when dragging from palette */}
+          <div 
+            class="drop-overlay"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              'z-index': isPaletteDragging() ? 1000 : -1,
+              background: 'transparent',
+              'pointer-events': isPaletteDragging() ? 'auto' : 'none',
+            }}
+            onDrop={(e) => {
+              console.log('[UnifiedCanvas] OVERLAY DROP EVENT!');
+              handleCanvasDrop(e);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer!.dropEffect = 'copy';
+            }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              console.log('[UnifiedCanvas] Drag entered overlay');
+            }}
+          />
           <svg 
             ref={svgRef}
             class="canvas-svg"
@@ -797,11 +1141,18 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                   const isSelected = selectedNodeId() === node.id;
                   const color = getNodeColor(node.node_type);
                   const icon = getNodeIcon(node.node_type);
+                  // Use local dragged position for smooth drag feedback
+                  const pos = () => {
+                    if (isDragging() && dragNodeId() === node.id && draggedPosition()) {
+                      return draggedPosition()!;
+                    }
+                    return { x: node.x, y: node.y };
+                  };
                   
                   return (
                     <g 
                       class={`node ${isSelected ? "selected" : ""}`}
-                      transform={`translate(${node.x}, ${node.y})`}
+                      transform={`translate(${pos().x}, ${pos().y})`}
                       onClick={(e) => handleNodeClick(e, node.id)}
                       onContextMenu={(e) => handleNodeRightClick(e, node.id)}
                       onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
@@ -842,7 +1193,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                       {/* Icon and Type */}
                       <text x="12" y="20" fill="white" font-size="14">{icon}</text>
                       <text x="32" y="20" fill="white" font-size="12" font-weight="600">
-                        {node.node_type.toUpperCase()}
+                        {nodeTypeToString(node.node_type).toUpperCase()}
                       </text>
                       
                       {/* Label */}
@@ -923,7 +1274,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
           <Show when={canvasEngine.validation()}>
             {(result) => (
               <div class={`validation-badge ${result().valid ? "valid" : "invalid"}`}>
-                {result().valid ? "✓ Valid" : `✗ ${result().errors.length} errors`}
+                {result().valid ? "✓ Valid" : `✗ ${result().error_count} errors`}
               </div>
             )}
           </Show>
@@ -974,7 +1325,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                           value={node().label}
                           onInput={(e) => canvasEngine.updateNode(node().id, { label: e.currentTarget.value })}
                         />
-                        <span class="node-type-badge">{node().node_type.toUpperCase()}</span>
+                        <span class="node-type-badge">{nodeTypeToString(node().node_type).toUpperCase()}</span>
                       </div>
                     </div>
 
@@ -1152,23 +1503,76 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
         </div>
       </Show>
 
+      {/* Simulation Panel (floating) */}
+      <Show when={showSimPanel() && isSimulating()}>
+        <div class="simulation-panel">
+          <div class="sim-panel-header">
+            <h4>🎮 Simulation</h4>
+            <span class={`sim-status ${simState()}`}>{simState().toUpperCase()}</span>
+            <button class="close-btn" onClick={() => setShowSimPanel(false)}>✕</button>
+          </div>
+          
+          {/* GPIO Visualization */}
+          <div class="sim-section">
+            <div class="sim-section-title">GPIO State</div>
+            <div class="gpio-grid">
+              <For each={Object.entries(simGpioState())}>
+                {([key, value]) => (
+                  <button 
+                    class={`gpio-led ${value ? 'high' : 'low'}`}
+                    onClick={() => toggleSimGpio(key)}
+                    title={`${key}: ${value ? 'HIGH' : 'LOW'} (click to toggle)`}
+                  >
+                    <span class="gpio-name">{key}</span>
+                    <span class="gpio-indicator" />
+                  </button>
+                )}
+              </For>
+              <Show when={Object.keys(simGpioState()).length === 0}>
+                <div class="no-gpio">No GPIO activity yet. Add GPIO actions to nodes.</div>
+              </Show>
+            </div>
+          </div>
+          
+          {/* Action Log */}
+          <div class="sim-section">
+            <div class="sim-section-title">Action Log</div>
+            <div class="sim-logs">
+              <For each={simLogs().slice(-20)}>
+                {(log) => <div class="sim-log-entry">{log}</div>}
+              </For>
+              <Show when={simLogs().length === 0}>
+                <div class="no-logs">No actions executed yet</div>
+              </Show>
+            </div>
+          </div>
+          
+          {/* Controls */}
+          <div class="sim-controls">
+            <button class="sim-ctrl-btn step" onClick={stepSimulation}>⏭ Step</button>
+            <button class="sim-ctrl-btn stop" onClick={stopSimulation}>⏹ Stop</button>
+          </div>
+        </div>
+      </Show>
+
       {/* Context Menu */}
       <Show when={contextMenu()}>
         {(ctx) => (
           <div 
             class="context-menu"
             style={{ left: `${ctx().x}px`, top: `${ctx().y}px` }}
+            onClick={(e) => e.stopPropagation()}
           >
             <Show when={ctx().nodeId}>
-              <button onClick={duplicateNode}>📋 Duplicate</button>
-              <button onClick={deleteNode}>🗑️ Delete</button>
-              <div class="context-divider" />
+              <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Duplicate clicked'); duplicateNode(); setContextMenu(null); }}>📋 Duplicate</button>
+              <button class="context-menu-item danger" onClick={() => { console.log('[UnifiedCanvas] Context: Delete clicked'); deleteNode(); setContextMenu(null); }}>🗑️ Delete</button>
+              <div class="context-menu-divider" />
             </Show>
-            <button onClick={() => canvasEngine.undo()}>↶ Undo</button>
-            <button onClick={() => canvasEngine.redo()}>↷ Redo</button>
-            <div class="context-divider" />
-            <button onClick={handleGenerateCode}>⚡ Generate Code</button>
-            <button onClick={() => setContextMenu(null)}>✕ Close</button>
+            <button class="context-menu-item" onClick={async () => { console.log('[UnifiedCanvas] Context: Undo clicked'); await canvasEngine.undo(); setContextMenu(null); console.log('[UnifiedCanvas] Undo completed'); }}>↶ Undo</button>
+            <button class="context-menu-item" onClick={async () => { console.log('[UnifiedCanvas] Context: Redo clicked'); await canvasEngine.redo(); setContextMenu(null); console.log('[UnifiedCanvas] Redo completed'); }}>↷ Redo</button>
+            <div class="context-menu-divider" />
+            <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Generate clicked'); handleGenerateCode(); setContextMenu(null); }}>⚡ Generate Code</button>
+            <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Close clicked'); setContextMenu(null); }}>✕ Close</button>
           </div>
         )}
       </Show>

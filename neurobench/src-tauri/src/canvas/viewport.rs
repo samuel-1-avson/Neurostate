@@ -176,11 +176,19 @@ pub struct MinimapData {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MinimapNode {
+    pub id: String,
     pub x: f64,
     pub y: f64,
     pub width: f64,
     pub height: f64,
     pub selected: bool,
+    pub node_type: String,
+}
+
+impl MinimapNode {
+    pub fn new(id: String, x: f64, y: f64, width: f64, height: f64, selected: bool, node_type: String) -> Self {
+        Self { id, x, y, width, height, selected, node_type }
+    }
 }
 
 impl MinimapData {
@@ -190,6 +198,26 @@ impl MinimapData {
             viewport_rect: (0.0, 0.0, 0.0, 0.0),
             node_positions: Vec::new(),
         }
+    }
+    
+    /// Convert a minimap click position to canvas coordinates
+    /// 
+    /// minimap_x, minimap_y: click position in minimap widget (0 to minimap_width, 0 to minimap_height)
+    /// minimap_width, minimap_height: size of minimap widget
+    pub fn click_to_canvas(&self, minimap_x: f64, minimap_y: f64, minimap_width: f64, minimap_height: f64) -> (f64, f64) {
+        let (min_x, min_y, max_x, max_y) = self.content_bounds;
+        let content_width = max_x - min_x;
+        let content_height = max_y - min_y;
+        
+        if content_width <= 0.0 || content_height <= 0.0 {
+            return (0.0, 0.0);
+        }
+        
+        // Map minimap coordinates to canvas coordinates
+        let canvas_x = min_x + (minimap_x / minimap_width) * content_width;
+        let canvas_y = min_y + (minimap_y / minimap_height) * content_height;
+        
+        (canvas_x, canvas_y)
     }
 }
 

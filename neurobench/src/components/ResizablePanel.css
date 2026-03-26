@@ -1,0 +1,146 @@
+/**
+ * ResizablePanel Styles - Professional IDE-style panels
+ */
+
+.resizable-panel {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  background: var(--bg-panel, #22262d);
+  border: 1px solid var(--border, #2a2f38);
+  transition: width 0.15s ease-out;
+  overflow: hidden;
+}
+
+.resizable-panel.collapsed {
+  width: 0 !important;
+  border-width: 0;
+  transition: width 0.2s ease-out, border 0.1s;
+}
+
+.resizable-panel.resizing {
+  transition: none;
+}
+
+.resizable-panel.left {
+  border-right: 1px solid var(--border-strong, #3a4150);
+}
+
+.resizable-panel.right {
+  border-left: 1px solid var(--border-strong, #3a4150);
+}
+
+.panel-content {
+  flex: 1;
+  overflow: auto;
+  min-width: 0;
+}
+
+/* Resize Handle */
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resize-handle.right {
+  right: -4px;
+}
+
+.resize-handle.left {
+  left: -4px;
+}
+
+.resize-handle:hover,
+.resizing .resize-handle {
+  background: var(--accent-subtle, rgba(99, 102, 241, 0.15));
+}
+
+.resize-grip {
+  width: 2px;
+  height: 40px;
+  background: var(--border-strong, #3a4150);
+  border-radius: 2px;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.resize-handle:hover .resize-grip,
+.resizing .resize-grip {
+  background: var(--accent, #6366f1);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* ============================================================================
+   Split Panel
+   ============================================================================ */
+
+.split-panel {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.split-panel.horizontal {
+  flex-direction: row;
+}
+
+.split-panel.vertical {
+  flex-direction: column;
+}
+
+.split-pane {
+  overflow: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Split Divider */
+.split-divider {
+  flex-shrink: 0;
+  background: var(--border, #2a2f38);
+  position: relative;
+  z-index: 10;
+  transition: background 0.15s;
+}
+
+.split-panel.horizontal .split-divider {
+  width: 4px;
+  cursor: col-resize;
+}
+
+.split-panel.vertical .split-divider {
+  height: 4px;
+  cursor: row-resize;
+}
+
+.split-divider:hover,
+.split-divider.dragging {
+  background: var(--accent, #6366f1);
+}
+
+.split-divider::after {
+  content: '';
+  position: absolute;
+  background: transparent;
+}
+
+.split-panel.horizontal .split-divider::after {
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  right: -4px;
+}
+
+.split-panel.vertical .split-divider::after {
+  left: 0;
+  right: 0;
+  top: -4px;
+  bottom: -4px;
+}

@@ -2,7 +2,6 @@
 // Pre-built starter projects for common embedded scenarios
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Project template definition
 #[derive(Debug, Clone, Serialize, Deserialize)]

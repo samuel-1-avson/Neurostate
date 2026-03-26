@@ -3,7 +3,6 @@
 
 use serde::{Deserialize, Serialize};
 use sysinfo::{System, Disks, Networks, Pid, ProcessesToUpdate};
-use std::collections::HashMap;
 
 /// System metrics snapshot
 #[derive(Debug, Clone, Serialize, Deserialize)]

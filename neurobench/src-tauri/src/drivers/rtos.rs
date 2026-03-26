@@ -46,6 +46,7 @@ fn generate_freertos(config: &RtosConfig, lang: &DriverLanguage) -> DriverOutput
         DriverLanguage::C => generate_freertos_c(config),
         DriverLanguage::Cpp => generate_freertos_cpp(config),
         DriverLanguage::Rust => generate_freertos_rust(config),
+        _ => generate_freertos_c(config), // Default to C for new languages
     }
 }
 

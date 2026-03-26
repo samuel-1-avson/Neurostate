@@ -174,6 +174,40 @@
   cursor: grabbing;
 }
 
+.palette-node.selected {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.palette-node .add-node-btn {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: var(--accent);
+  color: var(--bg-base);
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  opacity: 0.7;
+}
+
+.palette-node:hover .add-node-btn {
+  opacity: 1;
+}
+
+.palette-node .add-node-btn:hover {
+  background: var(--accent-bright, #ffc107);
+  transform: scale(1.1);
+}
+
 .palette-node .node-icon {
   width: 20px;
   height: 20px;
@@ -349,7 +383,6 @@
   box-shadow: 0 0 8px var(--accent-glow);
 }
 
-/* Canvas Viewport */
 .canvas-viewport {
   flex: 1;
   background: var(--bg-base);
@@ -358,11 +391,27 @@
   cursor: default;
 }
 
+/* Drop zone visual feedback when dragging from palette */
+.canvas-viewport.drop-zone-active {
+  outline: 2px dashed var(--accent);
+  outline-offset: -4px;
+  background: rgba(228, 155, 15, 0.05);
+}
+
 .canvas-svg {
   width: 100%;
   height: 100%;
   transform-origin: 0 0;
   will-change: transform;
+  pointer-events: none; /* Allow drop events to pass through to viewport div */
+}
+
+/* Re-enable pointer events for interactive elements inside SVG */
+.canvas-svg .nodes,
+.canvas-svg .edges,
+.canvas-svg .node,
+.canvas-svg .edge {
+  pointer-events: all;
 }
 
 /* ============================================================================
@@ -966,4 +1015,465 @@
 
 .action-btn.delete:hover {
   background: rgba(239, 68, 68, 0.1);
+}
+
+/* ============================================================================
+   ENHANCED NODE PROPERTIES - Modern Retro Design
+   ============================================================================ */
+
+/* Right Panel Tabs */
+.right-panel-tabs {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 8px;
+}
+
+.right-panel-tabs button {
+  padding: 6px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.right-panel-tabs button:hover {
+  color: var(--text-primary);
+}
+
+.right-panel-tabs button.active {
+  color: var(--accent);
+}
+
+.right-panel-tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.right-panel-tabs .close-btn {
+  margin-left: auto;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+/* Enhanced Node Header with Gradient */
+.node-header {
+  background: linear-gradient(135deg, 
+    rgba(228, 155, 15, 0.1) 0%, 
+    var(--bg-panel) 100%
+  );
+  border-bottom: 2px solid var(--accent-dim);
+  padding: 16px;
+}
+
+.node-icon-large {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.node-title-input {
+  font-size: 18px;
+  letter-spacing: 0.5px;
+}
+
+.node-type-badge {
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-dim);
+  color: var(--accent);
+}
+
+/* Improved Section Styling */
+.property-section {
+  padding: 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.property-section:hover {
+  background: var(--bg-surface);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+}
+
+/* Better Input Styling */
+.property-item input,
+.code-textarea,
+.description-textarea {
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong);
+  transition: all 0.15s;
+}
+
+.property-item input:hover,
+.code-textarea:hover,
+.description-textarea:hover {
+  border-color: var(--accent-dim);
+}
+
+.property-item input:focus,
+.code-textarea:focus,
+.description-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+/* Code Textarea Enhancements */
+.code-textarea {
+  background: #0f0f0f;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  min-height: 80px;
+}
+
+/* Connection Items Enhancement */
+.connection-item {
+  background: var(--bg-base);
+  transition: all 0.15s;
+}
+
+.connection-item:hover {
+  transform: translateX(4px);
+  background: var(--bg-surface);
+}
+
+.connection-item.outgoing {
+  border-left-width: 4px;
+  border-left-color: #3b82f6;
+}
+
+.connection-item.incoming {
+  border-left-width: 4px;
+  border-left-color: #10b981;
+}
+
+/* No Selection State Enhancement */
+.no-selection {
+  background: linear-gradient(135deg, 
+    rgba(228, 155, 15, 0.03) 0%, 
+    transparent 100%
+  );
+}
+
+.no-selection-icon {
+  font-size: 64px;
+  opacity: 0.3;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.no-selection h4 {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.no-selection p {
+  color: var(--text-dim);
+  font-size: 11px;
+  max-width: 240px;
+}
+
+/* Action Buttons Enhancement */
+.action-btn {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Property Grid Enhancement */
+.property-grid {
+  background: var(--bg-base);
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* Quick Stats in Header */
+.node-quick-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.node-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.node-stat-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Simulation Controls & Panel
+   ============================================================================ */
+
+/* Simulate Button */
+.simulate-btn {
+  background: linear-gradient(135deg, #4ade80, #22c55e) !important;
+  border: none !important;
+  color: #000 !important;
+  font-weight: 700;
+  padding: 4px 12px !important;
+}
+
+.simulate-btn:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.5);
+}
+
+.simulate-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sim-step-btn {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.sim-stop-btn {
+  background: linear-gradient(135deg, #f87171, #ef4444) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Simulation Panel (Floating) */
+.simulation-panel {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  max-height: 400px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.sim-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.sim-panel-header h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.sim-status {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sim-status.running {
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.2), rgba(34, 197, 94, 0.2));
+  color: #4ade80;
+  animation: pulse 2s infinite;
+}
+
+.sim-status.paused {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.sim-status.completed {
+  background: rgba(96, 165, 250, 0.2);
+  color: #60a5fa;
+}
+
+.sim-status.idle {
+  background: rgba(255, 255, 255, 0.1);
+  color: #888;
+}
+
+.sim-section {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sim-section:last-of-type {
+  border-bottom: none;
+}
+
+.sim-section-title {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+/* GPIO Grid */
+.gpio-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gpio-led {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 44px;
+}
+
+.gpio-led:hover {
+  border-color: var(--accent);
+}
+
+.gpio-name {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.gpio-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #444;
+  transition: all 0.2s;
+}
+
+.gpio-led.high .gpio-indicator {
+  background: #4ade80;
+  box-shadow: 0 0 10px #4ade80;
+}
+
+.gpio-led.low .gpio-indicator {
+  background: #333;
+}
+
+.no-gpio, .no-logs {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-style: italic;
+  text-align: center;
+  padding: 10px;
+}
+
+/* Simulation Logs */
+.sim-logs {
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-base);
+  border-radius: 4px;
+  padding: 6px;
+}
+
+.sim-log-entry {
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.sim-log-entry:last-child {
+  border-bottom: none;
+}
+
+/* Simulation Controls Footer */
+.sim-controls {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+}
+
+.sim-ctrl-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sim-ctrl-btn.step {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  color: #fff;
+}
+
+.sim-ctrl-btn.stop {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  color: #fff;
+}
+
+.sim-ctrl-btn:hover {
+  transform: translateY(-1px);
 }

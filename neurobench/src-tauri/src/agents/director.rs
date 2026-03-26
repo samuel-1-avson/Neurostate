@@ -86,20 +86,20 @@ impl DirectorAgent {
     pub fn classify_intent(&self, message: &str) -> Intent {
         let message_lower = message.to_lowercase();
         
+        // Code generation keywords - check BEFORE FSM to handle "generate code for FSM"
+        if message_lower.contains("generate code") || message_lower.contains("write code")
+            || message_lower.contains("implement") || message_lower.contains("generate c ")
+            || message_lower.contains("driver") || message_lower.contains("code for")
+        {
+            return Intent::CodeGeneration;
+        }
+        
         // FSM Design keywords
         if message_lower.contains("state") || message_lower.contains("fsm") 
             || message_lower.contains("transition") || message_lower.contains("machine")
-            || message_lower.contains("create") && message_lower.contains("node")
+            || (message_lower.contains("create") && message_lower.contains("node"))
         {
             return Intent::FsmDesign;
-        }
-        
-        // Code generation keywords
-        if message_lower.contains("generate code") || message_lower.contains("write code")
-            || message_lower.contains("implement") || message_lower.contains("code for")
-            || message_lower.contains("driver") || message_lower.contains("function")
-        {
-            return Intent::CodeGeneration;
         }
         
         // Debug keywords
@@ -128,10 +128,10 @@ impl DirectorAgent {
             return Intent::Build;
         }
         
-        // Deploy keywords
+        // Deploy keywords - fix: use || instead of && for "download" || "device" combo
         if message_lower.contains("flash") || message_lower.contains("upload")
-            || message_lower.contains("deploy") || message_lower.contains("download")
-            && message_lower.contains("device")
+            || message_lower.contains("deploy") 
+            || (message_lower.contains("download") && message_lower.contains("device"))
         {
             return Intent::Deploy;
         }

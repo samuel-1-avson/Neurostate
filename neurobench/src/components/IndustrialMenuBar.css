@@ -1,0 +1,346 @@
+/**
+ * IndustrialMenuBar Styles - Professional HMI-grade application menubar
+ */
+
+.industrial-menubar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  background: linear-gradient(180deg, #2a2f38 0%, #1e2126 100%);
+  border-bottom: 2px solid #6366f1;
+  padding: 0 8px;
+  gap: 4px;
+  user-select: none;
+  -webkit-app-region: drag;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Animated glow under menubar */
+.industrial-menubar::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    #6366f1 25%,
+    #22d3ee 50%,
+    #6366f1 75%,
+    transparent 100%
+  );
+  animation: menuGlow 4s ease-in-out infinite;
+}
+
+@keyframes menuGlow {
+  0%, 100% { opacity: 0.4; transform: translateX(-5%); }
+  50% { opacity: 1; transform: translateX(5%); }
+}
+
+/* Logo */
+.menubar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.logo-icon {
+  font-size: 18px;
+  color: #22d3ee;
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.5));
+}
+
+.logo-text {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #f1f5f9;
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+
+/* Divider */
+.menubar-divider {
+  width: 1px;
+  height: 20px;
+  background: linear-gradient(180deg, transparent, #4a5568, transparent);
+  margin: 0 4px;
+}
+
+/* Menu triggers */
+.menubar-menus {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+
+.menu-trigger {
+  position: relative;
+  padding: 6px 12px;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.menu-trigger:hover {
+  background: rgba(99, 102, 241, 0.15);
+  color: #f1f5f9;
+}
+
+.menu-trigger.active {
+  background: rgba(99, 102, 241, 0.25);
+  color: #22d3ee;
+}
+
+/* Dropdown menu */
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: linear-gradient(180deg, #2a2f38 0%, #22262d 100%);
+  border: 1px solid #3a4150;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.1);
+  padding: 6px 0;
+  z-index: 1001;
+  animation: dropdownSlide 0.15s ease-out;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.menu-item:hover {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), transparent);
+  color: #22d3ee;
+}
+
+.menu-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.menu-item.disabled:hover {
+  background: transparent;
+  color: #e2e8f0;
+}
+
+.item-icon {
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.item-label {
+  flex: 1;
+}
+
+.item-shortcut {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: #64748b;
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.menu-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #4a5568, transparent);
+  margin: 6px 12px;
+}
+
+/* Spacer */
+.menubar-spacer {
+  flex: 1;
+  -webkit-app-region: drag;
+}
+
+/* Quick action buttons */
+.menubar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.action-btn {
+  width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #323843 0%, #2a2f38 100%);
+  border: 1px solid #3a4150;
+  border-radius: 4px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #3a4150 0%, #323843 100%);
+  border-color: #6366f1;
+  color: #f1f5f9;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+.action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.action-btn span {
+  font-size: 14px;
+}
+
+/* Simulation button states */
+.action-btn.sim-btn.running {
+  background: linear-gradient(180deg, #27ae60 0%, #1e8449 100%);
+  border-color: #2ecc71;
+  color: white;
+  box-shadow: 0 0 15px rgba(39, 174, 96, 0.4);
+  animation: simPulse 1.5s infinite;
+}
+
+.action-btn.sim-btn.paused {
+  background: linear-gradient(180deg, #f39c12 0%, #d68910 100%);
+  border-color: #f1c40f;
+  color: white;
+  box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
+}
+
+.action-btn.danger:hover:not(:disabled) {
+  border-color: #e74c3c;
+  box-shadow: 0 0 12px rgba(231, 76, 60, 0.4);
+}
+
+@keyframes simPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(39, 174, 96, 0.4); }
+  50% { box-shadow: 0 0 25px rgba(39, 174, 96, 0.6); }
+}
+
+/* Status indicator */
+.menubar-status {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.status-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4a5568;
+  transition: all 0.3s;
+}
+
+.status-led.idle {
+  background: #4a5568;
+}
+
+.status-led.running {
+  background: #27ae60;
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.6);
+  animation: ledBlink 1s infinite;
+}
+
+.status-led.paused {
+  background: #f39c12;
+  box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
+}
+
+.status-led.stopped {
+  background: #e74c3c;
+}
+
+@keyframes ledBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+/* MCU Selector */
+.menubar-mcu {
+  -webkit-app-region: no-drag;
+}
+
+.mcu-select {
+  padding: 5px 28px 5px 10px;
+  background: linear-gradient(180deg, #323843 0%, #2a2f38 100%);
+  border: 1px solid #3a4150;
+  border-radius: 4px;
+  color: #22d3ee;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.mcu-select:hover {
+  border-color: #6366f1;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.2);
+}
+
+.mcu-select:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+}
+
+.mcu-select option {
+  background: #22262d;
+  color: #f1f5f9;
+}

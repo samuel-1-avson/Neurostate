@@ -1,0 +1,174 @@
+/* StatusBar Styles - Industrial HMI Bottom Bar */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+  background: var(--bg-panel, #22262d);
+  border-top: 1px solid var(--border, #2a2f38);
+  padding: 0 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary, #94a3b8);
+  user-select: none;
+}
+
+.statusbar-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statusbar-left {
+  flex: 1;
+}
+
+.statusbar-center {
+  flex: 0;
+}
+
+.statusbar-right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius, 4px);
+  transition: all 0.15s;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.status-item:hover {
+  background: var(--bg-elevated, #323843);
+  color: var(--text-primary, #f1f5f9);
+}
+
+/* Status LED Indicators */
+.status-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim, #64748b);
+  transition: all 0.3s;
+}
+
+.status-led.connected,
+.status-led.running {
+  background: var(--status-success, #27ae60);
+  box-shadow: 0 0 6px var(--status-success);
+  animation: ledPulse 2s infinite;
+}
+
+.status-led.connecting,
+.status-led.warning {
+  background: var(--status-warning, #f39c12);
+  box-shadow: 0 0 6px var(--status-warning);
+  animation: ledPulse 0.5s infinite;
+}
+
+.status-led.disconnected,
+.status-led.error {
+  background: var(--status-error, #e74c3c);
+}
+
+@keyframes ledPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.status-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border, #2a2f38);
+}
+
+/* System Metrics Mini Bars */
+.status-item.perf,
+.status-metric {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metric-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-dim, #64748b);
+  min-width: 24px;
+}
+
+.metric-bar {
+  width: 40px;
+  height: 4px;
+  background: var(--bg-input, #1e2126);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.metric-fill {
+  height: 100%;
+  background: var(--accent, #6366f1);
+  border-radius: 2px;
+  transition: width 0.5s ease-out;
+}
+
+.metric-fill.high {
+  background: var(--status-warning, #f39c12);
+}
+
+.metric-fill.critical {
+  background: var(--status-error, #e74c3c);
+}
+
+.metric-value {
+  font-size: 9px;
+  color: var(--text-dim, #64748b);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Status indicators */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.status-indicator.connected {
+  background: var(--status-success, #27ae60);
+  box-shadow: 0 0 6px rgba(39, 174, 96, 0.5);
+}
+
+.status-indicator.disconnected {
+  background: var(--status-error, #e74c3c);
+}
+
+.status-indicator.connecting {
+  background: var(--status-warning, #f39c12);
+  animation: ledPulse 1s infinite;
+}
+
+/* Clickable status items */
+.status-item.clickable {
+  cursor: pointer;
+}
+
+.status-item.clickable:hover {
+  background: var(--accent-subtle, rgba(99, 102, 241, 0.15));
+  color: var(--accent, #6366f1);
+}
+
+/* Time display */
+.status-item.time {
+  color: var(--text-dim, #64748b);
+  font-variant-numeric: tabular-nums;
+}
+

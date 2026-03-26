@@ -1,0 +1,234 @@
+/* ProfilerPanel Industrial Theme */
+
+.profiler-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-base, #1e1e1e);
+  color: var(--text-primary, #e8e8e8);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 11px;
+  overflow: hidden;
+  border-right: 1px solid var(--border, #333);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+  height: 38px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim, #888);
+}
+
+.panel-header svg {
+  color: var(--accent, #e49b0f);
+  width: 14px;
+  height: 14px;
+}
+
+.config-row {
+  padding: 12px;
+  background: var(--bg-surface, #252526);
+  border-bottom: 1px solid var(--border, #333);
+}
+
+.config-row label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim, #888);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.config-row input {
+  width: 100%;
+  background: var(--bg-input, #111);
+  border: 1px solid var(--border, #333);
+  color: var(--text-primary, #e8e8e8);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.config-row input:focus {
+  border-color: var(--accent, #e49b0f);
+  outline: none;
+}
+
+.analyze-btn {
+  margin: 12px;
+  background: var(--accent, #e49b0f);
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.analyze-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 0 8px rgba(228, 155, 15, 0.4);
+}
+
+.analyze-btn:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border: 4px solid;
+  border-radius: 50%;
+  margin: 12px auto;
+  position: relative;
+}
+
+.score-value {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: 'Fira Code', monospace;
+}
+
+.score-label {
+  font-size: 10px;
+  color: var(--text-dim, #888);
+  text-transform: uppercase;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.metric {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+
+.metric:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.metric-value {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #e8e8e8);
+  font-family: 'Fira Code', monospace;
+}
+
+.metric-label {
+  font-size: 9px;
+  color: var(--text-dim, #888);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.issues, .suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.issues h4, .suggestions h4 {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-dim, #888);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.issue-item {
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 2px solid;
+  padding: 8px 12px;
+  border-radius: 0 4px 4px 0;
+}
+
+.issue-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 9px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.issue-severity {
+  font-family: 'Fira Code', monospace;
+}
+
+.issue-message {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary, #ccc);
+}
+
+.issue-suggestion {
+  margin: 4px 0 0 0;
+  font-size: 10px;
+  color: var(--text-dim, #888);
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.icon-inline svg {
+  width: 12px;
+  height: 12px;
+}
+
+.suggestion-item {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary, #aaa);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item .icon-inline {
+  color: var(--status-success, #2ecc71);
+}

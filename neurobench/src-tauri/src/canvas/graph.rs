@@ -38,6 +38,12 @@ impl GraphValidator {
         }
     }
     
+    /// Add a node to the graph (initializes empty adjacency lists)
+    pub fn add_node(&mut self, node_id: &str) {
+        self.adjacency.entry(node_id.to_string()).or_insert_with(Vec::new);
+        self.reverse_adj.entry(node_id.to_string()).or_insert_with(Vec::new);
+    }
+    
     /// Add an edge to the graph
     pub fn add_edge(&mut self, edge: &CanvasEdge) {
         self.adjacency
@@ -296,13 +302,12 @@ mod tests {
             ("e2", "B", "C"),
             ("e3", "C", "A"),
         ].iter().map(|(id, s, t)| {
-            (id.to_string(), CanvasEdge {
-                id: id.to_string(),
-                source: s.to_string(),
-                target: t.to_string(),
-                label: None,
-                condition: None,
-            })
+            (id.to_string(), CanvasEdge::new(
+                id.to_string(),
+                s.to_string(),
+                t.to_string(),
+                None,
+            ))
         }).collect();
         
         let nodes: HashMap<String, CanvasNode> = ["A", "B", "C"]
@@ -332,13 +337,12 @@ mod tests {
             ("e3", "B", "D"),
             ("e4", "C", "D"),
         ].iter().map(|(id, s, t)| {
-            (id.to_string(), CanvasEdge {
-                id: id.to_string(),
-                source: s.to_string(),
-                target: t.to_string(),
-                label: None,
-                condition: None,
-            })
+            (id.to_string(), CanvasEdge::new(
+                id.to_string(),
+                s.to_string(),
+                t.to_string(),
+                None,
+            ))
         }).collect();
         
         let nodes: HashMap<String, CanvasNode> = ["A", "B", "C", "D"]

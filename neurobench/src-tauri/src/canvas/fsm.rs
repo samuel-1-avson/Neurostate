@@ -278,7 +278,7 @@ impl SmartPlacement {
     fn avoid_collisions(
         &self,
         mut x: f64,
-        mut y: f64,
+        y: f64,
         w: f64,
         h: f64,
         occupied: &[(f64, f64, f64, f64)],

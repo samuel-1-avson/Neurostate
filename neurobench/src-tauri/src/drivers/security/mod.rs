@@ -229,3 +229,16 @@ pub mod bootloader;
 pub mod ota;
 pub mod secure_boot;
 pub mod crypto;
+
+// New security modules
+pub mod hsm;          // Hardware Security Module
+pub mod tpm;          // Trusted Platform Module 2.0
+pub mod attestation;  // Device attestation (DICE, PSA)
+pub mod keys;         // Key management
+
+// Re-exports
+pub use hsm::{HsmConfig, HsmInterface, generate_hsm_driver};
+pub use tpm::{TpmConfig, TpmHierarchy, generate_tpm_driver};
+pub use attestation::{AttestationConfig, AttestationProtocol, generate_attestation_driver};
+pub use keys::{KeyManagementConfig, KeyAlgorithm, generate_keys_driver};
+

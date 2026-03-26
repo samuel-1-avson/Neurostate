@@ -3,7 +3,6 @@
 
 use super::{TerminalResult, TerminalLine};
 use super::parser::ParsedCommand;
-use std::collections::HashMap;
 
 /// Process an embedded system command
 pub fn process_embedded_command(cmd: &ParsedCommand) -> TerminalResult {
@@ -716,6 +715,7 @@ fn cmd_gpio(cmd: &ParsedCommand) -> TerminalResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_help_command() {

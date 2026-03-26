@@ -25,10 +25,10 @@ NeuroBench is an industrial-grade embedded systems workbench for designing, simu
 ### Driver Generation
 | Peripheral | Languages | MCUs Supported |
 |------------|-----------|----------------|
-| GPIO | C, C++, Rust | STM32, ESP32, nRF52, RP2040 |
-| UART | C, C++, Rust | STM32, ESP32, nRF52 |
-| SPI | C, C++, Rust | All |
-| I2C | C, C++, Rust | All |
+| GPIO | C, C++, Rust, Ada, Asm, MicroPython, Zig | All |
+| UART | C, C++, Rust, Ada, Asm | STM32, ESP32, nRF52 |
+| SPI | C, C++, Rust, Ada, Asm | All |
+| I2C | C, C++, Rust, Ada, Asm | All |
 | CAN | C, C++ | STM32 |
 | Modbus | C, C++ | STM32 |
 
@@ -92,9 +92,16 @@ Design digital filters:
 | Save Project | Ctrl+S |
 | Undo | Ctrl+Z |
 | Redo | Ctrl+Y |
+| Select All | Ctrl+A |
+| Duplicate | Ctrl+D |
+| Generate Code | Ctrl+G |
+| Build Panel | Ctrl+B |
+| Settings | Ctrl+, |
+| Quick Panel 1-9 | Ctrl+1-9 |
+| Show Help | F1 |
 | Delete Node | Delete |
-| Add State | Double-click canvas |
-| Connect States | Drag from edge |
+| Nudge Node | Arrow Keys |
+| Deselect/Close | Escape |
 
 ---
 
@@ -155,15 +162,18 @@ project/
 
 ---
 
-## 🔌 Supported MCUs
+## 🔌 Supported MCUs (24+)
 
 | Family | Chips | Features |
 |--------|-------|----------|
-| STM32 | F1, F4, H7, L4, G4 | Full HAL support |
-| ESP32 | ESP32, S3, C3 | WiFi, BLE |
-| nRF52 | nRF52832, nRF52840 | BLE, Thread |
-| RP2040 | Pico | Dual-core |
-| NXP | LPC4088 | Industrial |
+| STM32 | F103, F401, L476, G474, H743, WL55 | Full HAL support |
+| ESP32 | ESP32, C3, C6, S3, H2 | WiFi, BLE, Matter |
+| nRF | nRF52832, nRF52840, nRF5340 | BLE 5, Thread, Zigbee |
+| RP2040 | Pico | Dual-core, PIO |
+| SAMD | SAMD21, SAMD51 | Arduino, USB |
+| AVR | ATmega328P, ATmega2560 | Classic Arduino |
+| NXP | LPC1768, LPC55S69 | Industrial, TrustZone |
+| RISC-V | CH32V003, GD32VF103 | Low-cost, open arch |
 
 ---
 

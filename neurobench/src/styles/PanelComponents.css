@@ -1,0 +1,507 @@
+/**
+ * PanelComponents.css - Enhanced industrial panel styling
+ * Collapsible sections, better organization, inline validation
+ */
+
+/* ============================================================================
+   Collapsible Panel Section
+   ============================================================================ */
+
+.panel-section-collapsible {
+  border: 1px solid var(--border, #2a2f38);
+  border-radius: var(--radius, 4px);
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: var(--bg-surface, #2a2f38);
+}
+
+.panel-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-elevated, #323843);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.panel-section-header:hover {
+  background: var(--bg-overlay, #3a4150);
+}
+
+.panel-section-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-dim, #64748b);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.panel-section-collapsible.collapsed .panel-section-chevron {
+  transform: rotate(-90deg);
+}
+
+.panel-section-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary, #94a3b8);
+  flex: 1;
+}
+
+.panel-section-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  background: var(--accent-subtle, rgba(99, 102, 241, 0.15));
+  color: var(--accent, #6366f1);
+  border-radius: var(--radius-sm, 3px);
+}
+
+.panel-section-content {
+  padding: 12px;
+  border-top: 1px solid var(--border, #2a2f38);
+  animation: slideDown 0.2s ease-out;
+}
+
+.panel-section-collapsible.collapsed .panel-section-content {
+  display: none;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Form Fields with Industrial Styling
+   ============================================================================ */
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.form-label-required::after {
+  content: '*';
+  color: var(--status-error, #e74c3c);
+  margin-left: 2px;
+}
+
+.form-label-hint {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-dim, #64748b);
+  text-transform: none;
+  letter-spacing: normal;
+  margin-left: auto;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-input, #1e2126);
+  border: 1px solid var(--border-strong, #3a4150);
+  border-radius: var(--radius, 4px);
+  color: var(--text-primary, #f1f5f9);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.form-input::placeholder {
+  color: var(--text-dim, #64748b);
+}
+
+.form-input:hover:not(:disabled) {
+  border-color: var(--text-secondary);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent, #6366f1);
+  box-shadow: 0 0 0 3px var(--accent-subtle, rgba(99, 102, 241, 0.15));
+}
+
+.form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Validation states */
+.form-input.valid {
+  border-color: var(--status-success, #27ae60);
+}
+
+.form-input.valid:focus {
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
+}
+
+.form-input.invalid {
+  border-color: var(--status-error, #e74c3c);
+}
+
+.form-input.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
+}
+
+.form-input.warning {
+  border-color: var(--status-warning, #f39c12);
+}
+
+.form-input.warning:focus {
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15);
+}
+
+/* Inline validation message */
+.form-validation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 10px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.form-validation.error {
+  color: var(--status-error, #e74c3c);
+}
+
+.form-validation.success {
+  color: var(--status-success, #27ae60);
+}
+
+.form-validation.warning {
+  color: var(--status-warning, #f39c12);
+}
+
+.form-validation-icon {
+  width: 12px;
+  height: 12px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Select dropdown */
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+/* Checkbox and Radio */
+.form-checkbox-group,
+.form-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-checkbox,
+.form-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.form-checkbox input,
+.form-radio input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent, #6366f1);
+  cursor: pointer;
+}
+
+.form-checkbox-label,
+.form-radio-label {
+  font-size: 12px;
+  color: var(--text-primary, #f1f5f9);
+}
+
+/* ============================================================================
+   Property Grid (Key-Value Display)
+   ============================================================================ */
+
+.property-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  align-items: center;
+}
+
+.property-key {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.property-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary, #f1f5f9);
+  background: var(--bg-input, #1e2126);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 3px);
+  border: 1px solid var(--border, #2a2f38);
+}
+
+.property-value.editable {
+  cursor: text;
+  transition: all 0.15s;
+}
+
+.property-value.editable:hover {
+  border-color: var(--accent-dim);
+}
+
+.property-value.editable:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-surface);
+}
+
+/* ============================================================================
+   Tabbed Panel Interface
+   ============================================================================ */
+
+.panel-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--bg-surface, #2a2f38);
+  border-bottom: 1px solid var(--border, #2a2f38);
+}
+
+.panel-tab {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.panel-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover, #3a4150);
+}
+
+.panel-tab.active {
+  color: var(--accent, #6366f1);
+  border-bottom-color: var(--accent);
+}
+
+.panel-tab-content {
+  padding: 12px;
+}
+
+/* ============================================================================
+   Toggle Switch
+   ============================================================================ */
+
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  width: 36px;
+  height: 20px;
+  background: var(--bg-input, #1e2126);
+  border: 1px solid var(--border-strong, #3a4150);
+  border-radius: 10px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-dim, #64748b);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background: var(--accent-subtle, rgba(99, 102, 241, 0.15));
+  border-color: var(--accent, #6366f1);
+}
+
+.toggle-switch input:checked + .toggle-track .toggle-thumb {
+  left: 18px;
+  background: var(--accent, #6366f1);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.toggle-switch input:focus + .toggle-track {
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.toggle-label {
+  font-size: 12px;
+  color: var(--text-primary, #f1f5f9);
+}
+
+/* ============================================================================
+   Inline Actions (Button Group in Form)
+   ============================================================================ */
+
+.inline-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.inline-btn {
+  padding: 6px 12px;
+  background: var(--bg-surface, #2a2f38);
+  border: 1px solid var(--border-strong, #3a4150);
+  border-radius: var(--radius, 4px);
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.inline-btn:hover {
+  background: var(--bg-hover, #3a4150);
+  color: var(--text-primary);
+}
+
+.inline-btn.primary {
+  background: var(--accent, #6366f1);
+  border-color: var(--accent-dim, #4f46e5);
+  color: white;
+}
+
+.inline-btn.primary:hover {
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+/* ============================================================================
+   Range Slider
+   ============================================================================ */
+
+.form-range {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-input, #1e2126);
+  border-radius: 2px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent, #6366f1);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent-glow);
+  transition: transform 0.15s;
+}
+
+.form-range::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.form-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent, #6366f1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.range-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent, #6366f1);
+  text-align: right;
+  min-width: 40px;
+}
+
+/* ============================================================================
+   Keyboard Navigation Focus Styles
+   ============================================================================ */
+
+.keyboard-focus *:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: 8px 16px;
+  background: var(--accent, #6366f1);
+  color: white;
+  font-weight: 600;
+  z-index: 1000;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}

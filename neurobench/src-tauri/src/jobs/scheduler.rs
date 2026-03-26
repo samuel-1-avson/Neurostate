@@ -136,13 +136,13 @@ impl PartialOrd for PrioritizedJob {
 
 impl Ord for PrioritizedJob {
     fn cmp(&self, other: &Self) -> Ordering {
-        // Higher priority first
+        // Higher priority first (BinaryHeap is max-heap, High=2 > Low=0)
         match self.0.priority.cmp(&other.0.priority) {
             Ordering::Equal => {
                 // Earlier created first (FIFO for same priority)
                 other.0.created_at.cmp(&self.0.created_at)
             }
-            ord => ord.reverse(), // Reverse because BinaryHeap is max-heap
+            ord => ord, // No reverse needed - max-heap extracts highest first
         }
     }
 }
