@@ -39,15 +39,12 @@ export const Icons = {
       <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
     </svg>
   ),
-<<<<<<< HEAD
-=======
   folderOpen: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1-2-2h5l2 3h9a2 2 0 0 1 2 2z" />
       <path d="M2 13h20" />
     </svg>
   ),
->>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   play: () => (
     <svg viewBox="0 0 24 24" fill="currentColor">
       <polygon points="5 3 19 12 5 21 5 3" />
@@ -264,9 +261,6 @@ export const Icons = {
       <line x1="6" y1="20" x2="6" y2="14" />
     </svg>
   ),
-<<<<<<< HEAD
-=======
-
   bot: () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
@@ -287,7 +281,6 @@ export const Icons = {
       <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/>
     </svg>
   ),
->>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   workflow: () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="4" width="6" height="6" rx="1" />

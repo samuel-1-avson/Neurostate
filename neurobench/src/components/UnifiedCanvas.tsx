@@ -239,12 +239,6 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
     return colors[typeStr] || "#4f46e5";
   };
 
-<<<<<<< HEAD
-  const getNodeIcon = (nodeType: NodeType): string => {
-    const typeStr = nodeTypeToString(nodeType);
-    const info = nodeEngine.allTypes().find(t => t.node_type === typeStr);
-    return info?.icon || "●";
-=======
   const getNodeIcon = (nodeType: NodeType): any => {
     const typeStr = nodeTypeToString(nodeType).toLowerCase();
     
@@ -281,7 +275,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
     if (typeStr.includes("hardware") || typeStr.includes("driver")) return Icons.cpu();
     
     return Icons.package();
->>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
+  };
   };
 
   const mapNodeType = (newType: string): NodeType => {
@@ -1576,15 +1570,9 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
       <Show when={showSimPanel() && isSimulating()}>
         <div class="simulation-panel">
           <div class="sim-panel-header">
-<<<<<<< HEAD
-            <h4>🎮 Simulation</h4>
-            <span class={`sim-status ${simState()}`}>{simState().toUpperCase()}</span>
-            <button class="close-btn" onClick={() => setShowSimPanel(false)}>✕</button>
-=======
             <h4><span class="header-icon">{Icons.simulator()}</span> Simulation</h4>
             <span class={`sim-status ${simState()}`}>{simState().toUpperCase()}</span>
             <button class="close-btn" onClick={() => setShowSimPanel(false)}>{Icons.x()}</button>
->>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </div>
           
           {/* GPIO Visualization */}
@@ -1624,13 +1612,8 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
           
           {/* Controls */}
           <div class="sim-controls">
-<<<<<<< HEAD
-            <button class="sim-ctrl-btn step" onClick={stepSimulation}>⏭ Step</button>
-            <button class="sim-ctrl-btn stop" onClick={stopSimulation}>⏹ Stop</button>
-=======
             <button class="sim-ctrl-btn step" onClick={stepSimulation}><span class="btn-icon">{Icons.step()}</span> Step</button>
             <button class="sim-ctrl-btn stop" onClick={stopSimulation}><span class="btn-icon">{Icons.stop()}</span> Stop</button>
->>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </div>
         </div>
       </Show>
@@ -1644,17 +1627,6 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             onClick={(e) => e.stopPropagation()}
           >
             <Show when={ctx().nodeId}>
-<<<<<<< HEAD
-              <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Duplicate clicked'); duplicateNode(); setContextMenu(null); }}>📋 Duplicate</button>
-              <button class="context-menu-item danger" onClick={() => { console.log('[UnifiedCanvas] Context: Delete clicked'); deleteNode(); setContextMenu(null); }}>🗑️ Delete</button>
-              <div class="context-menu-divider" />
-            </Show>
-            <button class="context-menu-item" onClick={async () => { console.log('[UnifiedCanvas] Context: Undo clicked'); await canvasEngine.undo(); setContextMenu(null); console.log('[UnifiedCanvas] Undo completed'); }}>↶ Undo</button>
-            <button class="context-menu-item" onClick={async () => { console.log('[UnifiedCanvas] Context: Redo clicked'); await canvasEngine.redo(); setContextMenu(null); console.log('[UnifiedCanvas] Redo completed'); }}>↷ Redo</button>
-            <div class="context-menu-divider" />
-            <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Generate clicked'); handleGenerateCode(); setContextMenu(null); }}>⚡ Generate Code</button>
-            <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Close clicked'); setContextMenu(null); }}>✕ Close</button>
-=======
               <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Duplicate clicked'); duplicateNode(); setContextMenu(null); }}><span class="ctx-icon">{Icons.docs()}</span> Duplicate</button>
               <button class="context-menu-item danger" onClick={() => { console.log('[UnifiedCanvas] Context: Delete clicked'); deleteNode(); setContextMenu(null); }}><span class="ctx-icon">{Icons.trash()}</span> Delete</button>
               <div class="context-menu-divider" />
@@ -1664,7 +1636,6 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             <div class="context-menu-divider" />
             <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Generate clicked'); handleGenerateCode(); setContextMenu(null); }}><span class="ctx-icon">{Icons.flash()}</span> Generate Code</button>
             <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Close clicked'); setContextMenu(null); }}><span class="ctx-icon">{Icons.x()}</span> Close</button>
->>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </div>
         )}
       </Show>
