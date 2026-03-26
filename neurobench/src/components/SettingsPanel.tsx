@@ -1,4 +1,6 @@
-import { createSignal, createEffect, For, Show } from "solid-js";
+import { createSignal, createEffect, For, Show, JSX } from "solid-js";
+import { Icons } from "./AppIcons";
+import "./SettingsPanel.css";
 
 export interface SystemSettings {
   // General
@@ -68,12 +70,18 @@ const defaultSettings: SystemSettings = {
 interface SettingsPanelProps {
   onClose?: () => void;
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
+  // Project-specific props (optional as settings can be global)
+  projectPassword?: string | null;
+  setProjectPassword?: (pwd: string | null) => void;
 }
 
 export function SettingsPanel(props: SettingsPanelProps) {
   const [settings, setSettings] = createSignal<SystemSettings>(defaultSettings);
   const [activeTab, setActiveTab] = createSignal("general");
   const [hasChanges, setHasChanges] = createSignal(false);
+
+  // Local state for password input to avoid constantly updating parent
+  const [localPwd, setLocalPwd] = createSignal(props.projectPassword || "");
 
   // Load settings on mount
   createEffect(() => {
@@ -96,6 +104,13 @@ export function SettingsPanel(props: SettingsPanelProps) {
   const saveSettings = () => {
     localStorage.setItem("neurobench_settings", JSON.stringify(settings()));
     setHasChanges(false);
+    
+    // Also save password if changed
+    if (props.setProjectPassword && localPwd() !== (props.projectPassword || "")) {
+        props.setProjectPassword(localPwd() || null);
+        props.onLog?.("Security", "Project password updated", "success");
+    }
+
     props.onLog?.("Settings", "Settings saved", "success");
   };
 
@@ -105,21 +120,24 @@ export function SettingsPanel(props: SettingsPanelProps) {
     props.onLog?.("Settings", "Settings reset to defaults", "info");
   };
 
-  const tabs = [
-    { id: "general", label: "General", icon: "⚙️" },
-    { id: "editor", label: "Editor", icon: "📝" },
-    { id: "compiler", label: "Compiler", icon: "🔨" },
-    { id: "hardware", label: "Hardware", icon: "🔌" },
-    { id: "ai", label: "AI", icon: "🤖" },
-    { id: "paths", label: "Paths", icon: "📁" },
+  const tabs: { id: string; label: string; icon: () => JSX.Element }[] = [
+    { id: "general", label: "General", icon: () => Icons.settings() },
+    { id: "editor", label: "Editor", icon: () => Icons.code() },
+    { id: "compiler", label: "Compiler", icon: () => Icons.build() },
+    { id: "hardware", label: "Hardware", icon: () => Icons.plug() },
+    { id: "ai", label: "AI", icon: () => Icons.robot() },
+    { id: "security", label: "Security", icon: () => Icons.lock() },
+    { id: "paths", label: "Paths", icon: () => Icons.folder() },
+    { id: "profiles", label: "Profiles", icon: () => Icons.save() },
+    { id: "shortcuts", label: "Shortcuts", icon: () => Icons.keyboard() },
   ];
 
   return (
     <div class="settings-panel">
       <div class="settings-header">
-        <h2>⚙️ Settings</h2>
+        <h2><span class="header-icon">{Icons.settings()}</span> Settings</h2>
         <div class="header-actions">
-          <Show when={hasChanges()}>
+          <Show when={hasChanges() || (localPwd() !== (props.projectPassword || ""))}>
             <span class="unsaved-badge">Unsaved Changes</span>
           </Show>
           <button class="close-btn" onClick={props.onClose}>✕</button>
@@ -135,7 +153,7 @@ export function SettingsPanel(props: SettingsPanelProps) {
                 class={`tab-btn ${activeTab() === tab.id ? "active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <span class="tab-icon">{tab.icon}</span>
+                <span class="tab-icon">{tab.icon()}</span>
                 <span class="tab-label">{tab.label}</span>
               </button>
             )}
@@ -385,6 +403,35 @@ export function SettingsPanel(props: SettingsPanelProps) {
             </div>
           </Show>
 
+          {/* Security */}
+          <Show when={activeTab() === "security"}>
+            <div class="settings-section">
+              <h3>Project Encryption</h3>
+              <div class="setting-description" style={{ "margin-bottom": "15px", "color": "#aaa", "font-size": "0.9em" }}>
+                By default, NeuroBench encrypts all files transparently. Set a password below to add an extra layer of protection (requiring a password to open).
+              </div>
+              <div class="setting-row">
+                <label>Project Password</label>
+                <div class="path-input">
+                  <input 
+                    type="password" 
+                    placeholder="Leave empty for transparent encryption"
+                    value={localPwd()}
+                    onInput={(e) => setLocalPwd(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div style={{ "margin-top": "10px", "font-size": "0.85em", "color": "#888" }}>
+                  <Show when={localPwd()}>
+                      <span style={{ "color": "#4caf50" }}>✓ Password Protection Enabled</span>
+                  </Show>
+                  <Show when={!localPwd()}>
+                      <span>✓ Standard Encryption (Auto-Open)</span>
+                  </Show>
+              </div>
+            </div>
+          </Show>
+
           {/* Paths */}
           <Show when={activeTab() === "paths"}>
             <div class="settings-section">
@@ -435,204 +482,10 @@ export function SettingsPanel(props: SettingsPanelProps) {
         <button class="reset-btn" onClick={resetSettings}>Reset to Defaults</button>
         <div class="footer-actions">
           <button class="cancel-btn" onClick={props.onClose}>Cancel</button>
-          <button class="save-btn" onClick={saveSettings} disabled={!hasChanges()}>Save Settings</button>
+          <button class="save-btn" onClick={saveSettings} disabled={!hasChanges() && localPwd() === (props.projectPassword || "")}>Save Settings</button>
         </div>
       </div>
 
-      <style>{`
-        .settings-panel {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 700px;
-          max-width: 90vw;
-          max-height: 80vh;
-          background: linear-gradient(135deg, #1e1e2e 0%, #181825 100%);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 12px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-          display: flex;
-          flex-direction: column;
-          z-index: 1000;
-        }
-
-        .settings-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 16px 20px;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .settings-header h2 { margin: 0; font-size: 18px; }
-
-        .header-actions { display: flex; align-items: center; gap: 12px; }
-
-        .unsaved-badge {
-          background: rgba(251, 191, 36, 0.2);
-          color: #fbbf24;
-          padding: 4px 10px;
-          border-radius: 12px;
-          font-size: 11px;
-        }
-
-        .close-btn {
-          background: none;
-          border: none;
-          color: #888;
-          font-size: 16px;
-          cursor: pointer;
-          padding: 4px 8px;
-        }
-
-        .close-btn:hover { color: #ef4444; }
-
-        .settings-body {
-          display: flex;
-          flex: 1;
-          overflow: hidden;
-        }
-
-        .settings-tabs {
-          width: 160px;
-          padding: 12px;
-          border-right: 1px solid rgba(255,255,255,0.1);
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .tab-btn {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 14px;
-          background: transparent;
-          border: none;
-          color: #888;
-          font-size: 13px;
-          cursor: pointer;
-          border-radius: 6px;
-          text-align: left;
-          transition: all 0.2s;
-        }
-
-        .tab-btn:hover { background: rgba(255,255,255,0.05); color: #ccc; }
-
-        .tab-btn.active {
-          background: rgba(59, 130, 246, 0.2);
-          color: #60a5fa;
-        }
-
-        .tab-icon { font-size: 14px; }
-
-        .settings-content {
-          flex: 1;
-          padding: 20px;
-          overflow-y: auto;
-        }
-
-        .settings-section h3 {
-          margin: 0 0 16px 0;
-          font-size: 14px;
-          color: #888;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-          padding-bottom: 8px;
-        }
-
-        .setting-row {
-          margin-bottom: 16px;
-        }
-
-        .setting-row label {
-          display: block;
-          color: #ccc;
-          font-size: 12px;
-          margin-bottom: 6px;
-        }
-
-        .setting-row.checkbox label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-        }
-
-        .setting-row input[type="text"],
-        .setting-row input[type="number"],
-        .setting-row select {
-          width: 100%;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          color: #fff;
-          padding: 10px 12px;
-          border-radius: 6px;
-          font-size: 13px;
-        }
-
-        .setting-row input[type="range"] {
-          width: 100%;
-        }
-
-        .path-input {
-          display: flex;
-          gap: 8px;
-        }
-
-        .path-input input { flex: 1; }
-
-        .path-input button {
-          background: rgba(255,255,255,0.1);
-          border: none;
-          color: #ccc;
-          padding: 10px 16px;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .settings-footer {
-          display: flex;
-          justify-content: space-between;
-          padding: 16px 20px;
-          border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .reset-btn {
-          background: none;
-          border: 1px solid rgba(255,255,255,0.2);
-          color: #888;
-          padding: 10px 16px;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .footer-actions { display: flex; gap: 8px; }
-
-        .cancel-btn {
-          background: rgba(255,255,255,0.1);
-          border: none;
-          color: #ccc;
-          padding: 10px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .save-btn {
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
-          border: none;
-          color: white;
-          padding: 10px 24px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-        }
-
-        .save-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      `}</style>
     </div>
   );
 }

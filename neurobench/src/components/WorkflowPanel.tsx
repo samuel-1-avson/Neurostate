@@ -1,6 +1,8 @@
 import { createSignal, onMount, onCleanup, Show, For } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { Icons } from "./AppIcons";
+import "./WorkflowPanel.css";
 
 // Types matching Rust backend
 interface DeviceStatus {
@@ -224,14 +226,19 @@ export default function WorkflowPanel() {
     const lt = status()?.last_terminal;
     if (!lt) return null;
     if (lt.success) {
-      return `Last ${lt.kind}: ✓`;
+      return <span class="status-with-icon">{Icons.check()} Last {lt.kind}: Success</span>;
     } else {
-      return `Last ${lt.kind}: ${lt.error_code || lt.reason || 'failed'}`;
+      return <span class="status-with-icon">{Icons.errorCircle()} Last {lt.kind}: {lt.error_code || lt.reason || 'failed'}</span>;
     }
   };
 
   return (
     <div class="workflow-panel">
+      {/* Header */}
+      <div class="panel-header">
+        {Icons.workflow()} <span>Workflow Engine</span>
+      </div>
+
       {/* Status Strip */}
       <div class="status-strip">
         <div class="status-item">
@@ -308,7 +315,7 @@ export default function WorkflowPanel() {
             onClick={handleRun}
             disabled={workflowState() !== "idle" && workflowState() !== "failed"}
           >
-            ▶ Run
+            <span class="btn-icon">{Icons.play()}</span> Run
           </button>
           
           <button 
@@ -316,7 +323,7 @@ export default function WorkflowPanel() {
             onClick={handleStop}
             disabled={workflowState() === "idle"}
           >
-            ■ Stop
+            <span class="btn-icon">{Icons.stop()}</span> Stop
           </button>
         </div>
       </div>
@@ -333,171 +340,7 @@ export default function WorkflowPanel() {
         <div class="status-error">Status error: {statusError()}</div>
       </Show>
 
-      <style>{`
-        .workflow-panel {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding: 16px;
-          background: #1e1e1e;
-          border-radius: 8px;
-          font-family: 'Segoe UI', sans-serif;
-          color: #e0e0e0;
-        }
-        
-        .status-strip {
-          display: flex;
-          gap: 16px;
-          padding: 8px 12px;
-          background: #2d2d2d;
-          border-radius: 4px;
-          font-size: 13px;
-          flex-wrap: wrap;
-        }
-        
-        .status-item {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-        
-        .status-label {
-          color: #888;
-        }
-        
-        .status-value {
-          font-weight: 500;
-        }
-        
-        .status-item.success { color: #4CAF50; }
-        .status-item.error { color: #f44336; }
-        
-        .rtt-active {
-          color: #2196F3;
-        }
-        
-        .status-dot {
-          width: 8px;
-          height: 8px;
-          background: #2196F3;
-          border-radius: 50%;
-          animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-        
-        .workflow-controls {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        
-        .control-row {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-        }
-        
-        .control-row label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 13px;
-        }
-        
-        .control-row input[type="text"] {
-          flex: 1;
-          padding: 6px 10px;
-          background: #333;
-          border: 1px solid #444;
-          border-radius: 4px;
-          color: #e0e0e0;
-          font-size: 13px;
-        }
-        
-        .control-row select {
-          padding: 6px 10px;
-          background: #333;
-          border: 1px solid #444;
-          border-radius: 4px;
-          color: #e0e0e0;
-          font-size: 13px;
-        }
-        
-        .checkbox-label {
-          cursor: pointer;
-        }
-        
-        .button-row {
-          display: flex;
-          gap: 8px;
-          margin-top: 8px;
-        }
-        
-        .run-button, .stop-button {
-          padding: 10px 24px;
-          border: none;
-          border-radius: 4px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-        
-        .run-button {
-          background: #4CAF50;
-          color: white;
-        }
-        
-        .run-button:hover:not(:disabled) {
-          background: #45a049;
-        }
-        
-        .run-button:disabled {
-          background: #2d4d2e;
-          cursor: not-allowed;
-        }
-        
-        .stop-button {
-          background: #f44336;
-          color: white;
-        }
-        
-        .stop-button:hover:not(:disabled) {
-          background: #da190b;
-        }
-        
-        .stop-button:disabled {
-          background: #4d2828;
-          cursor: not-allowed;
-        }
-        
-        .message-log {
-          max-height: 200px;
-          overflow-y: auto;
-          background: #0d0d0d;
-          border-radius: 4px;
-          padding: 8px;
-          font-family: 'Consolas', monospace;
-          font-size: 12px;
-        }
-        
-        .log-line {
-          padding: 2px 0;
-          color: #aaa;
-        }
-        
-        .status-error {
-          color: #f44336;
-          font-size: 12px;
-          padding: 4px 8px;
-          background: rgba(244, 67, 54, 0.1);
-          border-radius: 4px;
-        }
-      `}</style>
+
     </div>
   );
 }

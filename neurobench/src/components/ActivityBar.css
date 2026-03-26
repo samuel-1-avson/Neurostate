@@ -74,9 +74,22 @@
 }
 
 /* Icon */
+<<<<<<< HEAD
 .activity-icon {
   font-size: 18px;
   line-height: 1;
+=======
+/* Icon */
+.activity-icon {
+  font-size: 16px;
+  line-height: 1;
+  display: flex; /* Ensure centering */
+}
+
+.activity-icon svg {
+  width: 16px;
+  height: 16px;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 /* Badge */

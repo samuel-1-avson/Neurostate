@@ -9,6 +9,10 @@
  */
 
 import { Component, createSignal, createEffect, Show, For } from 'solid-js';
+<<<<<<< HEAD
+=======
+import { Icons } from './AppIcons';
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 import './NodePropertiesPanel.css';
 
 export interface NodeData {
@@ -168,7 +172,11 @@ export const NodePropertiesPanel: Component<NodePropertiesPanelProps> = (props) 
               {props.node?.node_type.replace(/_/g, ' ')}
             </span>
           </div>
+<<<<<<< HEAD
           <button class="npp-close" onClick={props.onClose}>✕</button>
+=======
+          <button class="npp-close" onClick={props.onClose}>{Icons.x()}</button>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         </div>
 
         <div class="npp-body">
@@ -197,7 +205,11 @@ export const NodePropertiesPanel: Component<NodePropertiesPanelProps> = (props) 
           {/* Entry/Exit Actions for State Nodes */}
           <Show when={supportsActions(props.node?.node_type || '')}>
             <div class="npp-section">
+<<<<<<< HEAD
               <div class="npp-section-title">◆ State Actions</div>
+=======
+              <div class="npp-section-title"><span class="icon-inline">{Icons.flash()}</span> State Actions</div>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
               
               <div class="npp-field">
                 <label>
@@ -232,7 +244,11 @@ export const NodePropertiesPanel: Component<NodePropertiesPanelProps> = (props) 
           {/* Type-specific Properties */}
           <Show when={getProperties().length > 0}>
             <div class="npp-section">
+<<<<<<< HEAD
               <div class="npp-section-title">◆ Configuration</div>
+=======
+              <div class="npp-section-title"><span class="icon-inline">{Icons.settings()}</span> Configuration</div>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
               
               <For each={getProperties()}>
                 {(prop) => (
@@ -278,7 +294,11 @@ export const NodePropertiesPanel: Component<NodePropertiesPanelProps> = (props) 
 
           {/* Position Info */}
           <div class="npp-section">
+<<<<<<< HEAD
             <div class="npp-section-title">◆ Position</div>
+=======
+            <div class="npp-section-title"><span class="icon-inline">{Icons.layout()}</span> Position</div>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
             <div class="npp-position">
               <span>X: {Math.round(props.node?.x || 0)}</span>
               <span>Y: {Math.round(props.node?.y || 0)}</span>
@@ -290,7 +310,11 @@ export const NodePropertiesPanel: Component<NodePropertiesPanelProps> = (props) 
 
         <div class="npp-footer">
           <button class="npp-btn delete" onClick={handleDelete}>
+<<<<<<< HEAD
             ✕ Delete
+=======
+            {Icons.trash()} Delete
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </button>
           <div class="npp-spacer" />
           <Show when={isDirty()}>
@@ -301,7 +325,11 @@ export const NodePropertiesPanel: Component<NodePropertiesPanelProps> = (props) 
             onClick={handleApply}
             disabled={!isDirty()}
           >
+<<<<<<< HEAD
             ✓ Apply
+=======
+            {Icons.check()} Apply
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </button>
         </div>
       </div>

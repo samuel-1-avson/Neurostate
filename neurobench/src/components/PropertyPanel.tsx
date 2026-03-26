@@ -4,6 +4,7 @@
 
 import { Component, createSignal, createEffect, For, Show } from "solid-js";
 import { Node, PropertyValue, PORT_COLORS } from "../hooks/useNodeEngine";
+import { Icons } from "./AppIcons";
 import "./PropertyPanel.css";
 
 interface PropertyPanelProps {
@@ -152,7 +153,7 @@ const PropertyPanel: Component<PropertyPanelProps> = (props) => {
     <div class="property-panel">
       <Show when={!props.selectedNode}>
         <div class="no-selection">
-          <div class="no-selection-icon">📦</div>
+          <div class="no-selection-icon">{Icons.package()}</div>
           <p>Select a node to view properties</p>
         </div>
       </Show>
@@ -172,7 +173,7 @@ const PropertyPanel: Component<PropertyPanelProps> = (props) => {
                 onClick={() => toggleSection("general")}
               >
                 <span>General</span>
-                <span class={`chevron ${expandedSections().has("general") ? "expanded" : ""}`}>▶</span>
+                <span class={`chevron ${expandedSections().has("general") ? "expanded" : ""}`}>{Icons.chevronRight()}</span>
               </button>
               
               <Show when={expandedSections().has("general")}>
@@ -219,7 +220,7 @@ const PropertyPanel: Component<PropertyPanelProps> = (props) => {
                 >
                   <span>Properties</span>
                   <span class="property-count">{Object.keys(node().properties).length}</span>
-                  <span class={`chevron ${expandedSections().has("properties") ? "expanded" : ""}`}>▶</span>
+                  <span class={`chevron ${expandedSections().has("properties") ? "expanded" : ""}`}>{Icons.chevronRight()}</span>
                 </button>
                 
                 <Show when={expandedSections().has("properties")}>
@@ -248,7 +249,7 @@ const PropertyPanel: Component<PropertyPanelProps> = (props) => {
                   <span class="input-count">{node().ports.inputs.length} in</span>
                   <span class="output-count">{node().ports.outputs.length} out</span>
                 </span>
-                <span class={`chevron ${expandedSections().has("ports") ? "expanded" : ""}`}>▶</span>
+                <span class={`chevron ${expandedSections().has("ports") ? "expanded" : ""}`}>{Icons.chevronRight()}</span>
               </button>
               
               <Show when={expandedSections().has("ports")}>
@@ -303,7 +304,7 @@ const PropertyPanel: Component<PropertyPanelProps> = (props) => {
                   onClick={() => toggleSection("actions")}
                 >
                   <span>Actions</span>
-                  <span class={`chevron ${expandedSections().has("actions") ? "expanded" : ""}`}>▶</span>
+                  <span class={`chevron ${expandedSections().has("actions") ? "expanded" : ""}`}>{Icons.chevronRight()}</span>
                 </button>
                 
                 <Show when={expandedSections().has("actions")}>

@@ -1,5 +1,9 @@
 // StatusBar Component - Bottom status information bar
 import { createSignal, onMount, onCleanup } from "solid-js";
+<<<<<<< HEAD
+=======
+import { Icons } from "./AppIcons";
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 
 interface StatusBarProps {
   projectName?: string;
@@ -44,10 +48,17 @@ export function StatusBar(props: StatusBarProps) {
 
   const getBuildIcon = () => {
     switch (props.buildStatus) {
+<<<<<<< HEAD
       case "building": return "🔄";
       case "success": return "✅";
       case "error": return "❌";
       default: return "⚪";
+=======
+      case "building": return <span class="status-svg spinning">{Icons.refresh()}</span>;
+      case "success": return <span class="status-svg success">{Icons.checkCircle()}</span>;
+      case "error": return <span class="status-svg error">{Icons.errorCircle()}</span>;
+      default: return <span class="status-svg">{Icons.info()}</span>;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     }
   };
 
@@ -56,11 +67,19 @@ export function StatusBar(props: StatusBarProps) {
       {/* Left section - Project info */}
       <div class="statusbar-section statusbar-left">
         <span class="status-item" title="Project">
+<<<<<<< HEAD
           📁 {props.projectName || "Untitled Project"}
         </span>
         <span class="status-divider" />
         <span class="status-item" title="Target MCU">
           🎯 {props.targetMcu || "STM32F401"}
+=======
+          {Icons.folder()} {props.projectName || "Untitled Project"}
+        </span>
+        <span class="status-divider" />
+        <span class="status-item" title="Target MCU">
+          {Icons.chip()} {props.targetMcu || "STM32F401"}
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         </span>
         <span class="status-divider" />
         <span class="status-item" title="Connection Status">
@@ -80,6 +99,7 @@ export function StatusBar(props: StatusBarProps) {
       {/* Right section - Canvas info */}
       <div class="statusbar-section statusbar-right">
         <span class="status-item" title="Graph Statistics">
+<<<<<<< HEAD
           🔷 {props.nodeCount || 0} nodes • 🔗 {props.edgeCount || 0} edges
         </span>
         <span class="status-divider" />
@@ -97,6 +117,25 @@ export function StatusBar(props: StatusBarProps) {
         <span class="status-divider" />
         <span class="status-item" title="Time">
           🕐 {currentTime()}
+=======
+          {Icons.layers()} {props.nodeCount || 0} nodes • {Icons.gitBranch()} {props.edgeCount || 0} edges
+        </span>
+        <span class="status-divider" />
+        <span class="status-item" title="Zoom Level">
+          {Icons.zoomIn()} {Math.round((props.zoom || 1) * 100)}%
+        </span>
+        <span class="status-divider" />
+        <span class="status-item" title="Cursor Position">
+          {Icons.pin()} {props.cursorPosition?.x || 0}, {props.cursorPosition?.y || 0}
+        </span>
+        <span class="status-divider" />
+        <span class="status-item perf" title="Performance">
+          {Icons.memory()} {memoryUsage()}MB • {Icons.performance()} {cpuUsage()}%
+        </span>
+        <span class="status-divider" />
+        <span class="status-item" title="Time">
+          {Icons.timer()} {currentTime()}
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         </span>
       </div>
     </div>

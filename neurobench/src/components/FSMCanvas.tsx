@@ -12,6 +12,7 @@ import { useCanvasEngine, CanvasNode } from "../hooks/useCanvasEngine";
 import { useNodeEngine, NodeTypeInfo, Node, CATEGORY_INFO } from "../hooks/useNodeEngine";
 import NodePalette from "./NodePalette";
 import PropertyPanel from "./PropertyPanel";
+import { Icons } from "./AppIcons";
 import "./FSMCanvas.css";
 
 interface FSMCanvasProps {
@@ -141,9 +142,9 @@ const FSMCanvas: Component<FSMCanvasProps> = (props) => {
   };
 
   // Get node icon
-  const getNodeIcon = (nodeType: string): string => {
+  const getNodeIcon = (nodeType: string): any => {
     const info = nodeEngine.allTypes().find(t => t.node_type === nodeType);
-    return info?.icon || "●";
+    return info?.icon || Icons.circle();
   };
 
   // Handle node click
@@ -211,21 +212,21 @@ const FSMCanvas: Component<FSMCanvasProps> = (props) => {
         {/* Toolbar */}
         <div class="canvas-toolbar">
           <button onClick={() => canvasEngine.autoLayout("hierarchical")} title="Auto Layout">
-            📐
+            {Icons.layout()}
           </button>
           <button onClick={() => canvasEngine.validate()} title="Validate">
-            ✓
+            {Icons.check()}
           </button>
           <button onClick={() => canvasEngine.undo()} title="Undo">
-            ↶
+            {Icons.undo()}
           </button>
           <button onClick={() => canvasEngine.redo()} title="Redo">
-            ↷
+            {Icons.redo()}
           </button>
           <div class="zoom-controls">
-            <button onClick={() => setZoom(z => Math.max(0.25, z - 0.1))}>−</button>
+            <button onClick={() => setZoom(z => Math.max(0.25, z - 0.1))}>{Icons.zoomOut()}</button>
             <span>{Math.round(zoom() * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(3, z + 0.1))}>+</button>
+            <button onClick={() => setZoom(z => Math.min(3, z + 0.1))}>{Icons.zoomIn()}</button>
           </div>
         </div>
 
@@ -319,8 +320,12 @@ const FSMCanvas: Component<FSMCanvasProps> = (props) => {
                     />
                     
                     {/* Icon and label */}
-                    <text x="10" y="17" fill="white" font-size="12">{icon}</text>
-                    <text x="28" y="17" fill="white" font-size="11" font-weight="600">
+                    <foreignObject x="10" y="8" width="16" height="16">
+                      <div class="node-icon-wrapper" style={{ color: "white" }}>
+                        {typeof icon === 'function' ? icon() : icon}
+                      </div>
+                    </foreignObject>
+                    <text x="32" y="20" fill="white" font-size="11" font-weight="600">
                       {node.node_type.toUpperCase()}
                     </text>
                     
@@ -367,7 +372,7 @@ const FSMCanvas: Component<FSMCanvasProps> = (props) => {
         <Show when={canvasEngine.validation()}>
           {(result) => (
             <div class={`validation-badge ${result().valid ? "valid" : "invalid"}`}>
-              {result().valid ? "✓ Valid" : `✗ ${result().errors.length} errors`}
+              {result().valid ? <>{Icons.check()} Valid</> : <>{Icons.x()} {result().errors.length} errors</>}
             </div>
           )}
         </Show>

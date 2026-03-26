@@ -2,6 +2,7 @@
  * ISA-101 Compliant HMI/SCADA Aesthetic
  */
 
+<<<<<<< HEAD
 :root {
   /* === ISA-101 INDUSTRIAL PALETTE === */
   
@@ -47,6 +48,9 @@
   --radius: 4px;
   --radius-lg: 8px;
 }
+=======
+/* === RESET & BASE === */
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 
 /* === RESET & BASE === */
 *, *::before, *::after {
@@ -76,11 +80,18 @@ html, body, #root {
 }
 
 /* === HEADER - Industrial Control Bar === */
+/* === HEADER - Retro Control Bar === */
 .header {
+<<<<<<< HEAD
   height: var(--header-h);
   background: linear-gradient(180deg, #2a2f38 0%, #22262d 100%);
   border-bottom: 2px solid #6366f1;
   box-shadow: 0 2px 20px rgba(99, 102, 241, 0.3);
+=======
+  height: 48px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   display: flex;
   align-items: center;
   padding: 0 16px;
@@ -90,6 +101,7 @@ html, body, #root {
   position: relative;
 }
 
+<<<<<<< HEAD
 /* Animated glow line under header */
 .header::after {
   content: '';
@@ -112,6 +124,9 @@ html, body, #root {
   0%, 100% { opacity: 0.5; transform: translateX(-10%); }
   50% { opacity: 1; transform: translateX(10%); }
 }
+=======
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 
 .header-logo {
   display: flex;
@@ -385,15 +400,23 @@ html, body, #root {
 }
 
 /* === SIDEBAR - Industrial Icon Rail === */
+/* === SIDEBAR - Minimal Icon Rail === */
 .sidebar {
+<<<<<<< HEAD
   width: var(--sidebar-w);
   background: linear-gradient(180deg, #252a32 0%, #1a1d21 100%);
   border-right: 2px solid #3a4150;
   box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+=======
+  width: var(--sidebar-w, 48px);
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 12px 0;
+<<<<<<< HEAD
   gap: 6px;
   position: relative;
 }
@@ -428,10 +451,30 @@ html, body, #root {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+=======
+  gap: 8px;
+  position: relative;
+  z-index: 10;
+}
+
+.sidebar-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   position: relative;
 }
 
 .sidebar-btn:hover {
+<<<<<<< HEAD
   background: rgba(99, 102, 241, 0.15);
   border-color: rgba(99, 102, 241, 0.3);
   color: #f1f5f9;
@@ -444,11 +487,23 @@ html, body, #root {
   border-color: #6366f1;
   color: #22d3ee;
   box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+=======
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
+.sidebar-btn.active {
+  background: var(--bg-surface);
+  color: var(--accent);
+  border-color: var(--border);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
+}
+
+/* Selected indicator dot instead of neon bar */
 .sidebar-btn.active::after {
   content: '';
   position: absolute;
+<<<<<<< HEAD
   left: -2px;
   top: 50%;
   transform: translateY(-50%);
@@ -457,11 +512,20 @@ html, body, #root {
   background: linear-gradient(180deg, #6366f1, #22d3ee);
   border-radius: 0 3px 3px 0;
   box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+=======
+  right: -5px; /* On the border */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .sidebar-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 .sidebar-spacer { flex: 1; }
@@ -566,13 +630,13 @@ html, body, #root {
   position: absolute;
   min-width: 160px;
   background: var(--bg-surface);
-  border: 2px solid var(--border-strong);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   cursor: move;
   user-select: none;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  animation: nodeEnter 0.3s ease-out;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+  animation: nodeEnter 0.2s ease-out;
 }
 
 .fsm-node:hover {
@@ -585,7 +649,7 @@ html, body, #root {
 
 .fsm-node.selected {
   border-color: var(--accent);
-  animation: selectionPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 0 2px var(--accent-subtle);
 }
 
 .fsm-node-header {
@@ -737,11 +801,16 @@ html, body, #root {
   margin: 6px 0;
 }
 
+<<<<<<< HEAD
 /* === LEFT PANEL (VS Code-style sidebar) === */
 .left-panel {
   width: 280px;
   min-width: 200px;
   max-width: 400px;
+=======
+/* === LEFT PANEL === */
+.left-panel {
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   background: var(--bg-panel);
   border-right: 1px solid var(--border);
   display: flex;
@@ -767,6 +836,18 @@ html, body, #root {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-secondary);
+<<<<<<< HEAD
+=======
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.left-panel-title svg {
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .left-panel-close {
@@ -882,7 +963,11 @@ html, body, #root {
 /* === RIGHT PANEL === */
 /* HIDDEN - panels now appear in bottom dock */
 .right-panel {
+<<<<<<< HEAD
   display: none !important; /* Hidden - all panels in bottom dock now */
+=======
+  display: flex;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   width: var(--panel-w);
   background: var(--bg-panel);
   border-left: 1px solid var(--border);
@@ -1211,6 +1296,15 @@ html, body, #root {
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-primary svg {
+  width: 14px;
+  height: 14px;
 }
 
 .btn-primary:hover {
@@ -1231,6 +1325,15 @@ html, body, #root {
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-secondary svg {
+  width: 14px;
+  height: 14px;
 }
 
 .btn-secondary:hover {
@@ -1662,9 +1765,22 @@ html, body, #root {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+<<<<<<< HEAD
   color: var(--text-dim);
 }
 
+=======
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.panel-header svg {
+  width: 16px;
+  height: 16px;
+  /* Ensure stroke width scales nicely if needed, though usually fixed in SVG */
+}
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 /* === SUBTLE ANIMATIONS === */
 * {
   transition-property: background-color, border-color, color, opacity, transform;

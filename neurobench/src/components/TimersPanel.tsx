@@ -1,5 +1,6 @@
 import { createSignal, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface TimersPanelProps {
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
@@ -103,7 +104,7 @@ export function TimersPanel(props: TimersPanelProps) {
   return (
     <div class="timers-panel">
       <div class="timers-header">
-        <h3>⏱️ Timers & Interrupts</h3>
+        <h3><span class="header-icon">{Icons.timer()}</span> Timers & Interrupts</h3>
       </div>
       
       {/* Tabs */}
@@ -112,19 +113,19 @@ export function TimersPanel(props: TimersPanelProps) {
           class={`tab ${activeTab() === "interrupts" ? "active" : ""}`}
           onClick={() => setActiveTab("interrupts")}
         >
-          ⚡ Interrupts
+          {Icons.flash()} Interrupts
         </button>
         <button 
           class={`tab ${activeTab() === "timers" ? "active" : ""}`}
           onClick={() => setActiveTab("timers")}
         >
-          ⏲️ Timers
+          {Icons.timer()} Timers
         </button>
         <button 
           class={`tab ${activeTab() === "ticker" ? "active" : ""}`}
           onClick={() => setActiveTab("ticker")}
         >
-          🔄 Ticker
+          {Icons.refresh()} Ticker
         </button>
       </div>
 
@@ -293,7 +294,7 @@ export function TimersPanel(props: TimersPanelProps) {
         <div class="code-output">
           <div class="code-header">
             <span>Generated Code</span>
-            <button class="copy-btn" onClick={copyCode}>📋 Copy</button>
+            <button class="copy-btn" onClick={copyCode}><span class="btn-icon">{Icons.docs()}</span> Copy</button>
           </div>
           <pre><code>{generatedCode()}</code></pre>
         </div>

@@ -2,6 +2,7 @@
 import { createSignal, onMount, onCleanup, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import "./SchedulerPanel.css";
+import { Icons } from "./AppIcons";
 
 type JobPriority = "low" | "normal" | "high" | "critical";
 type JobKind = "build" | "flash" | "rtt" | "debug" | "agent" | "index";
@@ -102,9 +103,9 @@ export function SchedulerPanel() {
   return (
     <div class="scheduler-panel">
       <div class="scheduler-header">
-        <h3>⚡ Job Scheduler</h3>
+        <h3><span class="header-icon">{Icons.flash()}</span> Job Scheduler</h3>
         <button onClick={fetchStatus} disabled={isLoading()}>
-          🔄 Refresh
+          {Icons.refresh()} Refresh
         </button>
       </div>
 
@@ -134,23 +135,23 @@ export function SchedulerPanel() {
 
       {/* Quick Actions */}
       <div class="quick-actions">
-        <h4>🚀 Quick Actions</h4>
+        <h4>{Icons.play()} Quick Actions</h4>
         <div class="action-buttons">
           <button class="action-btn build" onClick={() => scheduleJob("build", "high")}>
-            🔨 Build
+            {Icons.build()} Build
           </button>
           <button class="action-btn flash" onClick={() => scheduleJob("flash", "high")}>
-            ⚡ Flash
+            {Icons.flash()} Flash
           </button>
           <button class="action-btn chain" onClick={handleBuildAndFlash}>
-            🔗 Build + Flash
+            {Icons.sync()} Build + Flash
           </button>
         </div>
       </div>
 
       {/* Schedule New Job */}
       <div class="new-job-section">
-        <h4>➕ Schedule Job</h4>
+        <h4>{Icons.plus()} Schedule Job</h4>
         <div class="job-form">
           <div class="form-row">
             <label>Kind:</label>
@@ -195,7 +196,7 @@ export function SchedulerPanel() {
 
       {/* Running Jobs */}
       <div class="running-jobs">
-        <h4>🏃 Running Jobs</h4>
+        <h4>{Icons.play()} Running Jobs</h4>
         <Show when={status().running_jobs.length === 0}>
           <div class="empty">No jobs running</div>
         </Show>
@@ -215,7 +216,7 @@ export function SchedulerPanel() {
 
       {/* Concurrency Settings */}
       <div class="concurrency-section">
-        <h4>⚙️ Concurrency Limits</h4>
+        <h4>{Icons.settings()} Concurrency Limits</h4>
         <div class="limit-grid">
           <For each={["build", "flash", "agent"] as JobKind[]}>
             {(kind) => (

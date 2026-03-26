@@ -1,5 +1,6 @@
 import { createSignal, For, Show, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface QemuPreset {
   machine: string;
@@ -86,9 +87,9 @@ export function SimulatorPanel(props: SimulatorPanelProps) {
   return (
     <div class="simulator-panel">
       <div class="simulator-header">
-        <h3>🎮 Hardware Simulator (QEMU)</h3>
+        <h3><span class="header-icon">{Icons.simulator()}</span> Hardware Simulator (QEMU)</h3>
         <button class="refresh-btn" onClick={checkQemu}>
-          🔄
+          {Icons.refresh()}
         </button>
       </div>
 
@@ -102,7 +103,7 @@ export function SimulatorPanel(props: SimulatorPanelProps) {
       {/* QEMU not available */}
       <Show when={qemuAvailable() === false}>
         <div class="not-available">
-          <div class="warning-icon">⚠️</div>
+          <div class="warning-icon">{Icons.warning()}</div>
           <h4>QEMU Not Found</h4>
           <p>To enable hardware simulation, install QEMU:</p>
           <div class="install-steps">
@@ -128,7 +129,7 @@ export function SimulatorPanel(props: SimulatorPanelProps) {
       {/* QEMU available */}
       <Show when={qemuAvailable() === true}>
         <div class="qemu-info">
-          <span class="status-badge available">✓ QEMU Available</span>
+          <span class="status-badge available"><span class="badge-icon">{Icons.check()}</span> QEMU Available</span>
           <span class="version">{qemuVersion()}</span>
         </div>
 
@@ -214,10 +215,10 @@ export function SimulatorPanel(props: SimulatorPanelProps) {
             disabled={!firmwarePath()}
             onClick={() => addLog("QEMU", `Would start: ${selectedMachine()} with ${firmwarePath()}`, "info")}
           >
-            ▶️ Run Simulation
+            <span class="btn-icon">{Icons.play()}</span> Run Simulation
           </button>
           <button class="debug-btn" disabled={!firmwarePath() || !enableGdb()}>
-            🔧 Debug (GDB)
+            <span class="btn-icon">{Icons.debug()}</span> Debug (GDB)
           </button>
         </div>
 
@@ -281,8 +282,25 @@ export function SimulatorPanel(props: SimulatorPanelProps) {
         }
 
         .warning-icon {
-          font-size: 40px;
+          font-size: 24px;
           margin-bottom: 10px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .warning-icon svg {
+          width: 32px;
+          height: 32px;
+        }
+
+        .header-icon svg, .btn-icon svg, .badge-icon svg {
+          width: 14px;
+          height: 14px;
+        }
+        
+        .refresh-btn svg {
+          width: 14px;
+          height: 14px;
         }
 
         .not-available h4 {

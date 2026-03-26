@@ -1,5 +1,6 @@
 import { createSignal, Show, For } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface PeripheralsPanelProps {
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
@@ -153,28 +154,28 @@ export function PeripheralsPanel(props: PeripheralsPanelProps) {
   return (
     <div class="peripherals-panel">
       <div class="panel-header">
-        <h3>🔌 Serial Peripherals</h3>
+        <h3><span class="header-icon">{Icons.plug()}</span> Serial Peripherals</h3>
       </div>
       
       {/* Tabs */}
-      <div class="periph-tabs">
+        <div class="periph-tabs">
         <button 
           class={`tab ${activeTab() === "spi" ? "active" : ""}`}
           onClick={() => setActiveTab("spi")}
         >
-          📡 SPI
+          {Icons.antenna()} SPI
         </button>
         <button 
           class={`tab ${activeTab() === "i2c" ? "active" : ""}`}
           onClick={() => setActiveTab("i2c")}
         >
-          🔗 I²C
+          {Icons.link()} I²C
         </button>
         <button 
           class={`tab ${activeTab() === "uart" ? "active" : ""}`}
           onClick={() => setActiveTab("uart")}
         >
-          📟 UART
+          {Icons.terminal()} UART
         </button>
       </div>
 
@@ -383,7 +384,7 @@ export function PeripheralsPanel(props: PeripheralsPanelProps) {
         <div class="code-output">
           <div class="code-header">
             <span>Generated Driver</span>
-            <button class="copy-btn" onClick={copyCode}>📋 Copy</button>
+            <button class="copy-btn" onClick={copyCode}><span class="btn-icon">{Icons.docs()}</span> Copy</button>
           </div>
           <pre><code>{generatedCode()}</code></pre>
         </div>

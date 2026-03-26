@@ -1,5 +1,7 @@
 import { createSignal, For, Show, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
+import "./GitPanel.css";
 
 interface FileStatus {
   path: string;
@@ -141,20 +143,20 @@ export function GitPanel(props: GitPanelProps) {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "new": return "➕";
-      case "modified": return "✏️";
-      case "deleted": return "🗑️";
-      case "untracked": return "❓";
-      default: return "📄";
+      case "new": return <span class="status-svg">{Icons.plus()}</span>;
+      case "modified": return <span class="status-svg">{Icons.edit()}</span>;
+      case "deleted": return <span class="status-svg">{Icons.trash()}</span>;
+      case "untracked": return <span class="status-svg">{Icons.question()}</span>;
+      default: return <span class="status-svg">{Icons.file()}</span>;
     }
   };
 
   return (
     <div class="git-panel">
       <div class="git-header">
-        <h3>🔀 Version Control</h3>
+        <h3><span class="header-icon">{Icons.gitBranch()}</span> Version Control</h3>
         <button class="refresh-btn" onClick={refreshStatus} disabled={isLoading()}>
-          {isLoading() ? "⏳" : "🔄"}
+          {isLoading() ? <span class="spinning">{Icons.refresh()}</span> : Icons.refresh()}
         </button>
       </div>
 
@@ -171,7 +173,7 @@ export function GitPanel(props: GitPanelProps) {
       {/* Repo exists */}
       <Show when={status()?.is_repo}>
         <div class="branch-info">
-          <span class="branch-icon">🌿</span>
+          <span class="branch-icon">{Icons.gitBranch()}</span>
           <span class="branch-name">{status()?.branch || "main"}</span>
           <span class="status-summary">
             {status()?.staged_count} staged, {status()?.modified_count} modified, {status()?.untracked_count} untracked
@@ -236,7 +238,7 @@ export function GitPanel(props: GitPanelProps) {
             {/* No changes */}
             <Show when={status()?.files.length === 0}>
               <div class="no-changes">
-                ✅ Working tree clean
+                <span class="clean-icon">{Icons.checkCircle()}</span> Working tree clean
               </div>
             </Show>
 
@@ -284,244 +286,7 @@ export function GitPanel(props: GitPanelProps) {
         </Show>
       </Show>
 
-      <style>{`
-        .git-panel {
-          background: var(--bg-secondary, #1a1a2e);
-          border: 1px solid var(--border, #333);
-          border-radius: 8px;
-          padding: 12px;
-        }
 
-        .git-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
-        .git-header h3 {
-          margin: 0;
-          font-size: 14px;
-        }
-
-        .refresh-btn {
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          font-size: 16px;
-          padding: 4px 8px;
-        }
-
-        .refresh-btn:hover {
-          background: rgba(255,255,255,0.1);
-          border-radius: 4px;
-        }
-
-        .no-repo {
-          text-align: center;
-          padding: 20px;
-        }
-
-        .init-btn {
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-          margin-top: 10px;
-        }
-
-        .branch-info {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 12px;
-          background: rgba(74, 222, 128, 0.1);
-          border-radius: 6px;
-          margin-bottom: 12px;
-          font-size: 12px;
-        }
-
-        .branch-name {
-          font-weight: 600;
-          color: #4ade80;
-        }
-
-        .status-summary {
-          color: #888;
-          margin-left: auto;
-        }
-
-        .git-tabs {
-          display: flex;
-          gap: 4px;
-          margin-bottom: 12px;
-        }
-
-        .tab {
-          flex: 1;
-          padding: 8px;
-          background: transparent;
-          border: 1px solid #333;
-          color: #888;
-          cursor: pointer;
-          border-radius: 6px;
-          font-size: 12px;
-        }
-
-        .tab.active {
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
-          color: white;
-          border-color: #3b82f6;
-        }
-
-        .file-group {
-          margin-bottom: 12px;
-        }
-
-        .group-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          font-size: 11px;
-          color: #888;
-          margin-bottom: 6px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .stage-all-btn {
-          background: rgba(74, 222, 128, 0.2);
-          border: 1px solid rgba(74, 222, 128, 0.3);
-          color: #4ade80;
-          padding: 4px 10px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 11px;
-        }
-
-        .file-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 10px;
-          background: rgba(255,255,255,0.03);
-          border-radius: 4px;
-          margin-bottom: 4px;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .file-item.unstaged:hover {
-          background: rgba(74, 222, 128, 0.1);
-        }
-
-        .file-item.staged {
-          border-left: 2px solid #4ade80;
-        }
-
-        .status-icon {
-          font-size: 14px;
-        }
-
-        .file-path {
-          flex: 1;
-          color: #ccc;
-          font-family: 'Fira Code', monospace;
-        }
-
-        .stage-hint {
-          color: #666;
-          font-size: 10px;
-        }
-
-        .no-changes {
-          text-align: center;
-          padding: 20px;
-          color: #4ade80;
-        }
-
-        .commit-form {
-          display: flex;
-          gap: 8px;
-          margin-top: 12px;
-        }
-
-        .commit-form input {
-          flex: 1;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid #333;
-          color: #fff;
-          padding: 10px 12px;
-          border-radius: 6px;
-          font-size: 13px;
-        }
-
-        .commit-btn {
-          background: linear-gradient(135deg, #4ade80, #22c55e);
-          color: #000;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-        }
-
-        .commit-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .history-section {
-          max-height: 300px;
-          overflow-y: auto;
-        }
-
-        .commit-item {
-          padding: 10px;
-          background: rgba(255,255,255,0.03);
-          border-radius: 6px;
-          margin-bottom: 8px;
-          border-left: 2px solid #3b82f6;
-        }
-
-        .commit-header {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 4px;
-        }
-
-        .commit-id {
-          font-family: 'Fira Code', monospace;
-          color: #60a5fa;
-          font-size: 11px;
-        }
-
-        .commit-time {
-          color: #666;
-          font-size: 11px;
-        }
-
-        .commit-message {
-          color: #fff;
-          font-size: 13px;
-          margin-bottom: 4px;
-        }
-
-        .commit-author {
-          color: #888;
-          font-size: 11px;
-        }
-
-        .no-history {
-          text-align: center;
-          padding: 20px;
-          color: #666;
-        }
-      `}</style>
     </div>
   );
 }

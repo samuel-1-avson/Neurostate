@@ -1,5 +1,6 @@
 import { createSignal, Show, For } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface ExportedFile {
   path: string;
@@ -115,7 +116,7 @@ export function CloudPanel(props: CloudPanelProps) {
   return (
     <div class="cloud-panel">
       <div class="cloud-header">
-        <h3>☁️ Cloud Sync</h3>
+        <h3>{Icons.cloud()} Cloud Sync</h3>
       </div>
 
       {/* Tabs */}
@@ -124,19 +125,19 @@ export function CloudPanel(props: CloudPanelProps) {
           class={`tab ${activeTab() === "export" ? "active" : ""}`}
           onClick={() => setActiveTab("export")}
         >
-          📤 Export
+          {Icons.upload()} Export
         </button>
         <button 
           class={`tab ${activeTab() === "import" ? "active" : ""}`}
           onClick={() => setActiveTab("import")}
         >
-          📥 Import
+          {Icons.download()} Import
         </button>
         <button 
           class={`tab ${activeTab() === "share" ? "active" : ""}`}
           onClick={() => setActiveTab("share")}
         >
-          🔗 Share
+          {Icons.link()} Share
         </button>
       </div>
 
@@ -180,7 +181,7 @@ export function CloudPanel(props: CloudPanelProps) {
             onClick={exportProject}
             disabled={isLoading()}
           >
-            {isLoading() ? "Exporting..." : "📦 Export Project"}
+            {isLoading() ? "Exporting..." : <>{Icons.package()} Export Project</>}
           </button>
 
           <Show when={exportJson()}>
@@ -188,8 +189,8 @@ export function CloudPanel(props: CloudPanelProps) {
               <div class="result-header">
                 <span>Export JSON</span>
                 <div class="result-actions">
-                  <button onClick={() => copyToClipboard(exportJson(), "JSON")}>📋 Copy</button>
-                  <button onClick={downloadExport}>💾 Download</button>
+                  <button onClick={() => copyToClipboard(exportJson(), "JSON")}>{Icons.clipboard()} Copy</button>
+                  <button onClick={downloadExport}>{Icons.save()} Download</button>
                 </div>
               </div>
               <pre class="json-preview">{exportJson().substring(0, 500)}...</pre>
@@ -216,12 +217,12 @@ export function CloudPanel(props: CloudPanelProps) {
             onClick={importProject}
             disabled={isLoading() || !importJson().trim()}
           >
-            {isLoading() ? "Importing..." : "📥 Import Project"}
+            {isLoading() ? "Importing..." : <>{Icons.download()} Import Project</>}
           </button>
 
           <Show when={importedProject()}>
             <div class="import-result">
-              <h4>✅ Project Imported</h4>
+              <h4>{Icons.check()} Project Imported</h4>
               <div class="project-info">
                 <div class="info-row">
                   <span>Name:</span>
@@ -240,7 +241,7 @@ export function CloudPanel(props: CloudPanelProps) {
                 <For each={importedProject()!.files}>
                   {(file) => (
                     <div class="file-item">
-                      <span class="file-icon">📄</span>
+                      <span class="file-icon">{Icons.file()}</span>
                       <span class="file-name">{file.path}</span>
                       <span class="file-lang">{file.language}</span>
                     </div>
@@ -256,7 +257,7 @@ export function CloudPanel(props: CloudPanelProps) {
       <Show when={activeTab() === "share"}>
         <div class="share-section">
           <div class="share-info">
-            <h4>🔗 Share Your Project</h4>
+            <h4>{Icons.link()} Share Your Project</h4>
             <p>Generate a unique share ID to share your configuration with others.</p>
           </div>
 
@@ -264,7 +265,7 @@ export function CloudPanel(props: CloudPanelProps) {
             class="share-btn"
             onClick={generateShareLink}
           >
-            🎲 Generate Share ID
+            {Icons.dice()} Generate Share ID
           </button>
 
           <Show when={shareId()}>
@@ -273,7 +274,7 @@ export function CloudPanel(props: CloudPanelProps) {
                 <span class="share-label">Share ID:</span>
                 <code class="share-id">{shareId()}</code>
                 <button onClick={() => copyToClipboard(shareId(), "Share ID")}>
-                  📋
+                  {Icons.clipboard()}
                 </button>
               </div>
             </div>
@@ -283,15 +284,15 @@ export function CloudPanel(props: CloudPanelProps) {
             <h4>Other Sharing Options</h4>
             <div class="method-list">
               <div class="method">
-                <span class="method-icon">📋</span>
+                <span class="method-icon">{Icons.clipboard()}</span>
                 <span>Copy exported JSON and share directly</span>
               </div>
               <div class="method">
-                <span class="method-icon">💾</span>
+                <span class="method-icon">{Icons.save()}</span>
                 <span>Download .neurobench.json file</span>
               </div>
               <div class="method">
-                <span class="method-icon">🐙</span>
+                <span class="method-icon">{Icons.github()}</span>
                 <span>Create a GitHub Gist (manual)</span>
               </div>
             </div>

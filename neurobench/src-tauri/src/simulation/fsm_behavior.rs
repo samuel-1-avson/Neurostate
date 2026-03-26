@@ -204,8 +204,13 @@ impl FsmBehaviorSimulator {
         let (next_id, edge_label, exit_action, entry_action, next_type, next_label) = transition;
 
         // Execute exit action
+<<<<<<< HEAD
         if let Some(action) = exit_action {
             self.execute_action(&action)?;
+=======
+        if let Some(ref action) = exit_action {
+            self.execute_action(action)?;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         }
 
         // Handle node-type specific behavior during transition
@@ -218,8 +223,13 @@ impl FsmBehaviorSimulator {
         self.state.step_count += 1;
 
         // Execute entry action
+<<<<<<< HEAD
         if let Some(action) = entry_action {
             self.execute_action(&action)?;
+=======
+        if let Some(ref action) = entry_action {
+            self.execute_action(action)?;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         }
 
         // Handle special node types

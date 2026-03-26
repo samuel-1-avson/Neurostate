@@ -39,8 +39,15 @@ pub mod evaluator;
 pub mod enhanced_orchestrator;
 pub mod enhanced_context;
 
+<<<<<<< HEAD
+=======
+// Phase 6: Unified AI Assistant
+pub mod unified_assistant;
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 #[cfg(test)]
 mod tests;
+
 
 pub use agent::*;
 pub use context::*;
@@ -79,3 +86,10 @@ pub use evaluator::{
 pub use enhanced_orchestrator::{EnhancedOrchestrator, OrchestratorConfig, OrchestratorHealth, SimpleCacheStats};
 pub use enhanced_context::{EnhancedAgentContext, EnhancedContextConfig, AgentFunctionRegistry};
 
+<<<<<<< HEAD
+=======
+// Phase 6: Unified AI Assistant exports
+pub use unified_assistant::{UnifiedAIAssistant, UnifiedAssistantConfig, AssistantResponse, AssistantContext, AssistantMetadata};
+
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b

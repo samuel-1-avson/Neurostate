@@ -1,16 +1,29 @@
 // PanelNavigator Component - Organized panel navigation with categories
+<<<<<<< HEAD
 import { createSignal, For, Show } from "solid-js";
 
 interface PanelCategory {
   name: string;
   icon: string;
+=======
+import { createSignal, For, Show, JSX } from "solid-js";
+import { Icons } from "./AppIcons";
+
+interface PanelCategory {
+  name: string;
+  icon: JSX.Element;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   panels: PanelItem[];
 }
 
 interface PanelItem {
   id: string;
   name: string;
+<<<<<<< HEAD
   icon: string;
+=======
+  icon: JSX.Element;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   description?: string;
 }
 
@@ -24,15 +37,24 @@ interface PanelNavigatorProps {
 const panelCategories: PanelCategory[] = [
   {
     name: "Design",
+<<<<<<< HEAD
     icon: "🎨",
     panels: [
       { id: "nodes", name: "Node Palette", icon: "📦", description: "FSM nodes and components" },
       { id: "pins", name: "Pin Diagram", icon: "📍", description: "MCU pinout configuration" },
       { id: "chat", name: "AI Assistant", icon: "🤖", description: "AI-powered help" },
+=======
+    icon: Icons.palette(),
+    panels: [
+      { id: "nodes", name: "Node Palette", icon: Icons.package(), description: "FSM nodes and components" },
+      { id: "pins", name: "Pin Diagram", icon: Icons.pin(), description: "MCU pinout configuration" },
+      { id: "chat", name: "AI Assistant", icon: Icons.robot(), description: "AI-powered help" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
   {
     name: "Hardware",
+<<<<<<< HEAD
     icon: "🔧",
     panels: [
       { id: "hardware", name: "MCU Config", icon: "🎯", description: "Target MCU configuration" },
@@ -40,37 +62,71 @@ const panelCategories: PanelCategory[] = [
       { id: "peripherals", name: "Peripherals", icon: "⚙️", description: "Advanced peripherals" },
       { id: "timers", name: "Timers", icon: "⏱️", description: "Timer configuration" },
       { id: "analog", name: "Analog", icon: "📊", description: "ADC/DAC configuration" },
+=======
+    icon: Icons.tool(),
+    panels: [
+      { id: "hardware", name: "MCU Config", icon: Icons.crosshair(), description: "Target MCU configuration" },
+      { id: "drivers", name: "Drivers", icon: Icons.plug(), description: "GPIO, UART, SPI, I2C" },
+      { id: "peripherals", name: "Peripherals", icon: Icons.gear(), description: "Advanced peripherals" },
+      { id: "timers", name: "Timers", icon: Icons.timer(), description: "Timer configuration" },
+      { id: "analog", name: "Analog", icon: Icons.chart(), description: "ADC/DAC configuration" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
   {
     name: "Communication",
+<<<<<<< HEAD
     icon: "📡",
     panels: [
       { id: "wireless", name: "Wireless", icon: "📶", description: "BLE, WiFi, LoRa" },
       { id: "serial", name: "Serial", icon: "🔗", description: "Serial monitor" },
+=======
+    icon: Icons.antenna(),
+    panels: [
+      { id: "wireless", name: "Wireless", icon: Icons.wifi(), description: "BLE, WiFi, LoRa" },
+      { id: "serial", name: "Serial", icon: Icons.link(), description: "Serial monitor" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
   {
     name: "RTOS & DSP",
+<<<<<<< HEAD
     icon: "⚡",
     panels: [
       { id: "rtos", name: "RTOS", icon: "🔄", description: "FreeRTOS/Zephyr tasks" },
       { id: "dsp", name: "DSP", icon: "📈", description: "Filters, FFT, PID" },
       { id: "scheduler", name: "Scheduler", icon: "📅", description: "Task scheduling" },
+=======
+    icon: Icons.flash(),
+    panels: [
+      { id: "rtos", name: "RTOS", icon: Icons.refresh(), description: "FreeRTOS/Zephyr tasks" },
+      { id: "dsp", name: "DSP", icon: Icons.trendUp(), description: "Filters, FFT, PID" },
+      { id: "scheduler", name: "Scheduler", icon: Icons.calendar(), description: "Task scheduling" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
   {
     name: "Development",
+<<<<<<< HEAD
     icon: "💻",
     panels: [
       { id: "code", name: "Code", icon: "📝", description: "Generated code view" },
       { id: "build", name: "Build", icon: "🔨", description: "Build & flash" },
       { id: "validation", name: "Validation", icon: "✅", description: "Syntax & logic check" },
       { id: "git", name: "Git", icon: "🌿", description: "Version control" },
+=======
+    icon: Icons.monitor(),
+    panels: [
+      { id: "code", name: "Code", icon: Icons.docs(), description: "Generated code view" },
+      { id: "build", name: "Build", icon: Icons.build(), description: "Build & flash" },
+      { id: "validation", name: "Validation", icon: Icons.check(), description: "Syntax & logic check" },
+      { id: "git", name: "Git", icon: Icons.gitBranch(), description: "Version control" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
   {
     name: "Debug & Analysis",
+<<<<<<< HEAD
     icon: "🔍",
     panels: [
       { id: "debug", name: "Debug", icon: "🐛", description: "Debugger controls" },
@@ -78,23 +134,47 @@ const panelCategories: PanelCategory[] = [
       { id: "memory", name: "Memory", icon: "💾", description: "Memory inspector" },
       { id: "profiler", name: "Profiler", icon: "📉", description: "Performance profiling" },
       { id: "performance", name: "Performance", icon: "⚡", description: "System performance" },
+=======
+    icon: Icons.search(),
+    panels: [
+      { id: "debug", name: "Debug", icon: Icons.debug(), description: "Debugger controls" },
+      { id: "simulator", name: "Simulator", icon: Icons.simulator(), description: "FSM simulation" },
+      { id: "memory", name: "Memory", icon: Icons.memory(), description: "Memory inspector" },
+      { id: "profiler", name: "Profiler", icon: Icons.trendDown(), description: "Performance profiling" },
+      { id: "performance", name: "Performance", icon: Icons.flash(), description: "System performance" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
   {
     name: "Security & Power",
+<<<<<<< HEAD
     icon: "🛡️",
     panels: [
       { id: "security", name: "Security", icon: "🔐", description: "Bootloader, encryption" },
       { id: "power", name: "Power", icon: "🔋", description: "Power management" },
+=======
+    icon: Icons.shield(),
+    panels: [
+      { id: "security", name: "Security", icon: Icons.lock(), description: "Bootloader, encryption" },
+      { id: "power", name: "Power", icon: Icons.battery(), description: "Power management" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
   {
     name: "Other",
+<<<<<<< HEAD
     icon: "📁",
     panels: [
       { id: "agents", name: "AI Agents", icon: "🧠", description: "Multi-agent system" },
       { id: "workflow", name: "Workflow", icon: "📊", description: "Visual workflows" },
       { id: "history", name: "History", icon: "📜", description: "Change history" },
+=======
+    icon: Icons.folder(),
+    panels: [
+      { id: "agents", name: "AI Agents", icon: Icons.brain(), description: "Multi-agent system" },
+      { id: "workflow", name: "Workflow", icon: Icons.workflow(), description: "Visual workflows" },
+      { id: "history", name: "History", icon: Icons.history(), description: "Change history" },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     ]
   },
 ];
@@ -123,7 +203,11 @@ export function PanelNavigator(props: PanelNavigatorProps) {
           onClick={props.onToggleCollapse}
           title={props.collapsed ? "Expand" : "Collapse"}
         >
+<<<<<<< HEAD
           {props.collapsed ? "▶" : "◀"}
+=======
+          {props.collapsed ? Icons.chevronRight() : Icons.chevronLeft ? Icons.chevronLeft() : <span style={{transform: "rotate(180deg)", display: "inline-block"}}>{Icons.chevronRight()}</span>}
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         </button>
       </div>
 
@@ -139,7 +223,11 @@ export function PanelNavigator(props: PanelNavigatorProps) {
                   <span class="category-icon">{category.icon}</span>
                   <span class="category-name">{category.name}</span>
                   <span class="category-toggle">
+<<<<<<< HEAD
                     {expandedCategories().has(category.name) ? "▼" : "▶"}
+=======
+                    {expandedCategories().has(category.name) ? Icons.chevronDown() : Icons.chevronRight()}
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
                   </span>
                 </button>
 

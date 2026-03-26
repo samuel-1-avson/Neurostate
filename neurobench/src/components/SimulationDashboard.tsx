@@ -1,6 +1,10 @@
 import { createSignal, For, Show, onMount, onCleanup, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import "./SimulationDashboard.css";
+<<<<<<< HEAD
+=======
+import { Icons } from "./AppIcons";
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 
 interface McuInfo {
   id: string;
@@ -257,7 +261,11 @@ export function SimulationDashboard(props: SimulationDashboardProps) {
     <div class="simulation-dashboard">
       {/* Header */}
       <div class="dashboard-header">
+<<<<<<< HEAD
         <h3>⚡ Simulation Engine</h3>
+=======
+        <h3><span class="header-icon">{Icons.flash()}</span> Simulation Engine</h3>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         <div class="status-indicator" classList={{ running: isRunning(), idle: !isRunning() }}>
           {simState()}
         </div>
@@ -304,6 +312,7 @@ export function SimulationDashboard(props: SimulationDashboardProps) {
         {/* Controls */}
         <div class="controls-section">
           <button class="ctrl-btn start" onClick={startSimulation} disabled={isRunning()}>
+<<<<<<< HEAD
             ▶ Start
           </button>
           <button class="ctrl-btn pause" onClick={pauseSimulation} disabled={!isRunning()}>
@@ -317,6 +326,21 @@ export function SimulationDashboard(props: SimulationDashboardProps) {
           </button>
           <button class="ctrl-btn reset" onClick={resetSimulation}>
             🔄 Reset
+=======
+            {Icons.play()} Start
+          </button>
+          <button class="ctrl-btn pause" onClick={pauseSimulation} disabled={!isRunning()}>
+            {Icons.pause()} Pause
+          </button>
+          <button class="ctrl-btn stop" onClick={stopSimulation}>
+            {Icons.stop()} Stop
+          </button>
+          <button class="ctrl-btn step" onClick={stepSimulation} disabled={isRunning()}>
+            {Icons.step()} Step
+          </button>
+          <button class="ctrl-btn reset" onClick={resetSimulation}>
+            {Icons.refresh()} Reset
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </button>
         </div>
 

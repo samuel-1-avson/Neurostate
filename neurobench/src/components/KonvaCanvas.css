@@ -22,12 +22,23 @@
 
 /* === PALETTE - Industrial Tool Dock === */
 .canvas-palette {
+<<<<<<< HEAD
   width: 240px;
+=======
+  /* width handled via inline style */
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   background: var(--bg-panel, #141414);
   border-right: 1px solid var(--border, #2a2a2a);
   display: flex;
   flex-direction: column;
   z-index: 10;
+<<<<<<< HEAD
+=======
+  position: relative; /* Context for resize handle */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .canvas-palette::after {
@@ -39,13 +50,56 @@
   height: 100%;
   background: linear-gradient(180deg, transparent, var(--accent-dim, #c4850d), transparent);
   opacity: 0.2;
+<<<<<<< HEAD
+=======
+  pointer-events: none;
+}
+
+/* Resize Handle */
+.palette-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+  transition: background 0.2s;
+}
+
+.palette-resize-handle:hover,
+.palette-resize-handle:active {
+  background: rgba(228, 155, 15, 0.1);
+}
+
+.palette-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 20px;
+  background: var(--accent, #e49b0f);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.palette-resize-handle:hover::after,
+.palette-resize-handle:active::after {
+  opacity: 1;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .palette-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+<<<<<<< HEAD
   padding: 14px 16px;
+=======
+  padding: 14px 12px;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   background: var(--bg-surface, #1a1a1a);
   border-bottom: 1px solid var(--border, #2a2a2a);
   font-family: var(--font-mono, 'IBM Plex Mono', monospace);
@@ -81,7 +135,11 @@
 
 .palette-search {
   margin: 10px 12px;
+<<<<<<< HEAD
   padding: 10px 14px;
+=======
+  padding: 10px 12px;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   background: var(--bg-input, #0f0f0f);
   border: 1px solid var(--border, #2a2a2a);
   border-radius: 3px;
@@ -89,6 +147,11 @@
   font-family: var(--font-mono, 'IBM Plex Mono', monospace);
   font-size: 11px;
   transition: all 0.15s;
+<<<<<<< HEAD
+=======
+  width: calc(100% - 24px); /* explicit width */
+  box-sizing: border-box;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .palette-search:focus {
@@ -105,7 +168,11 @@
 .palette-nodes {
   flex: 1;
   overflow-y: auto;
+<<<<<<< HEAD
   padding: 4px 10px 10px;
+=======
+  padding: 4px 12px 10px;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 /* Category Headers */
@@ -114,7 +181,20 @@
   font-size: 10px;
   font-weight: 600;
   color: var(--accent, #e49b0f);
+<<<<<<< HEAD
   padding: 16px 8px 8px;
+=======
+  padding: 16px 0 8px; /* Remove horizontal padding since parent has it? No, parent doesn't. */
+  /* Wait, palette-nodes has padding 4px 12px. Children .palette-category are inside .palette-nodes? */
+  /* Let's check KonvaCanvas.tsx structure. */
+  /* Structure: .palette-nodes > .palette-category, .palette-node */
+  /* So if .palette-nodes has padding 0 12px, then children don't need margin. */
+  /* Previously: .palette-nodes { padding: 4px 10px 10px; } */
+  /* I changed .palette-nodes to padding: 4px 12px 10px; */
+  /* So .palette-category padding should be 16px 0 8px ?? */
+  /* Let's check previous CSS: padding: 16px 8px 8px; */
+  /* If parent padding is 12px, then 0 padding on horizontal is correct for flush alignment. */
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   text-transform: uppercase;
   letter-spacing: 1px;
   display: flex;

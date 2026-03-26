@@ -4,6 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+<<<<<<< HEAD
   height: 26px;
   background: var(--bg-panel, #22262d);
   border-top: 1px solid var(--border, #2a2f38);
@@ -12,6 +13,19 @@
   font-size: 10px;
   color: var(--text-secondary, #94a3b8);
   user-select: none;
+=======
+  height: 28px;
+  background: rgba(20, 20, 20, 0.85); /* Glassmorphism base */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border, #2a2a2a);
+  padding: 0 12px;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 11px;
+  color: #888;
+  user-select: none;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .statusbar-section {
@@ -36,6 +50,7 @@
 .status-item {
   display: flex;
   align-items: center;
+<<<<<<< HEAD
   gap: 5px;
   padding: 2px 8px;
   border-radius: var(--radius, 4px);
@@ -47,6 +62,32 @@
 .status-item:hover {
   background: var(--bg-elevated, #323843);
   color: var(--text-primary, #f1f5f9);
+=======
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  cursor: default;
+  height: 20px;
+}
+
+.status-item svg,
+.status-svg svg {
+  width: 14px;
+  height: 14px;
+  color: #666; /* Default icon color */
+  transition: all 0.2s;
+}
+
+.status-item:hover {
+  background: rgba(228, 155, 15, 0.1);
+  color: #e49b0f;
+}
+
+.status-item:hover svg {
+  color: #e49b0f;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 /* Status LED Indicators */
@@ -60,26 +101,46 @@
 
 .status-led.connected,
 .status-led.running {
+<<<<<<< HEAD
   background: var(--status-success, #27ae60);
   box-shadow: 0 0 6px var(--status-success);
+=======
+  background: #27ae60;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.4);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   animation: ledPulse 2s infinite;
 }
 
 .status-led.connecting,
 .status-led.warning {
+<<<<<<< HEAD
   background: var(--status-warning, #f39c12);
   box-shadow: 0 0 6px var(--status-warning);
+=======
+  background: #e49b0f;
+  box-shadow: 0 0 8px rgba(228, 155, 15, 0.4);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   animation: ledPulse 0.5s infinite;
 }
 
 .status-led.disconnected,
 .status-led.error {
+<<<<<<< HEAD
   background: var(--status-error, #e74c3c);
 }
 
 @keyframes ledPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
+=======
+  background: #e74c3c;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.4);
+}
+
+@keyframes ledPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.9); }
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .status-divider {
@@ -105,15 +166,25 @@
 }
 
 .metric-bar {
+<<<<<<< HEAD
   width: 40px;
   height: 4px;
   background: var(--bg-input, #1e2126);
   border-radius: 2px;
   overflow: hidden;
+=======
+  width: 48px;
+  height: 4px;
+  background: #1a1a1a;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid #333;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 .metric-fill {
   height: 100%;
+<<<<<<< HEAD
   background: var(--accent, #6366f1);
   border-radius: 2px;
   transition: width 0.5s ease-out;
@@ -132,6 +203,30 @@
   color: var(--text-dim, #64748b);
   min-width: 28px;
   text-align: right;
+=======
+  background: #e49b0f;
+  border-radius: 2px;
+  transition: width 0.5s ease-out;
+  box-shadow: 0 0 4px rgba(228, 155, 15, 0.4);
+}
+
+.metric-fill.high {
+  background: #e49b0f;
+  box-shadow: 0 0 6px rgba(228, 155, 15, 0.6);
+}
+
+.metric-fill.critical {
+  background: #e74c3c;
+  box-shadow: 0 0 6px rgba(231, 76, 60, 0.6);
+}
+
+.metric-value {
+  font-size: 10px;
+  color: #e49b0f;
+  min-width: 28px;
+  text-align: right;
+  font-weight: 600;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 /* Status indicators */
@@ -162,8 +257,13 @@
 }
 
 .status-item.clickable:hover {
+<<<<<<< HEAD
   background: var(--accent-subtle, rgba(99, 102, 241, 0.15));
   color: var(--accent, #6366f1);
+=======
+  background: rgba(228, 155, 15, 0.1);
+  color: #e49b0f;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 }
 
 /* Time display */

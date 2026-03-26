@@ -10,6 +10,10 @@
 
 import { Component, createSignal, onMount, onCleanup, createEffect, For, Show } from 'solid-js';
 import Konva from 'konva';
+<<<<<<< HEAD
+=======
+import { Icons } from './AppIcons';
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 import { useCanvasEngine } from '../hooks/useCanvasEngine';
 import { useNodeEngine, NodeTypeInfo, CATEGORY_INFO } from '../hooks/useNodeEngine';
 import { EVENT_TYPE_COLORS, EVENT_TYPE_ICONS } from '../hooks/useTransitionEngine';
@@ -59,6 +63,11 @@ const KonvaCanvas: Component = () => {
   const [connectionLine, setConnectionLine] = createSignal<Konva.Line | null>(null);
   const [draggedPaletteNode, setDraggedPaletteNode] = createSignal<NodeTypeInfo | null>(null);
   const [ghostNode, setGhostNode] = createSignal<Konva.Group | null>(null);
+<<<<<<< HEAD
+=======
+  const [paletteWidth, setPaletteWidth] = createSignal(260); // Default wider
+  const [isResizingPalette, setIsResizingPalette] = createSignal(false);
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   
   // Context menu state
   const [contextMenu, setContextMenu] = createSignal<{
@@ -84,6 +93,49 @@ const KonvaCanvas: Component = () => {
     return NODE_COLORS[type] || NODE_COLORS.default;
   };
 
+<<<<<<< HEAD
+=======
+  const getNodeIcon = (nodeType: string): any => {
+    const type = nodeType.toLowerCase();
+    const map: Record<string, any> = {
+      // Hardware
+      gpio: Icons.pin(),
+      adc: Icons.chart(),
+      dac: Icons.trendUp(),
+      pwm: Icons.activity(),
+      uart: Icons.terminal(),
+      spi: Icons.cpu(),
+      i2c: Icons.cpu(),
+      can: Icons.car(),
+      usb: Icons.plug(),
+      
+      // RTOS
+      task: Icons.clipboard(),
+      "rtos task": Icons.clipboard(),
+      timer: Icons.timer(),
+      event: Icons.bell(),
+      semaphore: Icons.trafficLight(),
+      mutex: Icons.lock(),
+      interrupt: Icons.flash(),
+      "critical section": Icons.shield(),
+      "message queue": Icons.message(),
+      "event flags": Icons.flag(),
+      
+      // Logic
+      state: Icons.layers(),
+      initial: Icons.play(),
+      final: Icons.stop(),
+      decision: Icons.gitBranch(),
+      junction: Icons.circleFilled(),
+    };
+
+    if (map[type]) return map[type];
+    if (type.includes("hardware") || type.includes("driver")) return Icons.cpu();
+    
+    return Icons.package();
+  };
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   // Snap to grid
   const snapToGrid = (value: number): number => {
     return Math.round(value / GRID_SIZE) * GRID_SIZE;
@@ -326,6 +378,7 @@ const KonvaCanvas: Component = () => {
 
   // Get canvas context menu items
   const getCanvasMenuItems = (x: number, y: number): MenuItem[] => [
+<<<<<<< HEAD
     { label: 'Add State', icon: '●', onClick: () => addNodeAtPosition('state', x, y) },
     { label: 'Add Initial State', icon: '◉', onClick: () => addNodeAtPosition('initial_state', x, y) },
     { label: 'Add Final State', icon: '◎', onClick: () => addNodeAtPosition('final_state', x, y) },
@@ -334,10 +387,21 @@ const KonvaCanvas: Component = () => {
     { divider: true, label: '', onClick: () => {} },
     { label: 'Paste', icon: '📋', shortcut: 'Ctrl+V', onClick: () => pasteNode(x, y), disabled: !clipboard() },
     { label: 'Select All', icon: '☑', shortcut: 'Ctrl+A', onClick: selectAllNodes },
+=======
+    { label: 'Add State', icon: Icons.layers(), onClick: () => addNodeAtPosition('state', x, y) },
+    { label: 'Add Initial State', icon: Icons.play(), onClick: () => addNodeAtPosition('initial_state', x, y) },
+    { label: 'Add Final State', icon: Icons.stop(), onClick: () => addNodeAtPosition('final_state', x, y) },
+    { label: 'Add Decision', icon: Icons.gitBranch(), onClick: () => addNodeAtPosition('decision', x, y) },
+    { label: 'Add Junction', icon: Icons.circleFilled(), onClick: () => addNodeAtPosition('junction', x, y) },
+    { divider: true, label: '', onClick: () => {} },
+    { label: 'Paste', icon: Icons.clipboard(), shortcut: 'Ctrl+V', onClick: () => pasteNode(x, y), disabled: !clipboard() },
+    { label: 'Select All', icon: Icons.check(), shortcut: 'Ctrl+A', onClick: selectAllNodes },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   ];
 
   // Get node context menu items
   const getNodeMenuItems = (nodeId: string): MenuItem[] => [
+<<<<<<< HEAD
     { label: 'Edit Properties', icon: '✏️', onClick: () => { setSelectedNodeId(nodeId); setShowNodePanel(true); hideContextMenu(); } },
     { divider: true, label: '', onClick: () => {} },
     { label: 'Copy', icon: '📄', shortcut: 'Ctrl+C', onClick: copySelectedNode },
@@ -345,13 +409,28 @@ const KonvaCanvas: Component = () => {
     { label: 'Cut', icon: '✂️', shortcut: 'Ctrl+X', onClick: () => { copySelectedNode(); deleteSelected(); } },
     { divider: true, label: '', onClick: () => {} },
     { label: 'Delete', icon: '🗑️', shortcut: 'Del', onClick: deleteSelected },
+=======
+    { label: 'Edit Properties', icon: Icons.edit(), onClick: () => { setSelectedNodeId(nodeId); setShowNodePanel(true); hideContextMenu(); } },
+    { divider: true, label: '', onClick: () => {} },
+    { label: 'Copy', icon: Icons.clipboard(), shortcut: 'Ctrl+C', onClick: copySelectedNode },
+    { label: 'Duplicate', icon: Icons.clipboard(), shortcut: 'Ctrl+D', onClick: duplicateSelectedNode },
+    { label: 'Cut', icon: Icons.cut(), shortcut: 'Ctrl+X', onClick: () => { copySelectedNode(); deleteSelected(); } },
+    { divider: true, label: '', onClick: () => {} },
+    { label: 'Delete', icon: Icons.trash(), shortcut: 'Del', onClick: deleteSelected },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   ];
 
   // Get edge context menu items
   const getEdgeMenuItems = (edgeId: string): MenuItem[] => [
+<<<<<<< HEAD
     { label: 'Edit Transition', icon: '✏️', onClick: () => { setSelectedEdgeId(edgeId); setShowEdgePanel(true); hideContextMenu(); } },
     { divider: true, label: '', onClick: () => {} },
     { label: 'Delete', icon: '🗑️', shortcut: 'Del', onClick: deleteSelected },
+=======
+    { label: 'Edit Transition', icon: Icons.edit(), onClick: () => { setSelectedEdgeId(edgeId); setShowEdgePanel(true); hideContextMenu(); } },
+    { divider: true, label: '', onClick: () => {} },
+    { label: 'Delete', icon: Icons.trash(), shortcut: 'Del', onClick: deleteSelected },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   ];
 
   // Draw grid pattern
@@ -1413,6 +1492,34 @@ const KonvaCanvas: Component = () => {
     }
   });
 
+<<<<<<< HEAD
+=======
+  // Handle global mouse move/up for resizing
+  onMount(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isResizingPalette()) {
+        const newWidth = Math.max(200, Math.min(600, e.clientX));
+        setPaletteWidth(newWidth);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isResizingPalette()) {
+        setIsResizingPalette(false);
+        document.body.style.cursor = 'default';
+      }
+    };
+
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+
+    onCleanup(() => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    });
+  });
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   // Zoom controls
   const handleZoomIn = () => {
     const newZoom = Math.min(MAX_ZOOM, zoom() * 1.2);
@@ -1443,7 +1550,14 @@ const KonvaCanvas: Component = () => {
     <div class="konva-canvas-container">
       {/* Palette */}
       <Show when={showPalette()}>
+<<<<<<< HEAD
         <div class="canvas-palette">
+=======
+        <div 
+          class="canvas-palette"
+          style={{ width: `${paletteWidth()}px` }}
+        >
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           <div class="palette-header">
             <span>NODES</span>
             <button class="close-btn" onClick={() => setShowPalette(false)}>◀</button>
@@ -1462,7 +1576,11 @@ const KonvaCanvas: Component = () => {
                         onMouseDown={(e) => handlePaletteNodeMouseDown(e, nodeInfo)}
                         style={{ "border-left-color": CATEGORY_INFO[nodeInfo.category]?.color }}
                       >
+<<<<<<< HEAD
                         <span class="node-icon">{nodeInfo.icon}</span>
+=======
+                        <span class="node-icon">{getNodeIcon(nodeInfo.node_type)}</span>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
                         <span class="node-name">{nodeInfo.name}</span>
                       </div>
                     )}
@@ -1471,6 +1589,19 @@ const KonvaCanvas: Component = () => {
               )}
             </For>
           </div>
+<<<<<<< HEAD
+=======
+          
+          {/* Resize Handle */}
+          <div 
+            class="palette-resize-handle"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setIsResizingPalette(true);
+              document.body.style.cursor = 'col-resize';
+            }}
+          />
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         </div>
       </Show>
 

@@ -4,6 +4,7 @@
 
 import { Component, createSignal, onMount, For, Show } from "solid-js";
 import { useNodeEngine, CATEGORY_INFO, NodeTypeInfo } from "../hooks/useNodeEngine";
+import { Icons } from "./AppIcons";
 import "./NodePalette.css";
 
 interface NodePaletteProps {
@@ -60,9 +61,76 @@ const NodePalette: Component<NodePaletteProps> = (props) => {
     return cat?.color || "#666";
   };
 
-  const getCategoryIcon = (categoryName: string): string => {
-    const cat = Object.values(CATEGORY_INFO).find(c => c.name === categoryName);
-    return cat?.icon || "📦";
+  const getCategoryIcon = (categoryName: string): any => {
+    const map: Record<string, any> = {
+      "State Machine": Icons.gitBranch(),
+      "Hardware": Icons.tool(),
+      "Processing": Icons.cpu(),
+      "Control/RTOS": Icons.clipboard(),
+      "I/O Devices": Icons.wifi(),
+      "Data": Icons.package(),
+    };
+    return map[categoryName] || Icons.package(); 
+  };
+
+  const getNodeIcon = (nodeType: string, defaultIcon: string): any => {
+    const type = nodeType.toLowerCase();
+    const map: Record<string, any> = {
+      // Hardware
+      gpio: Icons.pin(),
+      adc: Icons.chart(),
+      dac: Icons.trendUp(),
+      pwm: Icons.wave(),
+      uart: Icons.arrowLeftRight(),
+      spi: Icons.arrowLeftRight(),
+      i2c: Icons.arrowLeftRight(),
+      can: Icons.car(),
+      usb: Icons.plug(),
+      exti: Icons.flash(),
+      dma: Icons.arrowRight(), // Using arrowRight for DMA
+
+      // FSM
+      state: Icons.circle(),
+      initial: Icons.circleFilled(),
+      final: Icons.stop(),
+      decision: Icons.gitBranch(),
+      junction: Icons.crosshair(), // Using crosshair for junction
+      
+      // Control & RTOS
+      task: Icons.clipboard(),
+      "rtos task": Icons.clipboard(),
+      timer: Icons.timer(),
+      event: Icons.bell(),
+      semaphore: Icons.trafficLight(),
+      mutex: Icons.lock(),
+      interrupt: Icons.flash(),
+      "critical section": Icons.shield(),
+      "message queue": Icons.message(),
+      "event flags": Icons.flag(),
+
+      // I/O
+      sensor: Icons.wifi(),
+      actuator: Icons.settings(),
+      led: Icons.lightbulb(),
+      button: Icons.circle(),
+      motor: Icons.refresh(), // Using refresh for rotation
+      display: Icons.monitor(),
+      
+      // Data
+      variable: Icons.file(),
+      constant: Icons.pin(),
+      array: Icons.layers(),
+      struct: Icons.package(), 
+      
+      // Wireless
+      wifi: Icons.wifi(),
+      ble: Icons.wifi(),
+      lora: Icons.wifi(),
+      zigbee: Icons.wifi(),
+    };
+    
+    // Check if we have a mapping, otherwise use generic package icon
+    return map[type] || Icons.package();
   };
 
   return (
@@ -80,7 +148,7 @@ const NodePalette: Component<NodePaletteProps> = (props) => {
           onInput={(e) => setSearchQuery(e.currentTarget.value)}
         />
         <Show when={searchQuery()}>
-          <button class="clear-search" onClick={() => setSearchQuery("")}>×</button>
+          <button class="clear-search" onClick={() => setSearchQuery("")}>{Icons.x()}</button>
         </Show>
       </div>
 
@@ -101,7 +169,7 @@ const NodePalette: Component<NodePaletteProps> = (props) => {
                 <span class="category-name">{category}</span>
                 <span class="category-count">{nodes.length}</span>
                 <span class={`category-chevron ${expandedCategories().has(category) ? "expanded" : ""}`}>
-                  ▶
+                  {Icons.chevronRight()}
                 </span>
               </button>
 
@@ -117,7 +185,7 @@ const NodePalette: Component<NodePaletteProps> = (props) => {
                         onClick={() => props.onNodeClick?.(node.node_type, node)}
                         title={`${node.name}\nInputs: ${node.ports.inputs.length}\nOutputs: ${node.ports.outputs.length}`}
                       >
-                        <span class="node-icon">{node.icon}</span>
+                        <span class="node-icon">{getNodeIcon(node.node_type, node.icon)}</span>
                         <span class="node-name">{node.name}</span>
                         <span class="port-indicators">
                           <Show when={node.ports.inputs.length > 0}>

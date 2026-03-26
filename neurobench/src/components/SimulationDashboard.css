@@ -34,6 +34,14 @@
   gap: 8px;
 }
 
+<<<<<<< HEAD
+=======
+.header-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 /* LED Status Indicator */
 .status-indicator {
   padding: 4px 16px;
@@ -215,6 +223,14 @@
   gap: 4px;
 }
 
+<<<<<<< HEAD
+=======
+.ctrl-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 .ctrl-btn.start {
   background: var(--status-success, #27ae60);
   color: white;

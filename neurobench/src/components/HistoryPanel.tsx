@@ -1,6 +1,7 @@
 // History Panel - Event store visualization and time travel (SolidJS)
 import { createSignal, onMount, For, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 import "./HistoryPanel.css";
 
 interface EventHistoryItem {
@@ -87,16 +88,16 @@ export function HistoryPanel() {
   };
 
   const getEventIcon = (eventType: string) => {
-    const icons: Record<string, string> = {
-      node_added: "➕",
-      node_removed: "➖",
-      node_moved: "↔️",
-      edge_added: "🔗",
-      edge_removed: "✂️",
-      property_changed: "✏️",
-      state_changed: "🔄",
+    const icons: Record<string, any> = {
+      node_added: Icons.plus(),
+      node_removed: Icons.trash(),
+      node_moved: Icons.move ? Icons.move() : Icons.layout(),
+      edge_added: Icons.link(),
+      edge_removed: Icons.trash(),
+      property_changed: Icons.edit(),
+      state_changed: Icons.check(),
     };
-    return icons[eventType] || "📝";
+    return icons[eventType] || Icons.info();
   };
 
   onMount(() => {
@@ -106,9 +107,9 @@ export function HistoryPanel() {
   return (
     <div class="history-panel">
       <div class="history-header">
-        <h3>📜 History</h3>
+        <h3>{Icons.history()} History</h3>
         <button onClick={() => fetchHistory()} disabled={isLoading()}>
-          🔄 Refresh
+          {Icons.refresh()} Refresh
         </button>
       </div>
 
@@ -118,7 +119,7 @@ export function HistoryPanel() {
 
       {/* Snapshot Section */}
       <div class="snapshot-section">
-        <h4>📸 Create Snapshot</h4>
+        <h4>{Icons.camera()} Create Snapshot</h4>
         <div class="snapshot-form">
           <input
             type="text"
@@ -132,7 +133,7 @@ export function HistoryPanel() {
 
       {/* Diff Section */}
       <div class="diff-section">
-        <h4>🔍 Compare Versions</h4>
+        <h4>{Icons.search()} Compare Versions</h4>
         <div class="diff-form">
           <input
             type="number"
@@ -158,7 +159,7 @@ export function HistoryPanel() {
 
       {/* Event List */}
       <div class="event-list">
-        <h4>📋 Events (Current: {currentSequence()})</h4>
+        <h4>{Icons.clipboard()} Events (Current: {currentSequence()})</h4>
         <Show when={isLoading()}>
           <div class="loading">Loading...</div>
         </Show>
@@ -188,7 +189,7 @@ export function HistoryPanel() {
                   }}
                   title="Restore to this version"
                 >
-                  ⏪
+                  {Icons.undo()}
                 </button>
               </div>
             )}

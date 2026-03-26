@@ -246,6 +246,10 @@ impl CostTracker {
             
             // Estimate cost (rough approximations)
             let cost = match provider {
+                "claude" | "claude-sonnet-4-20250514" | "claude-3" => {
+                    // Claude: ~$0.003/1K input, ~$0.015/1K output (Sonnet 4)
+                    (usage.prompt_tokens as f64 * 0.0003) + (usage.completion_tokens as f64 * 0.0015)
+                }
                 "openai" | "gpt-4" => {
                     // GPT-4: ~$0.03/1K input, ~$0.06/1K output
                     (usage.prompt_tokens as f64 * 0.003) + (usage.completion_tokens as f64 * 0.006)

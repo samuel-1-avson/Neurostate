@@ -50,6 +50,7 @@ use serde::{Serialize, Deserialize};
 /// Application state - persists across IPC calls
 pub struct AppState {
     pub orchestrator: Arc<Mutex<agents::Orchestrator>>,
+    pub unified_assistant: Arc<Mutex<agents::UnifiedAIAssistant>>,
     pub build_manager: Arc<toolchain::streaming_build::BuildManager>,
     pub job_manager: Arc<jobs::JobManager>,
     pub tool_registry: Arc<Mutex<agents::ToolRegistry>>,
@@ -63,6 +64,7 @@ impl AppState {
     pub fn new() -> Self {
         Self {
             orchestrator: Arc::new(Mutex::new(agents::Orchestrator::new())),
+            unified_assistant: Arc::new(Mutex::new(agents::UnifiedAIAssistant::new())),
             build_manager: Arc::new(toolchain::streaming_build::BuildManager::new()),
             job_manager: Arc::new(jobs::JobManager::new()),
             tool_registry: Arc::new(Mutex::new(agents::create_default_registry())),
@@ -88,12 +90,16 @@ pub fn run() {
     
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             // Project commands
             commands::project::create_project,
             commands::project::save_project,
             commands::project::load_project,
             commands::project::list_projects,
+            commands::project::secure_save_project,
+            commands::project::secure_load_project,
             
             // FSM commands
             commands::fsm::add_node,
@@ -202,6 +208,17 @@ pub fn run() {
             agent_chat,
             execute_tool,
             update_fsm_context,
+            
+            // Unified AI Assistant (Phase 6)
+            unified_chat,
+            unified_chat_stream,
+            unified_update_context,
+            unified_list_agents,
+            
+            // Session Memory
+            save_to_memory,
+            get_session_history,
+            clear_session_memory,
             
             // Project persistence
             save_project_file,
@@ -1035,6 +1052,165 @@ async fn update_fsm_context(
 ) -> Result<(), String> {
     let mut orchestrator = state.orchestrator.lock().await;
     orchestrator.update_context(nodes, edges, selected_node).await;
+    Ok(())
+}
+
+// ==================== Unified AI Assistant Commands (Phase 6) ====================
+
+/// Chat with the unified AI assistant - like Cursor/Antigravity
+/// This is the primary entry point for AI interactions
+#[tauri::command]
+async fn unified_chat(
+    state: State<'_, AppState>,
+    message: String,
+    user_id: Option<String>,
+) -> Result<agents::AssistantResponse, String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    assistant.chat(&message, user_id.as_deref()).await
+}
+
+/// Update canvas context for the unified assistant
+#[tauri::command]
+async fn unified_update_context(
+    state: State<'_, AppState>,
+    nodes: Vec<agents::ContextNode>,
+    edges: Vec<agents::ContextEdge>,
+    selected_node: Option<String>,
+) -> Result<(), String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    assistant.update_canvas_context(nodes, edges, selected_node).await;
+    Ok(())
+}
+
+/// Get list of agents from the unified assistant
+#[tauri::command]
+async fn unified_list_agents(state: State<'_, AppState>) -> Result<Vec<agents::AgentInfo>, String> {
+    let assistant = state.unified_assistant.lock().await;
+    Ok(assistant.list_agents())
+}
+
+/// Streaming chat with unified assistant - emits events for real-time display
+#[tauri::command]
+async fn unified_chat_stream(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    message: String,
+    user_id: Option<String>,
+) -> Result<String, String> {
+    use agents::streaming::simulate_streaming;
+    
+    // Generate a unique stream ID
+    let stream_id = format!("stream_{}", chrono::Utc::now().timestamp_millis());
+    
+    // Emit stream start event
+    let _ = app.emit("agent-stream", serde_json::json!({
+        "type": "start",
+        "stream_id": stream_id,
+        "agent_id": "unified"
+    }));
+    
+    // Get the response from unified assistant
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    match assistant.chat(&message, user_id.as_deref()).await {
+        Ok(response) => {
+            // Simulate streaming by emitting chunks word by word
+            let chunks = simulate_streaming(&response.message, 30);
+            
+            for (i, (chunk, _delay)) in chunks.iter().enumerate() {
+                let _ = app.emit("agent-stream", serde_json::json!({
+                    "type": "chunk",
+                    "stream_id": stream_id,
+                    "content": chunk,
+                    "sequence": i as u32
+                }));
+                
+                // Small delay between chunks for visual effect
+                tokio::time::sleep(tokio::time::Duration::from_millis(20)).await;
+            }
+            
+            // Emit completion event with full response
+            let _ = app.emit("agent-stream", serde_json::json!({
+                "type": "complete",
+                "stream_id": stream_id,
+                "response": response,
+                "total_chunks": chunks.len()
+            }));
+            
+            Ok(stream_id)
+        }
+        Err(e) => {
+            // Emit error event
+            let _ = app.emit("agent-stream", serde_json::json!({
+                "type": "error",
+                "stream_id": stream_id,
+                "error": e.to_string()
+            }));
+            
+            Err(e)
+        }
+    }
+}
+
+// ==================== Session Memory Commands ====================
+
+/// Save a message to session memory
+#[tauri::command]
+async fn save_to_memory(
+    state: State<'_, AppState>,
+    role: String,
+    content: String,
+) -> Result<(), String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    // Add to conversation context
+    let mut ctx = assistant.context.write().await;
+    ctx.agent_context.conversation.push(agents::ConversationTurn {
+        role,
+        content,
+    });
+    
+    // Trim if too many messages (keep last 50)
+    if ctx.agent_context.conversation.len() > 50 {
+        ctx.agent_context.conversation.remove(0);
+    }
+    
+    Ok(())
+}
+
+/// Get conversation history from session memory
+#[tauri::command]
+async fn get_session_history(
+    state: State<'_, AppState>,
+) -> Result<Vec<agents::ConversationTurn>, String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    let ctx = assistant.context.read().await;
+    Ok(ctx.agent_context.conversation.clone())
+}
+
+/// Clear session memory
+#[tauri::command]
+async fn clear_session_memory(
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let assistant = state.unified_assistant.clone();
+    drop(state);
+    let assistant = assistant.lock().await;
+    
+    let mut ctx = assistant.context.write().await;
+    ctx.agent_context.conversation.clear();
+    
     Ok(())
 }
 

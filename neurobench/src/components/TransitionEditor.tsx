@@ -17,6 +17,10 @@ import {
   EVENT_TYPE_ICONS, 
   EVENT_TYPE_COLORS 
 } from '../hooks/useTransitionEngine';
+<<<<<<< HEAD
+=======
+import { Icons } from './AppIcons';
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 
 export interface TransitionData {
   id: string;
@@ -42,6 +46,7 @@ interface TransitionEditorProps {
   onClose: () => void;
 }
 
+<<<<<<< HEAD
 // Category icons and names
 const CATEGORY_INFO: Record<string, { icon: string; name: string }> = {
   hardware: { icon: '⚡', name: 'Hardware' },
@@ -50,6 +55,16 @@ const CATEGORY_INFO: Record<string, { icon: string; name: string }> = {
   system: { icon: '⚙️', name: 'System' },
   fsm: { icon: '📨', name: 'FSM Logic' },
   custom: { icon: '🔧', name: 'Custom' },
+=======
+// Category icons and names - now using SVG icon functions
+const CATEGORY_INFO: Record<string, { icon: () => any; name: string }> = {
+  hardware: { icon: Icons.flash, name: 'Hardware' },
+  timer: { icon: Icons.timer, name: 'Timers' },
+  communication: { icon: Icons.antenna, name: 'Communication' },
+  system: { icon: Icons.gear, name: 'System' },
+  fsm: { icon: Icons.layers, name: 'FSM Logic' },
+  custom: { icon: Icons.build, name: 'Custom' },
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 };
 
 export const TransitionEditor: Component<TransitionEditorProps> = (props) => {
@@ -145,7 +160,11 @@ export const TransitionEditor: Component<TransitionEditorProps> = (props) => {
             </span>
             <span>TRANSITION</span>
           </div>
+<<<<<<< HEAD
           <button class="te-close" onClick={props.onClose}>✕</button>
+=======
+          <button class="te-close" onClick={props.onClose}>{Icons.x()}</button>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         </div>
         
         <div class="te-route">
@@ -179,7 +198,11 @@ export const TransitionEditor: Component<TransitionEditorProps> = (props) => {
                     onClick={() => setActiveCategory(cat)}
                     title={CATEGORY_INFO[cat].name}
                   >
+<<<<<<< HEAD
                     {CATEGORY_INFO[cat].icon}
+=======
+                    <span class="cat-icon">{CATEGORY_INFO[cat].icon()}</span>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
                   </button>
                 )}
               </For>
@@ -209,7 +232,11 @@ export const TransitionEditor: Component<TransitionEditorProps> = (props) => {
               <div class="te-selected-event" style={{ "border-left-color": getEventColor() }}>
                 <span class="te-se-icon">{EVENT_TYPE_ICONS[eventType()]}</span>
                 <span class="te-se-name">{EVENT_TYPE_NAMES[eventType()]}</span>
+<<<<<<< HEAD
                 <button class="te-se-clear" onClick={() => selectEventType('')}>✕</button>
+=======
+                <button class="te-se-clear" onClick={() => selectEventType('')}>{Icons.x()}</button>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
               </div>
             </Show>
           </div>
@@ -274,8 +301,13 @@ export const TransitionEditor: Component<TransitionEditorProps> = (props) => {
         </div>
 
         <div class="te-footer">
+<<<<<<< HEAD
           <button class="te-btn delete" onClick={handleDelete}>
             ✕ Delete
+=======
+          <button class="te-delete-btn" onClick={handleDelete}>
+            {Icons.x()} Delete
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </button>
           <div class="te-spacer" />
           <Show when={isDirty()}>
@@ -286,7 +318,11 @@ export const TransitionEditor: Component<TransitionEditorProps> = (props) => {
             onClick={handleApply}
             disabled={!isDirty()}
           >
+<<<<<<< HEAD
             ✓ Apply
+=======
+            {Icons.check()} Apply
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </button>
         </div>
       </div>

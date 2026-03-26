@@ -2,6 +2,7 @@ import { createSignal, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import { ValidationPanel } from "./ValidationPanel";
 import { CodePreview } from "./CodePreview";
+import { Icons } from "./AppIcons";
 
 interface WirelessPanelProps {
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
@@ -109,19 +110,19 @@ export function WirelessPanel(props: WirelessPanelProps) {
   return (
     <div class="wireless-panel">
       <div class="wireless-header">
-        <h3>📡 Wireless Configuration</h3>
+        <h3><span class="header-icon">{Icons.antenna()}</span> Wireless Configuration</h3>
       </div>
 
       {/* Protocol Tabs */}
       <div class="protocol-tabs">
         <button class={`tab ${protocol() === "ble" ? "active" : ""}`} onClick={() => setProtocol("ble")}>
-          🔷 BLE
+          <span class="tab-icon">{Icons.wifi()}</span> BLE
         </button>
         <button class={`tab ${protocol() === "wifi" ? "active" : ""}`} onClick={() => setProtocol("wifi")}>
-          📶 WiFi
+          <span class="tab-icon">{Icons.wifi()}</span> WiFi
         </button>
         <button class={`tab ${protocol() === "lora" ? "active" : ""}`} onClick={() => setProtocol("lora")}>
-          📻 LoRa
+          <span class="tab-icon">{Icons.antenna()}</span> LoRa
         </button>
       </div>
 

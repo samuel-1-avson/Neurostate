@@ -59,8 +59,27 @@ import { StatusBar } from "./components/StatusBar";
 import "./components/StatusBar.css";
 import { SimulationDashboard } from "./components/SimulationDashboard";
 import "./components/SimulationDashboard.css";
+<<<<<<< HEAD
 import { IndustrialMenuBar } from "./components/IndustrialMenuBar";
 import "./components/IndustrialMenuBar.css";
+=======
+import { AgentManager } from "./components/AgentManager";
+import "./components/AgentManager.css";
+import { QuickOpen } from "./components/QuickOpen";
+import "./components/QuickOpen.css";
+import { IndustrialMenuBar } from "./components/IndustrialMenuBar";
+import "./components/IndustrialMenuBar.css";
+import { FileSystem } from "./services/FileSystem";
+import { FileExplorer } from "./components/FileExplorer";
+import "./components/FileExplorer.css";
+import { EditorTabBar } from "./components/EditorTabBar";
+import "./components/EditorTabBar.css";
+import "./styles/MinimalRetroTheme.css"; // RETRO THEME
+import { ResizableSplitter } from "./components/ResizableSplitter";
+import { LayoutProvider, useLayout } from "./contexts/LayoutContext";
+import { LayoutCustomizer } from "./components/LayoutCustomizer";
+import { useLayoutKeyboard } from "./hooks/useLayoutKeyboard";
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 
 // --- Types ---
 interface FSMNode {
@@ -124,7 +143,11 @@ const SNAP_THRESHOLD = 12;
 
 // --- App Component ---
 function App() {
+<<<<<<< HEAD
   // ========== TAB SYSTEM FOR MULTIPLE DESIGNS ==========
+=======
+  // Tab management functions
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   interface CanvasTab {
     id: string;
     name: string;
@@ -132,6 +155,10 @@ function App() {
     edges: FSMEdge[];
     targetMcu: string;
     modified: boolean;
+<<<<<<< HEAD
+=======
+    content?: string;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   }
 
   const createNewTab = (name: string = "Untitled"): CanvasTab => ({
@@ -148,6 +175,27 @@ function App() {
     modified: false,
   });
 
+<<<<<<< HEAD
+=======
+  // Layout customization state
+  const [showLayoutCustomizer, setShowLayoutCustomizer] = createSignal(false);
+  const layout = useLayout();
+  
+  // Register layout keyboard shortcuts (Ctrl+B, Ctrl+J)
+  useLayoutKeyboard();
+
+  // Panel Resizing State
+  // We use createSignal for these to allow dynamic resizing
+  const [leftPanelWidth, setLeftPanelWidth] = createSignal(280);
+
+
+  const [rightPanelWidth, setRightPanelWidth] = createSignal(400); // Default wider for AI
+  const [showRightPanel, setShowRightPanel] = createSignal(true);
+  const [showAgentManager, setShowAgentManager] = createSignal(false);
+  const [showQuickOpen, setShowQuickOpen] = createSignal(false);
+  const [bottomPanelHeight, setBottomPanelHeight] = createSignal(250);
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   const [tabs, setTabs] = createSignal<CanvasTab[]>([
     {
       id: "tab_default",
@@ -241,6 +289,9 @@ function App() {
 
   // State - now derived from current tab
   const [projectName, setProjectName] = createSignal("Untitled Project");
+  const [activeWorkspacePath, setActiveWorkspacePath] = createSignal<string | null>(null);
+  const [currentProjectPath, setCurrentProjectPath] = createSignal<string | null>(null);
+  const [projectPassword, setProjectPassword] = createSignal<string | null>(null); // Encryption password
   const [targetMcu, setTargetMcu] = createSignal("STM32F401");
   const [simStatus, setSimStatus] = createSignal<"idle" | "running" | "paused">("idle");
   
@@ -296,6 +347,11 @@ function App() {
   const [activePanel, setActivePanel] = createSignal("nodes");
   const [activeBottomTab, setActiveBottomTab] = createSignal("console");
   const [activeSidePanel, setActiveSidePanel] = createSignal<string | null>(null); // VS Code-style left panel
+<<<<<<< HEAD
+=======
+  
+  const isRightPanelActive = () => !["terminal", "console", "problems", "output"].includes(activeBottomTab());
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   
   // AI Chat state
   const [chatMessages, setChatMessages] = createSignal<ChatMessage[]>([]);
@@ -499,6 +555,11 @@ function App() {
           setSelectedNode(newNode.id);
           addLog("CANVAS", `Duplicated node: ${node.label}`, "success");
         }
+      }
+      // Ctrl+P - Quick Open
+      else if (e.key === "p" && !e.shiftKey) {
+        e.preventDefault();
+        setShowQuickOpen(true);
       }
     }
     
@@ -1145,14 +1206,19 @@ function App() {
   };
 
   // Button handlers
+  // Button handlers
   const handleNewProject = async () => {
-    try {
-      const project = await invoke("create_project", { name: "New Project", targetMcu: "stm32f401" });
-      setProjectName((project as any).name);
+      // Confirm if there are unsaved changes? (Skipping for now for speed)
+      setProjectName("Untitled Project");
+      setNodes([
+          { id: "1", label: "START", type: "input", x: 300, y: 80 },
+      ]);
+      setEdges([]);
+      setCurrentProjectPath(null);
+      setActiveWorkspacePath(null);
+      setTabs([createNewTab("Main Design")]);
+      setActiveTabId(tabs()[0].id);
       addLog("PROJECT", "Created new project", "success");
-    } catch (e) {
-      addLog("ERROR", `${e}`, "error");
-    }
   };
 
   const handleSimulate = () => {
@@ -1378,6 +1444,7 @@ function App() {
   };
 
   // ========== FILE MENU HANDLERS ==========
+<<<<<<< HEAD
   const handleOpenProject = async () => {
     try {
       // Try to load from localStorage first
@@ -1432,6 +1499,88 @@ function App() {
     }
   };
 
+=======
+  // ========== FILE MENU HANDLERS ==========
+  
+  const handleOpenFolder = async () => {
+    const path = await FileSystem.openFolder();
+    if (path) {
+        setActiveWorkspacePath(path);
+        setProjectName(path.split(/[\\/]/).pop() || "Project");
+        addLog("SYSTEM", `Opened workspace: ${path}`, "success");
+        // Ensure side panel is showing explorer/git/etc where explorer makes sense
+        if (activeSidePanel() === null || activeSidePanel() === "nodes") { 
+             setActiveSidePanel("files"); 
+        }
+    }
+  };
+
+  const handleOpenFile = async (path: string, name: string) => {
+      try {
+          // Try loading securely 
+          let content: string;
+          try {
+              // Try loading without password first (this will auto-decrypt if using default key)
+              content = await invoke("secure_load_project", { path, password: null });
+          } catch (e: any) {
+              const err = e.toString();
+              if (err.includes("TRAP_PASSWORD_REQUIRED")) {
+                  // Password required for this specific file
+                  let pwd = prompt(`This project is password protected.\nEnter password for "${name}":`);
+                  if (!pwd) return; 
+                  
+                  // Retry with password
+                  try {
+                       content = await invoke("secure_load_project", { path, password: pwd });
+                       setProjectPassword(pwd); // Remember it for saving
+                  } catch (e2: any) {
+                      const err2 = e2.toString();
+                      if (err2.includes("TRAP_WRONG_PASSWORD")) {
+                          alert("Incorrect password.");
+                          return;
+                      }
+                      throw e2;
+                  }
+              } else if (err.includes("TRAP_PLAINTEXT")) {
+                   // Fallback for legacy plain text files (or non-project files)
+                   content = await FileSystem.readFile(path);
+              } else {
+                  throw e;
+              }
+          }
+
+          addLog("SYSTEM", `Opened file: ${name}`, "success");
+          
+          // Check if tab already exists
+          const existingTab = tabs().find(t => t.id === path);
+          if (existingTab) {
+              setActiveTabId(path);
+              return;
+          }
+
+          // Create new tab for file
+          const newTab: CanvasTab = {
+              id: path, // Use path as ID for files
+              name: name,
+              nodes: [], 
+              edges: [],
+              targetMcu: targetMcu(),
+              modified: false,
+              content: content // Store file content
+          };
+          
+          setTabs(prev => [...prev, newTab]);
+          setActiveTabId(path);
+
+      } catch (e) {
+          addLog("ERROR", `Failed to open file: ${e}`, "error");
+      }
+  };
+
+  const handleOpenProject = handleOpenFolder; // Reusing folder open logic for now as "Project"
+  /* Old handleOpenProject code ... removed/replaced */
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   const handleSaveAs = async () => {
     try {
       const projectData = {
@@ -1441,6 +1590,7 @@ function App() {
         edges: edges(),
         savedAt: new Date().toISOString(),
       };
+<<<<<<< HEAD
       // Create downloadable file
       const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -1450,11 +1600,95 @@ function App() {
       a.click();
       URL.revokeObjectURL(url);
       addLog("SYSTEM", `Project downloaded as ${projectName()}.nbproj`, "success");
+=======
+      
+      const content = JSON.stringify(projectData, null, 2);
+      let path = await FileSystem.saveFile({
+        title: "Save Project As",
+        defaultPath: `${projectName()}.nbproj`,
+        filters: [{ name: "NeuroBench Project", extensions: ["nbproj", "json"] }]
+      });
+
+      if (path) {
+          // Enforce Project Folder Structure
+          // If user picked "C:/Docs/MyPro.nbproj", we want "C:/Docs/MyPro/MyPro.nbproj"
+          const parts = path.split(/[\\/]/);
+          const filename = parts.pop()!;
+          const name = filename.replace(/\.(nbproj|json)$/, "");
+          const parentDir = parts.join(path.includes("\\") ? "\\" : "/");
+          const parentDirName = parts.pop(); // The folder name containing the file
+
+          // Check if parent directory name matches the project name
+          // If NOT, we assume we need to create the folder wrapper.
+          if (parentDirName !== name) {
+             const separator = path.includes("\\") ? "\\" : "/";
+             // Reconstruct path: parentDir + separator + name + separator + filename
+             // We use 'parts' (which is now the grandparent dir because of pop())
+             
+             // Safer reconstruction using parentDir string
+             // parentDir is "C:/Docs"
+             path = `${parentDir}${separator}${name}${separator}${filename}`;
+          }
+
+          // Always encrypt. 
+          // If projectPassword() is set (via 'Advanced' settings), use it.
+          // If null, backend uses internal Default Key (Transparent Encryption).
+          const pwd = projectPassword();
+
+          // Use secure save command (Backend now ensures folder creation)
+          await invoke("secure_save_project", { 
+              projectJson: content, 
+              path, 
+              password: pwd || null 
+          });
+          
+          setCurrentProjectPath(path);
+          setProjectName(name || "Project"); // Update name to match file
+          
+          if (pwd) {
+              addLog("SYSTEM", `Project saved (User Encrypted) to: ${path}`, "success");
+          } else {
+              addLog("SYSTEM", `Project saved (Auto Encrypted) to: ${path}`, "success");
+          }
+      }
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     } catch (e) {
       addLog("ERROR", `Failed to save project: ${e}`, "error");
     }
   };
 
+<<<<<<< HEAD
+=======
+  const handleSaveProject = async () => {
+      if (currentProjectPath()) {
+          try {
+              const projectData = {
+                name: projectName(),
+                targetMcu: targetMcu(),
+                nodes: nodes(),
+                edges: edges(),
+                savedAt: new Date().toISOString(),
+              };
+              const content = JSON.stringify(projectData, null, 2);
+              
+              // Use secure save command
+              await invoke("secure_save_project", { 
+                  projectJson: content, 
+                  path: currentProjectPath()!, 
+                  password: projectPassword() || null 
+              });
+              
+              addLog("SYSTEM", `Project saved`, "success");
+          } catch (e) {
+              addLog("ERROR", `Failed to save: ${e}`, "error");
+          }
+      } else {
+          await handleSaveAs();
+      }
+  };
+
+  // Replaces the old blob download logic
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   const handleExportCode = async () => {
     // First generate code if not already done
     if (!generatedCode()) {
@@ -1462,6 +1696,7 @@ function App() {
     }
     try {
       const ext = codeLanguage() === "C" ? "c" : codeLanguage() === "Cpp" ? "cpp" : "rs";
+<<<<<<< HEAD
       const blob = new Blob([generatedCode()], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1470,6 +1705,19 @@ function App() {
       a.click();
       URL.revokeObjectURL(url);
       addLog("SYSTEM", `Code exported as ${projectName()}_fsm.${ext}`, "success");
+=======
+      
+      const path = await FileSystem.saveFile({
+          title: "Export Code",
+          defaultPath: `${projectName()}_fsm.${ext}`,
+          filters: [{ name: "Source Code", extensions: [ext] }]
+      });
+
+      if (path) {
+          await FileSystem.writeFile(path, generatedCode());
+          addLog("SYSTEM", `Code exported to ${path}`, "success");
+      }
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
     } catch (e) {
       addLog("ERROR", `Failed to export code: ${e}`, "error");
     }
@@ -1695,6 +1943,7 @@ function App() {
         onHelp={handleShowHelp}
         onAbout={handleShowAbout}
         onTargetChange={(mcu) => setTargetMcu(mcu)}
+<<<<<<< HEAD
       />
       
       {/* Main Content */}
@@ -1938,14 +2187,172 @@ function App() {
                 <Show when={generatedCode()} fallback={
                   <div style="color:#666;font-size:11px;text-align:center;padding:20px;">
                     Click Generate to create code from your FSM
-                  </div>
-                }>
-                  <pre style="font-family:var(--font-mono);font-size:10px;white-space:pre-wrap;color:#eaeaea;margin:0;">
-                    {generatedCode()}
-                  </pre>
-                </Show>
-              </div>
+=======
+        // Layout customization props
+        onCustomizeLayout={() => setShowLayoutCustomizer(true)}
+        onToggleActivityBar={layout.toggleActivityBar}
+        onTogglePrimarySideBar={layout.togglePrimarySideBar}
+        onTogglePanel={layout.togglePanel}
+        onToggleStatusBar={layout.toggleStatusBar}
+        showActivityBar={layout.config().showActivityBar}
+        showPrimarySideBar={layout.config().showPrimarySideBar}
+        showPanel={layout.config().showPanel}
+        showStatusBar={layout.config().showStatusBar}
+        // New Actions
+        onToggleRightPanel={() => setShowRightPanel(prev => !prev)}
+        showRightPanel={showRightPanel()}
+        onOpenAgentManager={() => setShowAgentManager(true)}
+        onQuickOpen={() => setShowQuickOpen(true)}
+      />
+      
+      {/* Agent Manager Overlay */}
+      <Show when={showAgentManager()}>
+        <AgentManager onClose={() => setShowAgentManager(false)} />
+      </Show>
+
+      {/* Quick Open Overlay */}
+      <QuickOpen 
+        isOpen={showQuickOpen()} 
+        onClose={() => setShowQuickOpen(false)}
+        workspacePath={activeWorkspacePath() || undefined}
+        onSelectFile={(path) => {
+          handleOpenFile(path, path.split(/[\\/]/).pop() || "file");
+          setShowQuickOpen(false);
+        }}
+      />
+      
+      {/* Main Content */}
+      <div class="main-content" style={{ display: "flex", flex: "1", overflow: "hidden" }}>
+        {/* Sidebar - Activity Bar (controls left panel) */}
+        <Show when={layout.config().showActivityBar}>
+          <nav class="sidebar">
+
+            <button class={`sidebar-btn ${activeSidePanel() === "files" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "files" ? null : "files")} title="Explorer"><Icons.folder /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "hardware" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "hardware" ? null : "hardware")} title="Hardware"><Icons.chip /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "code" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "code" ? null : "code")} title="Code"><Icons.code /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "build" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "build" ? null : "build")} title="Build"><Icons.build /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "drivers" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "drivers" ? null : "drivers")} title="Drivers"><Icons.plug /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "debug" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "debug" ? null : "debug")} title="Debug"><Icons.debug /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "serial" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "serial" ? null : "serial")} title="Serial"><Icons.serial /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "git" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "git" ? null : "git")} title="Git"><Icons.gitBranch /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "rtos" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "rtos" ? null : "rtos")} title="RTOS"><Icons.tasks /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "wireless" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "wireless" ? null : "wireless")} title="Wireless"><Icons.wifi /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "dsp" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "dsp" ? null : "dsp")} title="DSP"><Icons.activity /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "security" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "security" ? null : "security")} title="Security"><Icons.lock /></button>
+
+            <button class={`sidebar-btn ${activeSidePanel() === "simulator" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "simulator" ? null : "simulator")} title="Simulator"><Icons.simulator /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "performance" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "performance" ? null : "performance")} title="Performance"><Icons.performance /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "workflow" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "workflow" ? null : "workflow")} title="Workflow"><Icons.workflow /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "memory" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "memory" ? null : "memory")} title="Memory"><Icons.memory /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "profiler" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "profiler" ? null : "profiler")} title="Profiler"><Icons.profiler /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "power" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "power" ? null : "power")} title="Power"><Icons.power /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "validation" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "validation" ? null : "validation")} title="Validation"><Icons.validate /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "history" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "history" ? null : "history")} title="History"><Icons.history /></button>
+            <button class={`sidebar-btn ${activeSidePanel() === "scheduler" ? "active" : ""}`} onClick={() => setActiveSidePanel(activeSidePanel() === "scheduler" ? null : "scheduler")} title="Scheduler"><Icons.calendar /></button>
+            <div class="sidebar-spacer" />
+            <button class="sidebar-btn" onClick={() => setShowSettingsModal(true)} title="Settings"><Icons.settings /></button>
+          </nav>
+        </Show>
+        
+        {/* Left Panel - VS Code-style sidebar */}
+        <Show when={activeSidePanel() !== null}>
+          <aside class="left-panel" style={{ width: `${leftPanelWidth()}px`, 'min-width': 'unset', 'flex-shrink': 0 }}>
+            {/* Panel Header */}
+            <div class="left-panel-header">
+            <span class="left-panel-title">
+                {activeSidePanel() === "files" && <><Icons.folder /> Explorer</>}
+                {activeSidePanel() === "nodes" && <><Icons.package /> Nodes</>}
+                {/* AI Assistant removed from here */}
+                {activeSidePanel() === "hardware" && <><Icons.chip /> Hardware</>}
+                {activeSidePanel() === "code" && <><Icons.code /> Code</>}
+                {activeSidePanel() === "drivers" && <><Icons.plug /> Drivers</>}
+                {activeSidePanel() === "pins" && <><Icons.pin /> Pins</>}
+                {activeSidePanel() === "rtos" && <><Icons.tasks /> RTOS</>}
+                {activeSidePanel() === "wireless" && <><Icons.wifi /> Wireless</>}
+                {activeSidePanel() === "dsp" && <><Icons.waveform /> DSP</>}
+                {activeSidePanel() === "security" && <><Icons.lock /> Security</>}
+                {activeSidePanel() === "simulator" && <><Icons.simulator /> Simulator</>}
+                {activeSidePanel() === "debug" && <><Icons.debug /> Debug</>}
+                {activeSidePanel() === "performance" && <><Icons.performance /> Performance</>}
+                {activeSidePanel() === "build" && <><Icons.build /> Build</>}
+                {activeSidePanel() === "workflow" && <><Icons.workflow /> Workflow</>}
+                {activeSidePanel() === "git" && <><Icons.gitBranch /> Git</>}
+                {activeSidePanel() === "serial" && <><Icons.serial /> Serial</>}
+                {activeSidePanel() === "memory" && <><Icons.memory /> Memory</>}
+                {activeSidePanel() === "profiler" && <><Icons.profiler /> Profiler</>}
+                {activeSidePanel() === "power" && <><Icons.power /> Power</>}
+                {activeSidePanel() === "validation" && <><Icons.validate /> Validation</>}
+                {activeSidePanel() === "history" && <><Icons.history /> History</>}
+                {activeSidePanel() === "scheduler" && <><Icons.calendar /> Scheduler</>}
+              </span>
+              <button class="left-panel-close" onClick={() => setActiveSidePanel(null)}>✕</button>
             </div>
+            
+            {/* Panel Content */}
+            <div class="left-panel-content">
+              
+              <Show when={activeSidePanel() === "files"}>
+                  <FileExplorer 
+                    workspacePath={activeWorkspacePath() || ""} 
+                    onFileSelect={(path, name) => handleOpenFile(path, name)} 
+                  />
+              </Show>
+
+              <Show when={activeSidePanel() === "hardware"}>
+                <div class="panel-section"><div class="panel-section-title">Target MCU</div>
+                  <select class="panel-input" value={targetMcu()} onChange={(e) => setTargetMcu(e.currentTarget.value)}>
+                    <option value="STM32F401">STM32F401</option>
+                    <option value="STM32F103">STM32F103</option>
+                    <option value="ESP32">ESP32</option>
+                    <option value="RP2040">RP2040</option>
+                  </select>
+                </div>
+                <div class="panel-section"><div class="panel-section-title">Serial Ports</div>
+                  <button class="btn-primary" onClick={handleDetectDevices}>Scan Ports</button>
+                  <For each={serialPorts()}>{(p) => <div class="port-item">{p.name}</div>}</For>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "code"}>
+                <div class="panel-section">
+                  <div class="code-toolbar">
+                    <select class="panel-input" value={codeLanguage()} onChange={(e) => setCodeLanguage(e.currentTarget.value)}>
+                      <option value="C">C</option><option value="Cpp">C++</option><option value="Rust">Rust</option>
+                    </select>
+                    <button class="btn-primary" onClick={handleGenerateCode} disabled={isGenerating()}>{isGenerating() ? "..." : "Generate"}</button>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
+                  </div>
+                  <pre class="code-output">{generatedCode() || "// Click Generate"}</pre>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "drivers"}>
+                <div class="panel-section"><div class="panel-section-title">Peripheral</div>
+                  <select class="panel-input" value={driverType()} onChange={(e) => setDriverType(e.currentTarget.value as any)}>
+                    <option value="GPIO">GPIO</option><option value="UART">UART</option><option value="SPI">SPI</option><option value="I2C">I2C</option>
+                  </select>
+                </div>
+              </Show>
+              
+              <Show when={activeSidePanel() === "build"}><BuildPanel /></Show>
+              <Show when={activeSidePanel() === "debug"}><DebugPanel /></Show>
+              <Show when={activeSidePanel() === "serial"}><SerialPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "rtos"}><RTOSPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "wireless"}><WirelessPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "dsp"}><DSPPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "security"}><SecurityPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "git"}><GitPanel projectPath="." onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "memory"}><MemoryPanel /></Show>
+              <Show when={activeSidePanel() === "profiler"}><ProfilerPanel /></Show>
+              <Show when={activeSidePanel() === "performance"}><PerformancePanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "simulator"}><SimulationDashboard onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "power"}><PowerPanel onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "validation"}><ValidationPanel code={generatedCode() || ""} language={codeLanguage()} onLog={addLog} /></Show>
+              <Show when={activeSidePanel() === "history"}><HistoryPanel /></Show>
+              <Show when={activeSidePanel() === "scheduler"}><SchedulerPanel /></Show>
+              <Show when={activeSidePanel() === "workflow"}><WorkflowPanel /></Show>
+            </div>
+<<<<<<< HEAD
           </Show>
           
           {/* Drivers Panel */}
@@ -2320,55 +2727,101 @@ function App() {
             <SchedulerPanel />
           </Show>
         </aside>
+=======
+          </aside>
+          <ResizableSplitter 
+            direction="horizontal" 
+            onResize={(x) => setLeftPanelWidth(Math.max(200, Math.min(600, x - 48)))} 
+          />
+        </Show>
+        
+        {/* Canvas Area - Konva Canvas */}
+        <div class="editor-area" style={{ flex: 1, display: "flex", "flex-direction": "column", overflow: "hidden", position: "relative" }}>
+          <EditorTabBar 
+            tabs={tabs().map(t => ({ id: t.id, name: t.name, modified: t.modified }))}
+            activeTabId={activeTabId()}
+            onTabClick={switchTab}
+            onTabClose={closeTab}
+            onAddTab={() => addNewTab()}
+          />
+          <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+            <KonvaCanvas />
+          </div>
+        </div>
+
+        {/* Dedicated AI Assistant Right Panel */}
+        <Show when={showRightPanel()}>
+          <ResizableSplitter direction="horizontal" onResize={(val) => setRightPanelWidth(Math.max(300, window.innerWidth - val))} />
+          <aside class="right-panel" style={{ width: `${rightPanelWidth()}px`, 'flex-shrink': 0, display: 'flex', 'flex-direction': 'column', 'background': '#13131f', 'border-left': '1px solid #333' }}>
+             <AgentPanel 
+                onToolAction={handleToolAction} 
+                hideHeader={false}
+                context={{
+                  projectName: projectName(),
+                  mcuTarget: targetMcu(),
+                  language: codeLanguage(),
+                  nodeCount: nodes().length,
+                  edgeCount: edges().length,
+                  selectedNodeId: selectedNode(),
+                  selectedNodeLabel: selectedNode() ? getNodeById(selectedNode()!)?.label || null : null
+                }}
+              />
+          </aside>
+        </Show>
+
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
       </div>
       
       {/* Bottom Panel */}
-      <div class="bottom-panel">
-        <div class="bottom-panel-tabs">
-          <button class={`bottom-panel-tab ${activeBottomTab() === "terminal" ? "active" : ""}`} onClick={() => setActiveBottomTab("terminal")}>Terminal</button>
-          <button class={`bottom-panel-tab ${activeBottomTab() === "console" ? "active" : ""}`} onClick={() => setActiveBottomTab("console")}>Console</button>
-          <button class={`bottom-panel-tab ${activeBottomTab() === "problems" ? "active" : ""}`} onClick={() => setActiveBottomTab("problems")}>Problems</button>
-          <button class={`bottom-panel-tab ${activeBottomTab() === "output" ? "active" : ""}`} onClick={() => setActiveBottomTab("output")}>Output</button>
+      <Show when={layout.config().showPanel}>
+        <ResizableSplitter direction="vertical" onResize={(y) => setBottomPanelHeight(Math.max(100, window.innerHeight - y))} />
+        <div class="bottom-panel" style={{ height: `${bottomPanelHeight()}px`, 'flex-shrink': 0 }}>
+          <div class="bottom-panel-tabs">
+            <button class={`bottom-panel-tab ${activeBottomTab() === "terminal" ? "active" : ""}`} onClick={() => setActiveBottomTab("terminal")}>Terminal</button>
+            <button class={`bottom-panel-tab ${activeBottomTab() === "console" ? "active" : ""}`} onClick={() => setActiveBottomTab("console")}>Console</button>
+            <button class={`bottom-panel-tab ${activeBottomTab() === "problems" ? "active" : ""}`} onClick={() => setActiveBottomTab("problems")}>Problems</button>
+            <button class={`bottom-panel-tab ${activeBottomTab() === "output" ? "active" : ""}`} onClick={() => setActiveBottomTab("output")}>Output</button>
+          </div>
+          
+          <Show when={activeBottomTab() === "terminal"}>
+            <div class="terminal-panel">
+              <Terminal onCommand={(cmd, output) => {
+                addLog("TERMINAL", `> ${cmd}`, "info");
+              }} />
+            </div>
+          </Show>
+          
+          <Show when={activeBottomTab() === "console"}>
+            <div class="console-content">
+              <For each={logs()}>
+                {(log) => (
+                  <div class="console-line">
+                    <span class="console-time">{log.time}</span>
+                    <span class={`console-tag ${log.type}`}>{log.source}</span>
+                    <span class="console-message">{log.message}</span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </Show>
+          
+          <Show when={activeBottomTab() === "problems"}>
+            <div class="console-content">
+              <div class="console-line info">
+                <span class="console-message" style="color:#888;">No problems detected</span>
+              </div>
+            </div>
+          </Show>
+          
+          <Show when={activeBottomTab() === "output"}>
+            <div class="console-content">
+              <div class="console-line">
+                <span class="console-message" style="color:#888;">Build output will appear here...</span>
+              </div>
+            </div>
+          </Show>
         </div>
-        
-        <Show when={activeBottomTab() === "terminal"}>
-          <div class="terminal-panel">
-            <Terminal onCommand={(cmd, output) => {
-              addLog("TERMINAL", `> ${cmd}`, "info");
-            }} />
-          </div>
-        </Show>
-        
-        <Show when={activeBottomTab() === "console"}>
-          <div class="console-content">
-            <For each={logs()}>
-              {(log) => (
-                <div class="console-line">
-                  <span class="console-time">{log.time}</span>
-                  <span class={`console-tag ${log.type}`}>{log.source}</span>
-                  <span class="console-message">{log.message}</span>
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
-        
-        <Show when={activeBottomTab() === "problems"}>
-          <div class="console-content">
-            <div class="console-line info">
-              <span class="console-message" style="color:#888;">No problems detected</span>
-            </div>
-          </div>
-        </Show>
-        
-        <Show when={activeBottomTab() === "output"}>
-          <div class="console-content">
-            <div class="console-line">
-              <span class="console-message" style="color:#888;">Build output will appear here...</span>
-            </div>
-          </div>
-        </Show>
-      </div>
+      </Show>
       
       {/* FSM from Description Modal */}
       <Show when={showDescriptionModal()}>
@@ -2407,10 +2860,13 @@ function App() {
         <SettingsPanel 
           onClose={() => setShowSettingsModal(false)}
           onLog={addLog}
+          projectPassword={projectPassword()}
+          setProjectPassword={setProjectPassword}
         />
       </Show>
       
       {/* Status Bar - Bottom of app */}
+<<<<<<< HEAD
       <StatusBar 
         projectName={projectName()}
         targetMcu={targetMcu()}
@@ -2419,12 +2875,43 @@ function App() {
         nodeCount={nodes().length}
         edgeCount={edges().length}
         zoom={1}
+=======
+      <Show when={layout.config().showStatusBar}>
+        <StatusBar 
+          projectName={projectName()}
+          targetMcu={targetMcu()}
+          connectionStatus="disconnected"
+          buildStatus="idle"
+          nodeCount={nodes().length}
+          edgeCount={edges().length}
+          zoom={1}
+        />
+      </Show>
+      
+      {/* Layout Customizer Modal */}
+      <LayoutCustomizer 
+        isOpen={showLayoutCustomizer()} 
+        onClose={() => setShowLayoutCustomizer(false)} 
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
       />
 
     </div>
   );
 }
 
+<<<<<<< HEAD
 export default App;
 
+=======
+// Wrap App with LayoutProvider to provide layout context throughout the app
+function AppWithLayout() {
+  return (
+    <LayoutProvider>
+      <App />
+    </LayoutProvider>
+  );
+}
+
+export default AppWithLayout;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 

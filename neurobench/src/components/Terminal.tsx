@@ -1,12 +1,13 @@
 // Advanced Terminal CLI Component
 // AI-Augmented terminal with advanced command parsing, ANSI colors, and tab completion
 
-import { createSignal, For, Show, onMount, createEffect, batch } from "solid-js";
+import { createSignal, For, Show, onMount, batch } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface TerminalLine {
   type: "input" | "output" | "error" | "success" | "info" | "system" | "warning" | "ansi";
-  content: string;
+  content: string | any;
   timestamp: string;
   ansi?: string;  // ANSI color codes
 }
@@ -100,7 +101,7 @@ export function Terminal(props: TerminalProps) {
   const [showCompletions, setShowCompletions] = createSignal(false);
   const [selectedCompletion, setSelectedCompletion] = createSignal(0);
   const [isExecuting, setIsExecuting] = createSignal(false);
-  const [theme, setTheme] = createSignal<TerminalTheme>(defaultTheme);
+  const [theme] = createSignal<TerminalTheme>(defaultTheme);
   const [variables, setVariables] = createSignal<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = createSignal("");
   const [showSearch, setShowSearch] = createSignal(false);
@@ -116,7 +117,7 @@ export function Terminal(props: TerminalProps) {
     return now.toLocaleTimeString("en-US", { hour12: false });
   }
 
-  function addLine(type: TerminalLine["type"], content: string, ansi?: string) {
+  function addLine(type: TerminalLine["type"], content: any, ansi?: string) {
     setLines(prev => {
       const newLines = [...prev, { type, content, timestamp: getTime(), ansi }];
       // Keep only last MAX_SCROLLBACK lines
@@ -220,7 +221,7 @@ export function Terminal(props: TerminalProps) {
           const key = assignment.slice(0, eqPos);
           const value = assignment.slice(eqPos + 1);
           setVariables(prev => ({ ...prev, [key]: value }));
-          addLine("success", `✓ Set ${key}=${value}`);
+          addLine("success", <span>{Icons.check()} Set {key}={value}</span>);
         } else {
           addLine("info", "Usage: export VAR=value");
         }
@@ -394,14 +395,6 @@ export function Terminal(props: TerminalProps) {
     }
   }
 
-  // Render ANSI text with colors
-  function renderAnsiContent(content: string, ansiCode?: string): string {
-    if (!ansiCode) return content;
-    // Extract color from ANSI code (simplified)
-    // Full implementation would parse all ANSI sequences
-    return content;
-  }
-
   return (
     <div class="terminal" style={{ 
       "--term-bg": theme().background,
@@ -414,7 +407,7 @@ export function Terminal(props: TerminalProps) {
           <span class="terminal-dot red" />
           <span class="terminal-dot yellow" />
           <span class="terminal-dot green" />
-          <span class="terminal-title-text">🧠 NeuroBench Terminal</span>
+          <span class="terminal-title-text"><span class="title-icon">{Icons.brain()}</span> NeuroBench Terminal</span>
         </div>
         <div class="terminal-actions">
           <button 
@@ -422,7 +415,7 @@ export function Terminal(props: TerminalProps) {
             onClick={() => setShowSearch(!showSearch())}
             title="Search (Ctrl+Shift+F)"
           >
-            🔍
+            {Icons.search()}
           </button>
           <button 
             class="terminal-action-btn" 
@@ -458,9 +451,9 @@ export function Terminal(props: TerminalProps) {
               ? `${currentSearchIndex() + 1}/${searchResults().length}` 
               : "No results"}
           </span>
-          <button class="terminal-search-btn" onClick={prevSearchResult}>↑</button>
-          <button class="terminal-search-btn" onClick={nextSearchResult}>↓</button>
-          <button class="terminal-search-btn" onClick={() => setShowSearch(false)}>✕</button>
+          <button class="terminal-search-btn" onClick={prevSearchResult}>{Icons.arrowUp()}</button>
+          <button class="terminal-search-btn" onClick={nextSearchResult}>{Icons.arrowDown()}</button>
+          <button class="terminal-search-btn" onClick={() => setShowSearch(false)}>{Icons.x()}</button>
         </div>
       </Show>
       
@@ -524,9 +517,63 @@ export function Terminal(props: TerminalProps) {
         </Show>
       </div>
       
+      <style>{`
+        .terminal {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          background: var(--term-bg);
+          color: var(--term-fg);
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13px;
+        }
+        
+        .terminal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 12px;
+          background: rgba(0,0,0,0.2);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .terminal-title {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .terminal-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+        }
+        
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+        
+        .terminal-title-text {
+          margin-left: 8px;
+          font-weight: 600;
+          font-size: 12px;
+          color: var(--term-fg);
+          opacity: 0.7;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        
+        .title-icon svg {
+          width: 14px;
+          height: 14px;
+        }
+        
+        /* ... rest of styles ... */
+      `}</style>
       <div class="terminal-footer">
         <span class="terminal-status">
-          {isExecuting() ? "⏳ Running..." : "✓ Ready"}
+          {isExecuting() ? <><span class="status-icon spinning">{Icons.refresh()}</span> Running...</> : <><span class="status-icon">{Icons.check()}</span> Ready</>}
         </span>
         <span class="terminal-hint">
           Tab: complete • ↑↓: history • Ctrl+Shift+F: search • Ctrl+L: clear

@@ -1,5 +1,7 @@
 import { createSignal, Show } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
+import "./RTOSPanel.css";
 
 interface RTOSPanelProps {
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
@@ -158,7 +160,7 @@ export function RTOSPanel(props: RTOSPanelProps) {
   return (
     <div class="rtos-panel">
       <div class="rtos-header">
-        <h3>🔄 RTOS Configuration</h3>
+        <h3><span class="header-icon">{Icons.tasks()}</span> RTOS Configuration</h3>
         <div class="rtos-selector">
           <button 
             class={`rtos-btn ${rtos() === "freertos" ? "active" : ""}`}
@@ -178,19 +180,19 @@ export function RTOSPanel(props: RTOSPanelProps) {
       {/* Tabs */}
       <div class="rtos-tabs">
         <button class={`tab ${activeTab() === "task" ? "active" : ""}`} onClick={() => setActiveTab("task")}>
-          📋 Tasks
+          {Icons.tasks()} Tasks
         </button>
         <button class={`tab ${activeTab() === "semaphore" ? "active" : ""}`} onClick={() => setActiveTab("semaphore")}>
-          🚦 Semaphore
+          {Icons.activity()} Semaphore
         </button>
         <button class={`tab ${activeTab() === "mutex" ? "active" : ""}`} onClick={() => setActiveTab("mutex")}>
-          🔒 Mutex
+          {Icons.lock()} Mutex
         </button>
         <button class={`tab ${activeTab() === "queue" ? "active" : ""}`} onClick={() => setActiveTab("queue")}>
-          📬 Queue
+          {Icons.layers()} Queue
         </button>
         <button class={`tab ${activeTab() === "timer" ? "active" : ""}`} onClick={() => setActiveTab("timer")}>
-          ⏱️ Timer
+          {Icons.timer()} Timer
         </button>
       </div>
 
@@ -331,7 +333,7 @@ export function RTOSPanel(props: RTOSPanelProps) {
       {/* Config File Button */}
       <div class="config-actions">
         <button class="config-btn" onClick={generateConfig}>
-          📄 Generate {rtos() === "freertos" ? "FreeRTOSConfig.h" : "prj.conf"}
+          {Icons.file()} Generate {rtos() === "freertos" ? "FreeRTOSConfig.h" : "prj.conf"}
         </button>
       </div>
 
@@ -340,7 +342,7 @@ export function RTOSPanel(props: RTOSPanelProps) {
         <div class="code-output">
           <div class="code-header">
             <span>Generated Code</span>
-            <button class="copy-btn" onClick={copyToClipboard}>📋 Copy</button>
+            <button class="copy-btn" onClick={copyToClipboard}><span class="btn-icon">{Icons.docs()}</span> Copy</button>
           </div>
           <pre class="code-block">{generatedCode()}</pre>
         </div>

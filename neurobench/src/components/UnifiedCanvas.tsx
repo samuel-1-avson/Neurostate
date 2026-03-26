@@ -21,6 +21,7 @@ import { Component, createSignal, createEffect, onMount, For, Show } from "solid
 import { invoke } from "@tauri-apps/api/core";
 import { useCanvasEngine, CanvasNode, CanvasEdge, NodeType } from "../hooks/useCanvasEngine";
 import { useNodeEngine, NodeTypeInfo, CATEGORY_INFO } from "../hooks/useNodeEngine";
+import { Icons } from "./AppIcons";
 import "./UnifiedCanvas.css";
 
 // ============================================================================
@@ -238,10 +239,49 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
     return colors[typeStr] || "#4f46e5";
   };
 
+<<<<<<< HEAD
   const getNodeIcon = (nodeType: NodeType): string => {
     const typeStr = nodeTypeToString(nodeType);
     const info = nodeEngine.allTypes().find(t => t.node_type === typeStr);
     return info?.icon || "●";
+=======
+  const getNodeIcon = (nodeType: NodeType): any => {
+    const typeStr = nodeTypeToString(nodeType).toLowerCase();
+    
+    const map: Record<string, any> = {
+      // Hardware
+      gpio: Icons.pin(),
+      adc: Icons.chart(),
+      dac: Icons.chart(),
+      i2c: Icons.cpu(),
+      spi: Icons.cpu(),
+      uart: Icons.terminal(),
+      pwm: Icons.activity(),
+      
+      // RTOS
+      task: Icons.clipboard(),
+      "rtos task": Icons.clipboard(),
+      timer: Icons.timer(),
+      event: Icons.bell(),
+      semaphore: Icons.trafficLight(),
+      mutex: Icons.lock(),
+      interrupt: Icons.flash(),
+      "critical section": Icons.shield(),
+      "message queue": Icons.message(),
+      "event flags": Icons.flag(),
+      
+      // Logic
+      state: Icons.layers(),
+      decision: Icons.gitBranch(),
+      initial: Icons.play(),
+      final: Icons.stop(),
+    };
+
+    if (map[typeStr]) return map[typeStr];
+    if (typeStr.includes("hardware") || typeStr.includes("driver")) return Icons.cpu();
+    
+    return Icons.package();
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   };
 
   const mapNodeType = (newType: string): NodeType => {
@@ -895,7 +935,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                   onDragEnd={() => { console.log('[UnifiedCanvas] Drag ended'); setIsPaletteDragging(false); setDraggedNodeInfo(null); }}
                   style={{ "border-left-color": CATEGORY_INFO[nodeInfo.category]?.color }}
                 >
-                  <span class="node-icon">{nodeInfo.icon}</span>
+                  <span class="node-icon">{getNodeIcon(nodeInfo.node_type as NodeType)}</span>
                   <span class="node-name">{nodeInfo.name}</span>
                   <button 
                     class="add-node-btn"
@@ -963,8 +1003,33 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
           
           <div class="toolbar-right">
             <button onClick={() => setSnapToGrid(!snapToGrid())} class={snapToGrid() ? "active" : ""} title="Snap">⊞</button>
-            <button onClick={() => canvasEngine.autoLayout("hierarchical")} title="Layout">📐</button>
-            <button onClick={() => setShowMinimap(!showMinimap())} class={showMinimap() ? "active" : ""} title="Minimap">🗺️</button>
+            <button onClick={() => canvasEngine.autoLayout("hierarchical")} title="Layout"><span class="btn-icon">{Icons.layout()}</span></button>
+            <button onClick={() => setShowMinimap(!showMinimap())} class={showMinimap() ? "active" : ""} title="Minimap"><span class="btn-icon">{Icons.minimap()}</span></button>
+            <div class="toolbar-divider" />
+            
+            {/* Simulation Controls */}
+            <Show when={!isSimulating()}>
+              <button 
+                class="simulate-btn"
+                onClick={startSimulation}
+                disabled={canvasEngine.state().nodes.length === 0}
+                title="Simulate your FSM design"
+              >
+                <span class="btn-icon">{Icons.simulator()}</span> Simulate
+              </button>
+            </Show>
+            <Show when={isSimulating()}>
+              <button class="sim-step-btn" onClick={stepSimulation} title="Step"><span class="btn-icon">{Icons.step()}</span> Step</button>
+              <button class="sim-stop-btn" onClick={stopSimulation} title="Stop"><span class="btn-icon">{Icons.stop()}</span></button>
+              <button 
+                class={showSimPanel() ? "active" : ""} 
+                onClick={() => setShowSimPanel(!showSimPanel())}
+                title="Toggle Simulation Panel"
+              >
+                <span class="btn-icon">{Icons.chart()}</span>
+              </button>
+            </Show>
+            
             <div class="toolbar-divider" />
             
             {/* Simulation Controls */}
@@ -1002,21 +1067,21 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
               onClick={() => setShowAIModal(true)}
               title="AI Generate Nodes"
             >
-              🪄 AI
+              <span class="btn-icon">{Icons.brain()}</span> AI
             </button>
             <button 
               class="generate-btn"
               onClick={handleGenerateCode}
               disabled={isGenerating()}
             >
-              ⚡ Generate
+              <span class="btn-icon">{Icons.flash()}</span> Generate
             </button>
             <button 
               class={showCodePanel() ? "active" : ""}
               onClick={() => setShowCodePanel(!showCodePanel())}
               title="Toggle Code Panel"
             >
-              📄
+              <span class="btn-icon">{Icons.code()}</span>
             </button>
           </div>
         </div>
@@ -1191,7 +1256,9 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                       />
                       
                       {/* Icon and Type */}
-                      <text x="12" y="20" fill="white" font-size="14">{icon}</text>
+                      <g transform="translate(10, 8) scale(0.6)">
+                        {icon}
+                      </g>
                       <text x="32" y="20" fill="white" font-size="12" font-weight="600">
                         {nodeTypeToString(node.node_type).toUpperCase()}
                       </text>
@@ -1298,7 +1365,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             >
               Code
             </button>
-            <button class="close-btn" onClick={() => { setShowProperties(false); setShowCodePanel(false); }}>✕</button>
+            <button class="close-btn" onClick={() => { setShowProperties(false); setShowCodePanel(false); }}>{Icons.x()}</button>
           </div>
 
           {/* Properties Content */}
@@ -1306,7 +1373,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             <div class="properties-content enhanced">
               <Show when={selectedNode()} fallback={
                 <div class="no-selection">
-                  <div class="no-selection-icon">📋</div>
+                  <div class="no-selection-icon">{Icons.docs()}</div>
                   <h4>SELECT A NODE TO EDIT</h4>
                   <p>Click on any node in the canvas to view and modify its properties</p>
                 </div>
@@ -1330,9 +1397,9 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                     </div>
 
                     {/* ID & Dimensions */}
-                    <div class="property-section">
-                      <div class="section-title">📍 Position & Size</div>
-                      <div class="property-grid">
+                    <div class="property-row">
+                      <div class="section-title"><span class="icon-inline">{Icons.crosshair()}</span> Position & Size</div>
+                      <div class="prop-group">
                         <div class="property-item">
                           <label>X</label>
                           <input type="number" value={Math.round(node().x)} readonly />
@@ -1354,7 +1421,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
 
                     {/* Entry Action */}
                     <div class="property-section">
-                      <div class="section-title">▶️ Entry Action</div>
+                      <div class="section-title"><span class="section-icon">{Icons.resume()}</span> Entry Action</div>
                       <textarea 
                         class="code-textarea"
                         placeholder="// Code runs when entering this state"
@@ -1366,7 +1433,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
 
                     {/* Exit Action */}
                     <div class="property-section">
-                      <div class="section-title">⏹️ Exit Action</div>
+                      <div class="section-title"><span class="section-icon">{Icons.stop()}</span> Exit Action</div>
                       <textarea 
                         class="code-textarea"
                         placeholder="// Code runs when exiting this state"
@@ -1377,8 +1444,8 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                     </div>
 
                     {/* Description */}
-                    <div class="property-section">
-                      <div class="section-title">📝 Description</div>
+                    <div class="property-row">
+                      <div class="section-title"><span class="icon-inline">{Icons.docs()}</span> Description</div>
                       <textarea 
                         class="description-textarea"
                         placeholder="Optional notes about this node..."
@@ -1389,9 +1456,10 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                     </div>
 
                     {/* Connections */}
-                    <div class="property-section">
-                      <div class="section-title">🔗 Connections</div>
+                    <div class="property-row">
+                      <div class="section-title"><span class="icon-inline">{Icons.link()}</span> Connections</div>
                       <div class="connections-list">
+                        <h4>Outputs</h4>
                         <For each={canvasEngine.state().edges.filter(e => e.source === node().id)}>
                           {(edge) => {
                             const target = canvasEngine.state().nodes.find(n => n.id === edge.target);
@@ -1399,11 +1467,12 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                               <div class="connection-item outgoing">
                                 <span class="conn-icon">→</span>
                                 <span class="conn-label">{target?.label || edge.target}</span>
-                                <button class="conn-delete" onClick={() => canvasEngine.deleteEdges([edge.id])}>✕</button>
+                                <button class="conn-delete" onClick={() => canvasEngine.deleteEdges([edge.id])}>{Icons.x()}</button>
                               </div>
                             );
                           }}
                         </For>
+                        <h4>Inputs</h4>
                         <For each={canvasEngine.state().edges.filter(e => e.target === node().id)}>
                           {(edge) => {
                             const source = canvasEngine.state().nodes.find(n => n.id === edge.source);
@@ -1411,7 +1480,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                               <div class="connection-item incoming">
                                 <span class="conn-icon">←</span>
                                 <span class="conn-label">{source?.label || edge.source}</span>
-                                <button class="conn-delete" onClick={() => canvasEngine.deleteEdges([edge.id])}>✕</button>
+                                <button class="conn-delete" onClick={() => canvasEngine.deleteEdges([edge.id])}>{Icons.x()}</button>
                               </div>
                             );
                           }}
@@ -1424,7 +1493,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
 
                     {/* Quick Actions */}
                     <div class="property-section actions">
-                      <div class="section-title">⚡ Quick Actions</div>
+                      <div class="section-title"><span class="section-icon">{Icons.flash()}</span> Quick Actions</div>
                       <div class="action-buttons">
                         <button class="action-btn duplicate" onClick={async () => {
                           const newNode: CanvasNode = {
@@ -1436,13 +1505,13 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                           };
                           await canvasEngine.addNode(newNode);
                         }}>
-                          📋 Duplicate
+                          <span class="btn-icon">{Icons.docs()}</span> Duplicate
                         </button>
                         <button class="action-btn delete" onClick={async () => {
                           await canvasEngine.deleteNodes([node().id]);
                           setSelectedNodeId(null);
                         }}>
-                          🗑️ Delete
+                          <span class="btn-icon">{Icons.trash()}</span> Delete
                         </button>
                       </div>
                     </div>
@@ -1466,8 +1535,8 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
               
               <Show when={codeTab() === "preview"}>
                 <div class="code-actions">
-                  <button onClick={() => copyToClipboard(renderFullCode())}>📋 Copy</button>
-                  <button onClick={() => downloadFile("generated.c", renderFullCode())}>⬇️ Download</button>
+                  <button onClick={() => copyToClipboard(renderFullCode())}><span class="btn-icon">{Icons.docs()}</span> Copy</button>
+                  <button onClick={() => downloadFile("generated.c", renderFullCode())}><span class="btn-icon">{Icons.download()}</span> Download</button>
                 </div>
                 <pre class="code-preview"><code>{renderFullCode()}</code></pre>
               </Show>
@@ -1481,7 +1550,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                           class={`file-item ${selectedFile() === file.name ? "selected" : ""}`}
                           onClick={() => setSelectedFile(file.name)}
                         >
-                          {file.name.endsWith(".h") ? "📘" : "📄"} {file.name}
+                          {file.name.endsWith(".h") ? Icons.docs() : Icons.docs()} {file.name}
                         </div>
                       )}
                     </For>
@@ -1490,8 +1559,8 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
                     <div class="file-content">
                       <div class="file-header">
                         <span>{selectedFile()}</span>
-                        <button onClick={() => copyToClipboard(getSelectedFileContent())}>📋</button>
-                        <button onClick={() => downloadFile(selectedFile()!, getSelectedFileContent())}>⬇️</button>
+                        <button onClick={() => copyToClipboard(getSelectedFileContent())}><span class="btn-icon">{Icons.docs()}</span></button>
+                        <button onClick={() => downloadFile(selectedFile()!, getSelectedFileContent())}><span class="btn-icon">{Icons.download()}</span></button>
                       </div>
                       <pre><code>{getSelectedFileContent()}</code></pre>
                     </div>
@@ -1507,9 +1576,15 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
       <Show when={showSimPanel() && isSimulating()}>
         <div class="simulation-panel">
           <div class="sim-panel-header">
+<<<<<<< HEAD
             <h4>🎮 Simulation</h4>
             <span class={`sim-status ${simState()}`}>{simState().toUpperCase()}</span>
             <button class="close-btn" onClick={() => setShowSimPanel(false)}>✕</button>
+=======
+            <h4><span class="header-icon">{Icons.simulator()}</span> Simulation</h4>
+            <span class={`sim-status ${simState()}`}>{simState().toUpperCase()}</span>
+            <button class="close-btn" onClick={() => setShowSimPanel(false)}>{Icons.x()}</button>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </div>
           
           {/* GPIO Visualization */}
@@ -1549,8 +1624,13 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
           
           {/* Controls */}
           <div class="sim-controls">
+<<<<<<< HEAD
             <button class="sim-ctrl-btn step" onClick={stepSimulation}>⏭ Step</button>
             <button class="sim-ctrl-btn stop" onClick={stopSimulation}>⏹ Stop</button>
+=======
+            <button class="sim-ctrl-btn step" onClick={stepSimulation}><span class="btn-icon">{Icons.step()}</span> Step</button>
+            <button class="sim-ctrl-btn stop" onClick={stopSimulation}><span class="btn-icon">{Icons.stop()}</span> Stop</button>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </div>
         </div>
       </Show>
@@ -1564,6 +1644,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             onClick={(e) => e.stopPropagation()}
           >
             <Show when={ctx().nodeId}>
+<<<<<<< HEAD
               <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Duplicate clicked'); duplicateNode(); setContextMenu(null); }}>📋 Duplicate</button>
               <button class="context-menu-item danger" onClick={() => { console.log('[UnifiedCanvas] Context: Delete clicked'); deleteNode(); setContextMenu(null); }}>🗑️ Delete</button>
               <div class="context-menu-divider" />
@@ -1573,6 +1654,17 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
             <div class="context-menu-divider" />
             <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Generate clicked'); handleGenerateCode(); setContextMenu(null); }}>⚡ Generate Code</button>
             <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Close clicked'); setContextMenu(null); }}>✕ Close</button>
+=======
+              <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Duplicate clicked'); duplicateNode(); setContextMenu(null); }}><span class="ctx-icon">{Icons.docs()}</span> Duplicate</button>
+              <button class="context-menu-item danger" onClick={() => { console.log('[UnifiedCanvas] Context: Delete clicked'); deleteNode(); setContextMenu(null); }}><span class="ctx-icon">{Icons.trash()}</span> Delete</button>
+              <div class="context-menu-divider" />
+            </Show>
+            <button class="context-menu-item" onClick={async () => { console.log('[UnifiedCanvas] Context: Undo clicked'); await canvasEngine.undo(); setContextMenu(null); console.log('[UnifiedCanvas] Undo completed'); }}><span class="ctx-icon">{Icons.undo()}</span> Undo</button>
+            <button class="context-menu-item" onClick={async () => { console.log('[UnifiedCanvas] Context: Redo clicked'); await canvasEngine.redo(); setContextMenu(null); console.log('[UnifiedCanvas] Redo completed'); }}><span class="ctx-icon">{Icons.redo()}</span> Redo</button>
+            <div class="context-menu-divider" />
+            <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Generate clicked'); handleGenerateCode(); setContextMenu(null); }}><span class="ctx-icon">{Icons.flash()}</span> Generate Code</button>
+            <button class="context-menu-item" onClick={() => { console.log('[UnifiedCanvas] Context: Close clicked'); setContextMenu(null); }}><span class="ctx-icon">{Icons.x()}</span> Close</button>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           </div>
         )}
       </Show>
@@ -1582,7 +1674,7 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
         <div class="ai-modal-overlay" onClick={() => setShowAIModal(false)}>
           <div class="ai-modal" onClick={(e) => e.stopPropagation()}>
             <div class="ai-modal-header">
-              <h3>🪄 AI Node Generator</h3>
+              <h3><span class="header-icon">{Icons.brain()}</span> AI Node Generator</h3>
               <button class="close-btn" onClick={() => setShowAIModal(false)}>✕</button>
             </div>
             <div class="ai-modal-content">
@@ -1595,9 +1687,9 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
               />
               <div class="ai-examples">
                 <span>Examples:</span>
-                <button onClick={() => setAIPrompt("LED blink with button control")}>💡 LED Blink</button>
-                <button onClick={() => setAIPrompt("Temperature monitor with thresholds")}>🌡️ Temp Monitor</button>
-                <button onClick={() => setAIPrompt("UART communication state machine")}>📡 UART FSM</button>
+                <button onClick={() => setAIPrompt("LED blink with button control")}><span class="example-icon">{Icons.lightbulb()}</span> LED Blink</button>
+                <button onClick={() => setAIPrompt("Temperature monitor with thresholds")}><span class="example-icon">{Icons.activity()}</span> Temp Monitor</button>
+                <button onClick={() => setAIPrompt("UART communication state machine")}><span class="example-icon">{Icons.antenna()}</span> UART FSM</button>
               </div>
             </div>
             <div class="ai-modal-footer">

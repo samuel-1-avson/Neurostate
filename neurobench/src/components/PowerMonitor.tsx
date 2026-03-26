@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { createSignal, For, Show, createEffect, onMount, onCleanup } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+=======
+import { createSignal, Show, onMount, onCleanup } from "solid-js";
+import { Icons } from "./AppIcons";
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 import "./PowerMonitor.css";
 
 interface PowerMonitorProps {
@@ -114,7 +119,11 @@ export function PowerMonitor(props: PowerMonitorProps) {
   return (
     <div class="power-monitor">
       <div class="monitor-header">
+<<<<<<< HEAD
         <h3>⚡ Power Monitor</h3>
+=======
+        <h3><span class="header-icon">{Icons.flash()}</span> Power Monitor</h3>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
         <span class="mcu-label">{props.mcuType}</span>
       </div>
 
@@ -177,7 +186,11 @@ export function PowerMonitor(props: PowerMonitorProps) {
       {/* Stats Cards */}
       <div class="power-stats">
         <div class="stat-card current">
+<<<<<<< HEAD
           <span class="stat-icon">🔌</span>
+=======
+          <span class="stat-icon">{Icons.plug()}</span>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           <div class="stat-info">
             <span class="stat-value">{(currentDraw() / 1000).toFixed(2)}</span>
             <span class="stat-unit">mA</span>
@@ -186,7 +199,11 @@ export function PowerMonitor(props: PowerMonitorProps) {
         </div>
         
         <div class="stat-card power">
+<<<<<<< HEAD
           <span class="stat-icon">💡</span>
+=======
+          <span class="stat-icon">{Icons.lightbulb()}</span>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           <div class="stat-info">
             <span class="stat-value">{(powerConsumption() / 1000).toFixed(2)}</span>
             <span class="stat-unit">mW</span>
@@ -195,7 +212,11 @@ export function PowerMonitor(props: PowerMonitorProps) {
         </div>
         
         <div class="stat-card battery">
+<<<<<<< HEAD
           <span class="stat-icon">🔋</span>
+=======
+          <span class="stat-icon">{Icons.battery()}</span>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
           <div class="stat-info">
             <span class="stat-value">{formatBatteryLife(batteryLife())}</span>
           </div>

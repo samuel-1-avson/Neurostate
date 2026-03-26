@@ -2,7 +2,11 @@ import { Component, For, Show, onCleanup, onMount } from 'solid-js';
 
 export interface MenuItem {
   label: string;
+<<<<<<< HEAD
   icon?: string;
+=======
+  icon?: any;
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   shortcut?: string;
   onClick: () => void;
   disabled?: boolean;

@@ -1,5 +1,9 @@
 // Menubar Component - Application Menu with File, Edit, View, etc.
 import { createSignal, Show, For } from "solid-js";
+<<<<<<< HEAD
+=======
+import { Icons } from "./AppIcons";
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 
 interface MenubarProps {
   onNewProject?: () => void;
@@ -166,7 +170,11 @@ export function Menubar(props: MenubarProps) {
                       >
                         <span class="menu-item-label">{item.label}</span>
                         <Show when={item.submenu}>
+<<<<<<< HEAD
                           <span class="menu-item-arrow">▶</span>
+=======
+                          <span class="menu-item-arrow">{Icons.chevronRight()}</span>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
                         </Show>
                         <Show when={item.shortcut}>
                           <span class="menu-item-shortcut">{item.shortcut}</span>

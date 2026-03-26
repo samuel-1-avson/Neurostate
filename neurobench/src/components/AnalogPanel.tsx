@@ -1,5 +1,6 @@
 import { createSignal, Show, For } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
 
 interface AnalogPanelProps {
   onLog?: (source: string, message: string, type?: "info" | "success" | "warning" | "error") => void;
@@ -123,7 +124,7 @@ export function AnalogPanel(props: AnalogPanelProps) {
   return (
     <div class="analog-panel">
       <div class="panel-header">
-        <h3>📊 Analog I/O</h3>
+        <h3><span class="header-icon">{Icons.chart()}</span> Analog I/O</h3>
       </div>
       
       {/* Tabs */}
@@ -132,19 +133,19 @@ export function AnalogPanel(props: AnalogPanelProps) {
           class={`tab ${activeTab() === "adc" ? "active" : ""}`}
           onClick={() => setActiveTab("adc")}
         >
-          📈 ADC
+          <span class="tab-icon">{Icons.waveform()}</span> ADC
         </button>
         <button 
           class={`tab ${activeTab() === "dac" ? "active" : ""}`}
           onClick={() => setActiveTab("dac")}
         >
-          📉 DAC
+          <span class="tab-icon">{Icons.chart()}</span> DAC
         </button>
         <button 
           class={`tab ${activeTab() === "pwm" ? "active" : ""}`}
           onClick={() => setActiveTab("pwm")}
         >
-          〰️ PWM
+          <span class="tab-icon">{Icons.activity()}</span> PWM
         </button>
       </div>
 
@@ -226,8 +227,8 @@ export function AnalogPanel(props: AnalogPanelProps) {
           </div>
           
           <div class="info-box">
-            <p>📌 DAC Output: 0-4095 → 0-3.3V</p>
-            <p>🔧 Resolution: 12-bit</p>
+            <p><span class="info-icon">{Icons.cpu()}</span> DAC Output: 0-4095 → 0-3.3V</p>
+            <p><span class="info-icon">{Icons.gear()}</span> Resolution: 12-bit</p>
           </div>
           
           <button class="generate-btn" onClick={generateDAC} disabled={isGenerating()}>
@@ -301,7 +302,7 @@ export function AnalogPanel(props: AnalogPanelProps) {
         <div class="code-output">
           <div class="code-header">
             <span>Generated Code</span>
-            <button class="copy-btn" onClick={copyCode}>📋 Copy</button>
+            <button class="copy-btn" onClick={copyCode}><span class="copy-icon">{Icons.docs()}</span> Copy</button>
           </div>
           <pre><code>{generatedCode()}</code></pre>
         </div>

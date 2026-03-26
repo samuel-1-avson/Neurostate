@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import { createSignal, For, Show, createEffect } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+=======
+import { createSignal, For, Show } from "solid-js";
+import { invoke } from "@tauri-apps/api/core";
+import { Icons } from "./AppIcons";
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
 import "./PeripheralViewer.css";
 
 interface PeripheralViewerProps {
@@ -16,7 +22,11 @@ export function PeripheralViewer(props: PeripheralViewerProps) {
   const [uartInput, setUartInput] = createSignal<string>("");
   
   // Timer state
+<<<<<<< HEAD
   const [timerValues, setTimerValues] = createSignal<Record<number, number>>({});
+=======
+  const [timerValues] = createSignal<Record<number, number>>({});
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
   
   // ADC state
   const [adcChannels, setAdcChannels] = createSignal<number[]>(Array(8).fill(2048));
@@ -54,7 +64,13 @@ export function PeripheralViewer(props: PeripheralViewerProps) {
   return (
     <div class="peripheral-viewer">
       <div class="viewer-header">
+<<<<<<< HEAD
         <h3>📟 Peripheral Monitor</h3>
+=======
+      <div class="viewer-header">
+        <h3><span class="header-icon">{Icons.terminal()}</span> Peripheral Monitor</h3>
+      </div>
+>>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
       </div>
 
       {/* Tab Navigation */}

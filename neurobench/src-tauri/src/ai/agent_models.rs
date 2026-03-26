@@ -3,7 +3,7 @@
 //! Maps each agent to its optimal LLM model with fallback support.
 //! Uses hybrid strategy: powerful models for complex tasks, fast models for simple tasks.
 
-use super::providers::{ModelConfig, ModelProvider, ModelManager, OpenAIModel, OllamaModel};
+use super::providers::{ModelConfig, ModelProvider, ModelManager, OpenAIModel, OllamaModel, ClaudeModel};
 use crate::ai::GeminiModel;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
@@ -230,6 +230,18 @@ impl AgentModelRegistry {
         
         // Create primary model
         let primary: Box<dyn super::providers::AIModel> = match config.primary_provider {
+            ModelProvider::Claude => {
+                let api_key = std::env::var("ANTHROPIC_API_KEY").ok();
+                Box::new(ClaudeModel::new(ModelConfig {
+                    provider: ModelProvider::Claude,
+                    model_name: config.primary_model.clone(),
+                    api_key,
+                    base_url: Some("https://api.anthropic.com".to_string()),
+                    temperature: config.temperature,
+                    max_tokens: config.max_tokens,
+                    timeout_secs: 120,
+                }))
+            }
             ModelProvider::OpenAI => {
                 let api_key = std::env::var("OPENAI_API_KEY").ok();
                 Box::new(OpenAIModel::new(ModelConfig {
@@ -284,6 +296,18 @@ impl AgentModelRegistry {
             (&config.fallback_provider, &config.fallback_model) 
         {
             let fallback: Box<dyn super::providers::AIModel> = match fallback_provider {
+                ModelProvider::Claude => {
+                    let api_key = std::env::var("ANTHROPIC_API_KEY").ok();
+                    Box::new(ClaudeModel::new(ModelConfig {
+                        provider: ModelProvider::Claude,
+                        model_name: fallback_model.clone(),
+                        api_key,
+                        base_url: Some("https://api.anthropic.com".to_string()),
+                        temperature: config.temperature,
+                        max_tokens: config.max_tokens,
+                        timeout_secs: 120,
+                    }))
+                }
                 ModelProvider::OpenAI => {
                     let api_key = std::env::var("OPENAI_API_KEY").ok();
                     Box::new(OpenAIModel::new(ModelConfig {
