@@ -1,0 +1,18 @@
+{
+  "name": "@neurostate/message-bus",
+  "version": "2.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "dependencies": {
+    "@neurostate/types": "^2.0.0",
+    "eventemitter3": "^5.0.1",
+    "ioredis": "^5.4.1"
+  }
+}
