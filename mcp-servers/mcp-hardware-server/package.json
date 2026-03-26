@@ -1,0 +1,14 @@
+{
+  "name": "@neurostate/mcp-hardware-server",
+  "version": "2.0.0",
+  "description": "MCP Server for hardware validation and analysis",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@neurostate/types": "^2.0.0"
+  }
+}

@@ -1,12 +1,24 @@
 {
   "name": "neurostate",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
   "type": "module",
+  "workspaces": [
+    "mcp-servers/*",
+    "agents/*/*",
+    "orchestrator",
+    "shared/*"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "agent:dev": "tsx orchestrator/src/index.ts",
+    "mcp:code-server": "tsx mcp-servers/mcp-code-server/src/index.ts",
+    "mcp:hardware-server": "tsx mcp-servers/mcp-hardware-server/src/index.ts",
+    "test": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
@@ -17,12 +29,19 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "reactflow": "^11.11.4",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "ioredis": "^5.4.1",
+    "zod": "^3.24.0",
+    "uuid": "^9.0.0",
+    "eventemitter3": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/uuid": "^9.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "tsx": "^4.7.0",
+    "vitest": "^1.0.0"
   }
 }
