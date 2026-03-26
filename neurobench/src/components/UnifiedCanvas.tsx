@@ -276,7 +276,6 @@ const UnifiedCanvas: Component<UnifiedCanvasProps> = (props) => {
     
     return Icons.package();
   };
-  };
 
   const mapNodeType = (newType: string): NodeType => {
     const typeMap: Record<string, NodeType> = {

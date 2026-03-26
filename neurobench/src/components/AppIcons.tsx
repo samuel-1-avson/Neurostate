@@ -296,9 +296,6 @@ export const Icons = {
       <line x1="12" y1="17" x2="12" y2="21" />
     </svg>
   ),
-<<<<<<< HEAD
-};
-=======
   
   // === STATUS ICONS ===
   check: () => (
@@ -963,4 +960,4 @@ export const Icons = {
   ),
 };
 
->>>>>>> 3e03cd4273f400c8cf131df2c0e623136fc8ea8b
+export default Icons;
