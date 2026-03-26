@@ -22,6 +22,12 @@ import {
 } from '@neurostate/types';
 import { createMessageBus, MessageBus } from '@neurostate/message-bus';
 import { McpClientManager, McpClientConfig } from '@neurostate/mcp-client';
+import { 
+  createLLMAdapter, 
+  LLMAdapter, 
+  LLMConfig,
+  defaultConfigs as llmDefaultConfigs
+} from '@neurostate/llm-adapter';
 
 // ============================================================================
 // ORCHESTRATOR CONFIGURATION
@@ -33,6 +39,7 @@ export interface OrchestratorConfig {
   mcpServers?: McpClientConfig[];
   enableSelfReflection?: boolean;
   maxConcurrentTasks?: number;
+  llmConfig?: LLMConfig;
 }
 
 interface ActiveWorkflow {
@@ -48,6 +55,7 @@ interface ActiveWorkflow {
 export class Director extends EventEmitter {
   private messageBus: MessageBus | null = null;
   private mcpClientManager: McpClientManager;
+  private llmAdapter: LLMAdapter | null = null;
   private workflows: Map<string, ActiveWorkflow> = new Map();
   private toolRegistry: Map<string, ToolInfo> = new Map();
   private agentRegistry: Map<string, AgentDefinition> = new Map();
@@ -71,6 +79,16 @@ export class Director extends EventEmitter {
       ...config,
     };
     this.mcpClientManager = new McpClientManager();
+    
+    // Initialize LLM adapter if configured
+    if (this.config.llmConfig) {
+      try {
+        this.llmAdapter = createLLMAdapter(this.config.llmConfig);
+        console.log(`[Director] LLM adapter initialized: ${this.config.llmConfig.provider}/${this.config.llmConfig.model}`);
+      } catch (error) {
+        console.warn('[Director] Failed to initialize LLM adapter, falling back to keyword-based classification:', error);
+      }
+    }
     
     // Register all agents
     Object.values(AGENT_DEFINITIONS).forEach(agent => {
@@ -172,9 +190,44 @@ export class Director extends EventEmitter {
   }
 
   private async classifyIntent(text: string): Promise<Intent> {
+    // Try LLM-based classification if adapter is available
+    if (this.llmAdapter) {
+      try {
+        console.log('[Director] Using LLM for intent classification...');
+        const result = await this.llmAdapter.classifyIntent(text);
+        
+        // Map LLM intent to our IntentType
+        const intentTypeMap: Record<string, IntentType> = {
+          'code_generation': 'GENERATE_CODE',
+          'code_refactoring': 'REFACTOR_CODE',
+          'testing': 'RUN_TESTS',
+          'debugging': 'DEBUG_ISSUE',
+          'architecture': 'DESIGN_SYSTEM',
+          'documentation': 'DOCUMENT_PROJECT',
+          'deployment': 'DEPLOY_FIRMWARE',
+          'security': 'SECURITY_AUDIT',
+          'hardware': 'VALIDATE_HARDWARE',
+          'optimization': 'OPTIMIZE_PERFORMANCE',
+          'analysis': 'ANALYZE_ARCHITECTURE',
+          'configuration': 'GENERATE_CODE',
+        };
+
+        const mappedType = intentTypeMap[result.intent] || 'GENERATE_CODE';
+        
+        return {
+          type: mappedType,
+          confidence: result.confidence,
+          entities: result.entities || {},
+          suggestedWorkflow: result.suggestedWorkflow,
+        };
+      } catch (error) {
+        console.warn('[Director] LLM classification failed, falling back to keyword-based:', error);
+      }
+    }
+
+    // Fallback to keyword-based classification
     const textLower = text.toLowerCase();
     
-    // Simple keyword-based classification (would use AI in production)
     const intentMap: Record<string, IntentType> = {
       'generate': 'GENERATE_CODE',
       'create': 'GENERATE_CODE',
